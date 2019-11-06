@@ -1,0 +1,95 @@
+package main
+
+import (
+	"api-project-go/controllers"
+	"api-project-go/services"
+	"api-project-go/services/log"
+	"fmt"
+	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/logs"
+	"github.com/go-redis/redis"
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/jinzhu/gorm"
+	"net/http"
+	"os"
+)
+
+func init() {
+	beego.ErrorHandler("404", func(writer http.ResponseWriter, request *http.Request) {
+		_, _ = writer.Write([]byte(`{"ret":404,"msg":"API not found"}`))
+		writer.WriteHeader(404)
+	})
+}
+
+// 初始化日志系统
+func init() {
+	l := log.NewLogger()
+	if beego.BConfig.RunMode == beego.DEV {
+		l.SetLevel(logs.LevelDebug)
+		_ = l.SetLogger(logs.AdapterConsole)
+	} else {
+		l.SetLevel(logs.LevelInfo)
+	}
+	_ = os.MkdirAll("logs", 0755)
+	_ = l.SetLogger(logs.AdapterFile,
+		fmt.Sprintf(`{"filename":"logs%v%v.log", "daily":true, "maxdays":%d}`,
+			string(os.PathSeparator),
+			beego.BConfig.AppName,
+			10,
+		))
+	tlogaddr := beego.AppConfig.DefaultString("tlogaddr", "")
+	if tlogaddr != "" && tlogaddr != "127.0.0.1:6666" {
+		sname := beego.AppConfig.DefaultString("servicename", "wetest")
+		tname := beego.AppConfig.DefaultString("toolname", beego.BConfig.AppName)
+		logs.Register("dlogs", log.NewDlogsWriter)
+		dlogconfig := fmt.Sprintf(`{
+			"servicename":"%s",
+			"toolname":"%v",
+			"nettype":"udp",
+			"tlogipport":"%v"}`,
+			tname,
+			sname,
+			tlogaddr,
+		)
+		err := l.SetLogger("dlogs", dlogconfig)
+		if err != nil {
+			l.Error("init dlogs error %v", err)
+		} else {
+			l.Info("init dlogs ok, tlogaddr=%v, servicename=%v toolname=%v", tlogaddr, sname, tname)
+		}
+	}
+	log.SetLogger(l)
+	// 是否自动打印错误返回日志
+	controllers.AutoLogError = beego.AppConfig.DefaultBool("autologerror", true)
+}
+
+// 初始化redis连接
+func init() {
+	redisaddr := beego.AppConfig.String("redisaddr")
+	if redisaddr == "" {
+		return
+	}
+	c := redis.NewClient(&redis.Options{
+		Addr: redisaddr,
+	})
+	services.SetRedisClient(c)
+	log.GLogger.Info("init redis addr=%v", redisaddr)
+}
+
+// 初始化的数据库连接
+func init() {
+	dsn := beego.AppConfig.String("dsn")
+	if dsn == "" {
+		return
+	}
+	db, err := gorm.Open("mysql", dsn)
+	if err != nil {
+		log.GLogger.Critical("error conect to db, err=%v", err)
+		return
+	}
+	log.GLogger.Info("init db connection ok")
+	db.SetLogger(log.GLogger)
+	db.DB().SetMaxOpenConns(30)
+	db.DB().SetMaxIdleConns(10)
+	services.SetDbConnection(db, db)
+}
