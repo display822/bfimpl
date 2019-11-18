@@ -151,7 +151,7 @@ func getEthIP(name string) string {
 		if err == nil && len(addr) > 0 {
 			ip = addr[0].String()
 			if strings.IndexByte(ip, '/') > 0 {
-				ip = ip[0:strings.IndexByte(ethip, '/')]
+				ip = ip[0:strings.IndexByte(ip, '/')]
 			}
 		}
 	}
