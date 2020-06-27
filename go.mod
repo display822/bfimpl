@@ -26,6 +26,7 @@ require (
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/jinzhu/gorm v1.9.9
+	github.com/kr/pretty v0.2.0 // indirect
 	github.com/levigross/grequests v0.0.0-20190130132859-37c80f76a0da
 	github.com/smartystreets/goconvey v0.0.0-20190330032615-68dc04aab96a
 )

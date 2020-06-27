@@ -9,7 +9,6 @@ import (
 	"github.com/astaxie/beego/logs"
 	"github.com/go-redis/redis"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/jinzhu/gorm"
 	"net/http"
 	"os"
 )
@@ -78,18 +77,5 @@ func init() {
 
 // 初始化的数据库连接
 func init() {
-	dsn := beego.AppConfig.String("dsn")
-	if dsn == "" {
-		return
-	}
-	db, err := gorm.Open("mysql", dsn)
-	if err != nil {
-		log.GLogger.Critical("error conect to db, err=%v", err)
-		return
-	}
-	log.GLogger.Info("init db connection ok")
-	db.SetLogger(log.GLogger)
-	db.DB().SetMaxOpenConns(30)
-	db.DB().SetMaxIdleConns(10)
-	services.SetDbConnection(db, db)
+	services.DBInit()
 }
