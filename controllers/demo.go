@@ -1,9 +1,9 @@
 package controllers
 
 import (
-	"api-project-go/models"
-	"api-project-go/models/forms"
-	"api-project-go/services"
+	"bfimpl/models"
+	"bfimpl/models/forms"
+	"bfimpl/services"
 	"github.com/astaxie/beego/httplib"
 	"net/http"
 	"time"

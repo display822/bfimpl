@@ -1,7 +1,7 @@
 package models
 
 import (
-	"api-project-go/services"
+	"bfimpl/services"
 	"errors"
 	"strconv"
 	"time"

@@ -7,7 +7,7 @@ import (
 
 func init() {
 
-    beego.GlobalControllerRouter["api-project-go/controllers:DemoController"] = append(beego.GlobalControllerRouter["api-project-go/controllers:DemoController"],
+    beego.GlobalControllerRouter["bfimpl/controllers:DemoController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:DemoController"],
         beego.ControllerComments{
             Method: "HttpRequestDemo",
             Router: `/http/get`,
@@ -16,7 +16,7 @@ func init() {
             Filters: nil,
             Params: nil})
 
-    beego.GlobalControllerRouter["api-project-go/controllers:DemoController"] = append(beego.GlobalControllerRouter["api-project-go/controllers:DemoController"],
+    beego.GlobalControllerRouter["bfimpl/controllers:DemoController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:DemoController"],
         beego.ControllerComments{
             Method: "GetMySQLInfo",
             Router: `/mysql/tables`,
@@ -25,7 +25,7 @@ func init() {
             Filters: nil,
             Params: nil})
 
-    beego.GlobalControllerRouter["api-project-go/controllers:DemoController"] = append(beego.GlobalControllerRouter["api-project-go/controllers:DemoController"],
+    beego.GlobalControllerRouter["bfimpl/controllers:DemoController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:DemoController"],
         beego.ControllerComments{
             Method: "SetRedis",
             Router: `/redis/string`,
@@ -34,7 +34,7 @@ func init() {
             Filters: nil,
             Params: nil})
 
-    beego.GlobalControllerRouter["api-project-go/controllers:DemoController"] = append(beego.GlobalControllerRouter["api-project-go/controllers:DemoController"],
+    beego.GlobalControllerRouter["bfimpl/controllers:DemoController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:DemoController"],
         beego.ControllerComments{
             Method: "GetRedis",
             Router: `/redis/string/:key`,
@@ -43,7 +43,7 @@ func init() {
             Filters: nil,
             Params: nil})
 
-    beego.GlobalControllerRouter["api-project-go/controllers:DemoController"] = append(beego.GlobalControllerRouter["api-project-go/controllers:DemoController"],
+    beego.GlobalControllerRouter["bfimpl/controllers:DemoController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:DemoController"],
         beego.ControllerComments{
             Method: "GetUser",
             Router: `/user/:uid`,
@@ -52,7 +52,7 @@ func init() {
             Filters: nil,
             Params: nil})
 
-    beego.GlobalControllerRouter["api-project-go/controllers:DemoController"] = append(beego.GlobalControllerRouter["api-project-go/controllers:DemoController"],
+    beego.GlobalControllerRouter["bfimpl/controllers:DemoController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:DemoController"],
         beego.ControllerComments{
             Method: "GetAllUsers",
             Router: `/users`,

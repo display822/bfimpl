@@ -71,7 +71,7 @@ func main() {
 		oldprojectname = os.Args[1]
 		newprojectname = os.Args[2]
 	} else {
-		oldprojectname = "api-project-go"
+		oldprojectname = "bfimpl"
 		newprojectname = os.Args[1]
 	}
 	filepath.Walk(".", WalkDir)

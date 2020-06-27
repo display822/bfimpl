@@ -6,7 +6,7 @@
 package routers
 
 import (
-	"api-project-go/controllers"
+	"bfimpl/controllers"
 
 	"github.com/astaxie/beego"
 )

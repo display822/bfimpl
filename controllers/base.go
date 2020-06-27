@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"api-project-go/services/log"
+	"bfimpl/services/log"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/validation"
 	"net/http"

@@ -1,9 +1,9 @@
 package main
 
 import (
-	"api-project-go/controllers"
-	"api-project-go/services"
-	"api-project-go/services/log"
+	"bfimpl/controllers"
+	"bfimpl/services"
+	"bfimpl/services/log"
 	"fmt"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"

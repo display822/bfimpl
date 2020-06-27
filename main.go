@@ -1,8 +1,8 @@
 package main
 
 import (
-	_ "api-project-go/routers"
-	"api-project-go/services/log"
+	_ "bfimpl/routers"
+	"bfimpl/services/log"
 
 	"github.com/astaxie/beego"
 )

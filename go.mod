@@ -1,4 +1,4 @@
-module api-project-go
+module bfimpl
 
 go 1.12
 
