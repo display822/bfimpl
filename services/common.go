@@ -2,6 +2,7 @@ package services
 
 import (
 	"crypto/md5"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"os"
@@ -20,4 +21,9 @@ func ComputeMD5(filePath string) (string, error) {
 		return "", err
 	}
 	return fmt.Sprintf("%x", hash.Sum(result)), nil
+}
+
+func StringMd5(s string) string {
+	sum := md5.Sum([]byte(s))
+	return hex.EncodeToString(sum[:])
 }

@@ -1,9 +1,11 @@
 package services
 
 import (
-	"github.com/jinzhu/gorm"
-	"github.com/astaxie/beego"
+	"bfimpl/models"
 	"bfimpl/services/log"
+
+	"github.com/astaxie/beego"
+	"github.com/jinzhu/gorm"
 )
 
 var dbMaster *gorm.DB
@@ -28,7 +30,7 @@ func Slave() *gorm.DB {
 	return dbSlave
 }
 
-func DBInit()  {
+func DBInit() {
 	dsn := beego.AppConfig.String("dsn")
 	if dsn == "" {
 		return
@@ -43,4 +45,6 @@ func DBInit()  {
 	db.DB().SetMaxOpenConns(30)
 	db.DB().SetMaxIdleConns(10)
 	SetDbConnection(db, db)
+
+	db.AutoMigrate(&models.User{})
 }
