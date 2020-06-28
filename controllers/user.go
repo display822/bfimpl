@@ -4,6 +4,7 @@ import (
 	"bfimpl/models"
 	"bfimpl/models/forms"
 	"bfimpl/services"
+	"bfimpl/services/log"
 	"encoding/json"
 )
 
@@ -30,10 +31,13 @@ func (u *UserController) AddUser() {
 	}
 	b, e := u.valid.Valid(reqUser)
 	if !b {
-		u.ErrorOK(e.Error())
+		if e != nil {
+			log.GLogger.Error(e.Error())
+		}
+		u.ErrorOK(MsgInvalidParam)
 	}
 	user := models.NewUser(reqUser)
-	err = services.Slave().Create(u).Error
+	err = services.Slave().Create(user).Error
 	if err != nil {
 		u.ErrorOK(err.Error())
 	}
