@@ -3,6 +3,7 @@ package controllers
 import (
 	"bfimpl/models"
 	"bfimpl/models/forms"
+	"bfimpl/services"
 	"encoding/json"
 )
 
@@ -32,7 +33,7 @@ func (u *UserController) AddUser() {
 		u.ErrorOK(e.Error())
 	}
 	user := models.NewUser(reqUser)
-	err = user.Create()
+	err = services.Slave().Create(u).Error
 	if err != nil {
 		u.ErrorOK(err.Error())
 	}
@@ -46,9 +47,10 @@ func (u *UserController) AddUser() {
 // @router /leaders [get]
 func (u *UserController) GroupLeaders() {
 	//userType = 4
-	users, e := models.GetLeaders()
-	if e != nil {
-		u.ErrorOK(e.Error())
+	users := make([]*models.User, 0)
+	err := services.Slave().Where("user_type = ?", 4).Find(&users).Error
+	if err != nil {
+		u.ErrorOK(err.Error())
 	}
 	u.Correct(users)
 }

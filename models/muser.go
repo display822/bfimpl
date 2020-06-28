@@ -2,9 +2,7 @@ package models
 
 import (
 	"bfimpl/models/forms"
-	"bfimpl/services"
-
-	"bfimpl/services/log"
+	"bfimpl/services/util"
 
 	"github.com/jinzhu/gorm"
 )
@@ -32,28 +30,9 @@ func NewUser(req *forms.ReqUser) *User {
 	u := new(User)
 	u.Name = req.Name
 	u.Email = req.Email
-	u.PassWd = services.StringMd5("123456")
+	u.PassWd = util.StringMd5("123456")
 	u.Wx = req.Wx
 	u.Phone = req.Phone
 	u.UserType = req.UserType
 	return u
-}
-
-//新建用户
-func (u *User) Create() error {
-	err := services.Slave().Create(u).Error
-	if err != nil {
-		log.GLogger.Error(err.Error())
-	}
-	return err
-}
-
-//获取资源分配人员列表
-func GetLeaders() ([]*User, error) {
-	users := make([]*User, 0)
-	err := services.Slave().Where("user_type = ?", 4).Find(&users).Error
-	if err != nil {
-		log.GLogger.Error(err.Error())
-	}
-	return users, err
 }
