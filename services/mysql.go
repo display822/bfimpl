@@ -46,5 +46,11 @@ func DBInit() {
 	db.DB().SetMaxIdleConns(10)
 	SetDbConnection(db, db)
 
-	db.AutoMigrate(&models.User{})
+	db.AutoMigrate(
+		&models.User{},
+		&models.Client{},
+		&models.Amount{},
+		&models.AmountLog{},
+		&models.Service{},
+	)
 }

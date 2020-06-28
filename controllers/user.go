@@ -29,11 +29,9 @@ func (u *UserController) AddUser() {
 	if err != nil {
 		u.ErrorOK(MsgInvalidParam)
 	}
-	b, e := u.valid.Valid(reqUser)
+	b, _ := u.valid.Valid(reqUser)
 	if !b {
-		if e != nil {
-			log.GLogger.Error(e.Error())
-		}
+		log.GLogger.Error("%s:%s", u.valid.Errors[0].Field, u.valid.Errors[0].Message)
 		u.ErrorOK(MsgInvalidParam)
 	}
 	user := models.NewUser(reqUser)
