@@ -52,5 +52,9 @@ func DBInit() {
 		&models.Amount{},
 		&models.AmountLog{},
 		&models.Service{},
+		&models.Task{},
+		&models.TaskDetail{},
+		&models.TaskExeInfo{},
+		&models.TaskComment{},
 	)
 }
