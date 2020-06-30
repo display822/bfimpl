@@ -56,5 +56,6 @@ func DBInit() {
 		&models.TaskDetail{},
 		&models.TaskExeInfo{},
 		&models.TaskComment{},
+		&models.Tag{},
 	)
 }

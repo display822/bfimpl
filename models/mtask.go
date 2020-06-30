@@ -13,33 +13,45 @@ import "github.com/jinzhu/gorm"
 type Task struct {
 	gorm.Model
 
-	ClientName  string `gorm:"size:30;not null;comment:'客户名称'" json:"clientName"`
-	AppName     string `gorm:"size:50;not null;comment:'游戏名称'" json:"appName"`
-	ServiceName string `gorm:"size:60;not null;comment:'服务名称'" json:"serviceName"`
-	PreAmount   int    `gorm:"not null;comment:'预计额度'" json:"preAmount"`
-	PreDate     Time   `gorm:"type:time;comment:'预计提测日期'" json:"preDate"`
-	ExpDate     Time   `gorm:"type:time;comment:'期望结单日期'" json:"expDate"`
-	ManageId    int    `gorm:"comment:'客户服务经理id'" json:"manageId"`
-	RealTime    Time   `gorm:"type:time;not null;comment:'创建时间'" json:"realTime"`
-	FrozenTime  Time   `gorm:"type:time;not null;comment:'冻结时间'" json:"frozenTime"`
-	PauseTime   Time   `gorm:"type:time;not null;comment:'暂停时间'" json:"pauseTime"`
-	Status      int    `gorm:"not null;comment:'任务状态'" json:"status"`
-	Serial      string `gorm:"not null;comment:'任务编号'" json:"serial"`
-	Reason      string `gorm:"default:'';comment:'任务取消原因'" json:"reason"`
-	RealAmount  string `gorm:"comment:'交付评估额度'" json:"realAmount"`
-	ExeUserId   int    `gorm:"index;comment:'被指派人员id'" json:"exeUserId"`
-	ChangeLog   string `gorm:"size:256;comment:'变更说明'" json:"changeLog"`
+	ClientId   int    `gorm:"not null;comment:'客户id'" json:"clientId"`
+	AppName    string `gorm:"size:50;not null;comment:'游戏名称'" json:"appName"`
+	ServiceId  int    `gorm:"not null;comment:'服务id'" json:"serviceId"`
+	PreAmount  int    `gorm:"not null;comment:'预计额度'" json:"preAmount"`
+	RealAmount int    `gorm:"not null;comment:'实际提测额度'" json:"realAmount"`
+
+	ManageId       int  `gorm:"comment:'客户服务经理id'" json:"manageId"`
+	PreDate        Time `gorm:"type:date;comment:'预计提测日期'" json:"preDate"`
+	ExpEndDate     Time `gorm:"type:date;comment:'期望结单日期'" json:"expEndDate"`
+	ExpDeliverTime Time `gorm:"type:datetime;comment:'期望交付时间'" json:"expDeliverTime"`
+	ExpEndTime     Time `gorm:"type:datetime;comment:'期望结单时间'" json:"expEndTime"`
+
+	TMAcceptTime Time `gorm:"type:datetime;comment:'TM接受时间'" json:"tmAcceptTime"`
+	RealTime     Time `gorm:"type:datetime;comment:'创建时间'" json:"realTime"`
+	FrozenTime   Time `gorm:"type:datetime;comment:'冻结时间'" json:"frozenTime"`
+	AssignTime   Time `gorm:"type:datetime;comment:'分配时间'" json:"assignTime"`
+	PauseTime    Time `gorm:"type:datetime;comment:'暂停时间'" json:"pauseTime"`
+	ExecuteTime  Time `gorm:"type:datetime;comment:'启动执行时间'" json:"executeTime"`
+	FinishTime   Time `gorm:"type:datetime;comment:'完成时间'" json:"finishTime"`
+	EndTime      Time `gorm:"type:datetime;comment:'结单时间'" json:"endTime"`
+
+	Status        int    `gorm:"not null;comment:'任务状态'" json:"status"`
+	Serial        string `gorm:"unique_index;not null;comment:'任务编号'" json:"serial"`
+	CancelTime    Time   `gorm:"type:datetime;not null;comment:'取消时间'" json:"cancelTime"`
+	CancelUserId  int    `gorm:"comment:'取消人id'"`
+	Reason        string `gorm:"default:'';comment:'任务取消原因'" json:"reason"`
+	DeliverAmount int    `gorm:"comment:'交付评估额度'" json:"realAmount"`
+	ExeUserId     int    `gorm:"index;comment:'被指派人员id'" json:"exeUserId"`
 }
 
 var TaskStatus = map[string]int{
-	"create":   1,
-	"cancel":   2,
-	"confirm":  3,
-	"frozen":   4,
-	"deliver":  5,
-	"execute":  6,
-	"finish":   7,
-	"archived": 8,
+	"create":  1,
+	"cancel":  2,
+	"confirm": 3,
+	"frozen":  4,
+	"assign":  5,
+	"execute": 6,
+	"finish":  7,
+	"end":     8,
 }
 
 // 任务详细信息
@@ -55,14 +67,14 @@ type TaskDetail struct {
 	TestAccountType string `gorm:"size:40;comment:'测试账号类型'" json:"testAccountType"`
 	AccountReUse    int    `gorm:"type:tinyint;default:0;comment:'账号是否重复使用'" json:"reUse"`
 	AccountAddress  string `gorm:"size:256;comment:'账号文件地址'" json:"accountAddress"`
-
-	AccountNum    int    `gorm:"comment:'账号数量'" json:"accountNum"`
-	PhoneNum      int    `gorm:"comment:'手机号/微信数量'" json:"phoneNum"`
-	ConcurrentNum int    `gorm:"comment:'并发数'" json:"concurrentNum"`
-	ReqPhone      string `gorm:"size:256;comment:'机型需求'" json:"reqPhone"`
-	ExtReq        string `gorm:"size:256;comment:'其他需求'" json:"extReq"`
-	InstanceTxt   string `gorm:"size:256;comment:'文字用例内网地址'" json:"instanceTxt"`
-	InstanceMv    string `gorm:"size:256;comment:'视频用例内网地址'" json:"instanceMv"`
+	ChangeLog       string `gorm:"size:256;comment:'变更说明'" json:"changeLog"`
+	AccountNum      int    `gorm:"comment:'账号数量'" json:"accountNum"`
+	PhoneNum        int    `gorm:"comment:'手机号/微信数量'" json:"phoneNum"`
+	ConcurrentNum   int    `gorm:"comment:'并发数'" json:"concurrentNum"`
+	ReqPhone        string `gorm:"size:256;comment:'机型需求'" json:"reqPhone"`
+	ExtReq          string `gorm:"size:256;comment:'其他需求'" json:"extReq"`
+	InstanceTxt     string `gorm:"size:256;comment:'文字用例内网地址'" json:"instanceTxt"`
+	InstanceMv      string `gorm:"size:256;comment:'视频用例内网地址'" json:"instanceMv"`
 }
 
 //var WLType = map[int]string{
@@ -80,7 +92,12 @@ type TaskExeInfo struct {
 	ExecuteTai   int    `gorm:"comment:'任务执行台次'" json:"executeTai"`
 	DelayTime    int    `gorm:"comment:'外部延误时常'" json:"delayTime"`
 	Desc         string `gorm:"comment:'执行说明'" json:"desc"`
-	Tag          int    `gorm:"comment:'执行用到的tag'" json:"tag"`
+	Tags         []Tag  `gorm:"many2many:task_tags;" json:"tags"`
+}
+
+type Tag struct {
+	gorm.Model
+	Name string `gorm:"size:50;comment:'标签名'"`
 }
 
 type TaskComment struct {

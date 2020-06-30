@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"bfimpl/models"
-	"bfimpl/models/forms"
 	"bfimpl/services"
 	"bfimpl/services/log"
 	"encoding/json"
@@ -19,11 +18,12 @@ type UserController struct {
 // @Param	wx		body	string	true	"企业微信"
 // @Param	phone	body	string	true	"手机"
 // @Param	userType	body	int	true	"用户类型"
+// @Param	leaderId	body	int	false	"组长id"
 // @Success 200 {object} models.User
 // @Failure 500 server err
 // @router / [post]
 func (u *UserController) AddUser() {
-	reqUser := new(forms.ReqUser)
+	reqUser := new(models.User)
 
 	err := json.Unmarshal(u.Ctx.Input.RequestBody, reqUser)
 	if err != nil {
@@ -34,12 +34,12 @@ func (u *UserController) AddUser() {
 		log.GLogger.Error("%s:%s", u.valid.Errors[0].Field, u.valid.Errors[0].Message)
 		u.ErrorOK(MsgInvalidParam)
 	}
-	user := models.NewUser(reqUser)
-	err = services.Slave().Create(user).Error
+
+	err = services.Slave().Create(reqUser).Error
 	if err != nil {
 		u.ErrorOK(err.Error())
 	}
-	u.Correct(user)
+	u.Correct(reqUser)
 }
 
 // @Title 资源分配人员列表
