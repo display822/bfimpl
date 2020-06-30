@@ -56,3 +56,24 @@ func (u *UserController) GroupLeaders() {
 	}
 	u.Correct(users)
 }
+
+// @Title 人员列表
+// @Description 按类型查询
+//  1: "admin",
+//	2: "sale",
+//	3: "manager",
+//	4: "tm",
+//	5: "implement",
+// @Param	type	query	int		true	"类型"
+// @Success 200 {object} []models.User
+// @Failure 500 server err
+// @router /list [get]
+func (u *UserController) UserList() {
+	userType, _ := u.GetInt("type")
+	users := make([]*models.User, 0)
+	err := services.Slave().Where("user_type = ?", userType).Find(&users).Error
+	if err != nil {
+		u.ErrorOK(err.Error())
+	}
+	u.Correct(users)
+}

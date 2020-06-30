@@ -15,9 +15,9 @@ type User struct {
 }
 
 var UserType = map[int]string{
-	1: "管理员",
-	2: "销售",
-	3: "客户服务经理",
-	4: "资源分配",
-	5: "实施人员",
+	1: "admin",
+	2: "sale",
+	3: "manager",
+	4: "tm",
+	5: "implement",
 }

@@ -101,3 +101,14 @@ func (s *ServiceController) SwitchService() {
 	}
 	s.Correct("")
 }
+
+// @Title 服务列表
+// @Description 服务列表
+// @Success 200 {object} []models.Service
+// @Failure 500 server err
+// @router /list [get]
+func (s *ServiceController) GetServices() {
+	srvs := make([]models.Service, 0)
+	services.Slave().Model(models.Service{}).Find(&srvs)
+	s.Correct(srvs)
+}
