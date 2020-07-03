@@ -23,8 +23,8 @@ type Client struct {
 // 客户额度
 type Amount struct {
 	gorm.Model
-	ClientId    int    `gorm:"not null;comment:'客户id'" json:"clientId"`
-	ServiceId   int    `gorm:"not null;comment:'服务id'" json:"serviceId"`
+	ClientId    int    `gorm:"index;not null;comment:'客户id'" json:"clientId"`
+	ServiceId   int    `gorm:"index;not null;comment:'服务id'" json:"serviceId"`
 	Amount      int    `gorm:"not null;comment:'剩余额度'" json:"amount"`
 	Deadline    Time   `gorm:"type:date;comment:'到期时间'" json:"deadline"`
 	OrderNumber string `gorm:"size:100;comment:'订单编号'" json:"orderNumber"`
@@ -40,6 +40,7 @@ type AmountLog struct {
 	RealTime Time   `gorm:"type:datetime;comment:'发生时间'" json:"realTime"`
 	Refer    string `gorm:"size:100;comment:'额度转换关联'" json:"-"`
 	Type     string `gorm:"comment:'变动类型delay,convert'" json:"-"`
+	Remark   string `gorm:"size:100;comment:'备注'" json:"remark"`
 	TaskId   int    `gorm:"comment:'任务退次关联'" json:"-"`
 }
 
@@ -52,12 +53,14 @@ type Service struct {
 	Sort        int    `gorm:"index;comment:'排序字段'" json:"sort"`
 }
 
+// 额度列表
 type RspAmount struct {
 	ServiceName string `json:"service_name"`
 	Amount      int    `json:"amount"`
 	Deadline    Time   `json:"deadline"`
 }
 
+// 额度历史
 type RspAmountLog struct {
 	RealTime    Time   `json:"real_time"`
 	ServiceName string `json:"service_name"`
@@ -65,4 +68,19 @@ type RspAmountLog struct {
 	Change      int    `json:"change"`
 	Desc        string `json:"desc"`
 	Remark      string `json:"remark"`
+}
+
+type ReqSwitchAmount struct {
+	ClientId int    `json:"clientId"`
+	SOutId   int    `json:"sOutId"`
+	SOutNum  int    `json:"sOutNum"`
+	SInId    int    `json:"sInId"`
+	SInNum   int    `json:"sInNum"`
+	Remark   string `json:"remark"`
+}
+
+type AmountSimple struct {
+	Id          int    `json:"id"`
+	Amount      int    `json:"amount"`
+	OrderNumber string `json:"order_number"`
 }

@@ -12,7 +12,10 @@ import (
 	"bfimpl/services/log"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"time"
+
+	"github.com/jinzhu/gorm"
 )
 
 type AmountController struct {
@@ -48,13 +51,7 @@ func (a *AmountController) AddAmount() {
 		tx.Rollback()
 		a.ErrorOK(MsgServerErr)
 	}
-	amountLog := new(models.AmountLog)
-	amountLog.AmountId = int(param.ID)
-	amountLog.Change = param.Amount
-	amountLog.Desc = fmt.Sprintf("订单采买，订单编号:%s", param.OrderNumber)
-	amountLog.RealTime = models.Time(time.Now())
-	amountLog.Type = "buy"
-	tx.Create(amountLog)
+	createAmountLog(tx, param, "订单采买", "buy")
 	if tx.Commit().Error != nil {
 		tx.Rollback()
 		a.ErrorOK(MsgServerErr)
@@ -65,14 +62,20 @@ func (a *AmountController) AddAmount() {
 // @Title 查询客户的额度列表
 // @Description 查询客户的额度列表
 // @Param	clientId	query	int	true	"客户id"
+// @Param	deadline	query	string	true	"过期时间，默认今天"
 // @Success 200 {object} models.RspAmount
 // @Failure 500 server err
 // @router /list [get]
 func (a *AmountController) GetAmounts() {
 	clientId, _ := a.GetInt("clientId")
+	deadline := a.GetString("deadline")
+	if deadline == "" {
+		deadline = time.Now().Format(models.DateFormat)
+	}
 	res := make([]models.RspAmount, 0)
 	services.Slave().Raw("select s.service_name, a.amount, a.deadline  "+
-		"from amounts a, services s where a.service_id = s.id and a.id = ?", clientId).Scan(&res)
+		"from amounts a, services s where a.service_id = s.id and a.id = ? and a.deadline > ?",
+		clientId, deadline).Scan(&res)
 
 	a.Correct(res)
 }
@@ -87,8 +90,117 @@ func (a *AmountController) GetAmountLogs() {
 	amountId, _ := a.GetInt("amountId")
 	res := make([]models.RspAmountLog, 0)
 	services.Slave().Raw("SELECT al.real_time,s.service_name,c.name,al.change,al.desc,"+
-		"a.remark FROM amounts a,services s,amount_logs al,clients c WHERE "+
+		"al.remark FROM amounts a,services s,amount_logs al,clients c WHERE "+
 		"a.id = al.amount_id AND a.client_id = c.id AND a.service_id = s.id AND a.id = ?", amountId).Scan(&res)
 
 	a.Correct(res)
+}
+
+// @Title 客户额度转换
+// @Description 客户额度转换
+// @Param	clientId	json	int	true	"客户id"
+// @Param	sOutId		json	int	true	"转出服务id"
+// @Param	sOutNum		json	int	true	"转出服务额度"
+// @Param	sInId		json	int	true	"转入服务id"
+// @Param	sInNum		json	int	true	"转入服务额度"
+// @Param	remark		json	string	true	"备注说明"
+// @Success 200 {string} ""
+// @Failure 500 server err
+// @router /switch [put]
+func (a *AmountController) SwitchAmount() {
+	param := new(models.ReqSwitchAmount)
+	err := json.Unmarshal(a.Ctx.Input.RequestBody, param)
+	if err != nil {
+		a.ErrorOK(err.Error())
+	}
+	//转出转入额度小于0
+	if param.SOutNum <= 0 || param.SInNum <= 0 {
+		a.ErrorOK("额度填写错误")
+	}
+	if param.SOutId == param.SInId {
+		a.ErrorOK("相同服务不可转换")
+	}
+	deadline := time.Now().Format(models.DateFormat)
+	//查询状态启用,可转换,amount>0的 amounts
+	aOut := make([]*models.AmountSimple, 0)
+	services.Slave().Raw("select a.id,a.amount,a.order_number from amounts a,services s where a.service_id = s.id "+
+		"and a.client_id = ? and s.id = ? and a.deadline > ? and s.state=0 and s.use >1 and a.amount >0 "+
+		"order by deadline", param.ClientId, param.SOutId, deadline).Scan(&aOut)
+	outSum := 0
+	for _, t := range aOut {
+		outSum += t.Amount
+	}
+	if outSum < param.SOutNum {
+		a.ErrorOK("可转出额度不足")
+	}
+	// 查询转入amounts
+	aIn := make([]*models.AmountSimple, 0)
+	services.Slave().Raw("select a.id,a.amount,a.order_number from amounts a,services s where a.service_id = s.id "+
+		"and a.client_id = ? and s.id = ? and a.deadline > ? and s.state=0 and s.use >1 "+
+		"order by deadline", param.ClientId, param.SInId, deadline).Scan(&aIn)
+	if len(aIn) == 0 {
+		a.ErrorOK("不存在可转入的服务")
+	}
+	// ==============start convert===============
+	// 额度转换关联字段
+	refer := strconv.FormatInt(time.Now().UnixNano(), 10)
+	tx := services.Slave().Begin()
+	//转入aIn[0]
+	err = tx.Model(models.Amount{}).Where("id = ?", aIn[0].Id).Update("amount", aIn[0].Amount+param.SInNum).Error
+	createAmountLogSimple(tx, aIn[0], "额度转换", models.Amount_Conv, param.Remark, refer)
+	if err != nil {
+		tx.Rollback()
+		a.ErrorOK(MsgServerErr)
+	}
+	//转出aOut
+	remain := param.SOutNum
+	for _, o := range aOut {
+		if o.Amount < remain {
+			//转换完break
+			err = tx.Model(models.Amount{}).Where("id = ?", o.Id).Update("amount", 0).Error
+			createAmountLogSimple(tx, o, "额度转换", models.Amount_Conv, param.Remark, refer)
+			if err != nil {
+				tx.Rollback()
+				a.ErrorOK(MsgServerErr)
+			}
+			remain -= o.Amount
+			continue
+		}
+		err = tx.Model(models.Amount{}).Where("id = ?", o.Id).Update("amount", o.Amount-remain).Error
+		createAmountLogSimple(tx, o, "额度转换", models.Amount_Conv, param.Remark, refer)
+		if err != nil {
+			tx.Rollback()
+			a.ErrorOK(MsgServerErr)
+		}
+		break
+	}
+	err = tx.Commit().Error
+	if err != nil {
+		tx.Rollback()
+		a.ErrorOK(MsgServerErr)
+	}
+	a.Correct("")
+}
+
+func createAmountLog(db *gorm.DB, param *models.Amount, msg, t string) error {
+	amountLog := new(models.AmountLog)
+	amountLog.AmountId = int(param.ID)
+	amountLog.Change = param.Amount
+	amountLog.Desc = fmt.Sprintf("%s，订单编号:%s", msg, param.OrderNumber)
+	amountLog.RealTime = models.Time(time.Now())
+	amountLog.Type = t
+	amountLog.Remark = param.Remark
+	return db.Create(amountLog).Error
+}
+
+func createAmountLogSimple(db *gorm.DB, param *models.AmountSimple, msg, t, r, refer string) error {
+	amountLog := new(models.AmountLog)
+	amountLog.AmountId = int(param.Id)
+	amountLog.Change = param.Amount
+	amountLog.Desc = fmt.Sprintf("%s，订单编号:%s", msg, param.OrderNumber)
+	amountLog.RealTime = models.Time(time.Now())
+	amountLog.Type = t
+	amountLog.Remark = r
+	amountLog.Refer = refer
+	return db.Create(amountLog).Error
 }

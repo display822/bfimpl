@@ -65,8 +65,11 @@ func (s *ServiceController) UpdateService() {
 	if err != nil {
 		s.ErrorOK(MsgInvalidParam)
 	}
-	param.Sort = 0
-	services.Slave().Model(models.Service{}).Where("id = ?", id).Updates(param)
+	services.Slave().Model(models.Service{}).Where("id = ?", id).Updates(map[string]interface{}{
+		"service_name": param.ServiceName,
+		"use":          param.Use,
+		"state":        param.State,
+	})
 	s.Correct("")
 }
 
