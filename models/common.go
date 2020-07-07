@@ -17,6 +17,7 @@ const (
 	timeFormat = "2006-01-02 15:04:05"
 	DateFormat = "2006-01-02"
 
+	Amount_Use   = "use"
 	Amount_Conv  = "convert"
 	Amount_Buy   = "buy"
 	Amount_Delay = "delay"

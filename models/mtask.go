@@ -17,7 +17,7 @@ type Task struct {
 	AppName    string `gorm:"size:50;not null;comment:'游戏名称'" json:"appName"`
 	ServiceId  int    `gorm:"not null;comment:'服务id'" json:"serviceId"`
 	PreAmount  int    `gorm:"not null;comment:'预计额度'" json:"preAmount"`
-	RealAmount int    `gorm:"not null;comment:'实际提测额度'" json:"realAmount"`
+	RealAmount int    `gorm:"not null;default:0;comment:'实际提测额度'" json:"realAmount"`
 
 	ManageId       int  `gorm:"comment:'客户服务经理id'" json:"manageId"`
 	PreDate        Time `gorm:"type:date;comment:'预计提测日期'" json:"preDate"`
@@ -34,7 +34,7 @@ type Task struct {
 	FinishTime   Time `gorm:"type:datetime;comment:'完成时间'" json:"finishTime"`
 	EndTime      Time `gorm:"type:datetime;comment:'结单时间'" json:"endTime"`
 
-	Status        int    `gorm:"not null;comment:'任务状态'" json:"status"`
+	Status        string `gorm:"index;size:100;not null;comment:'任务状态'" json:"status"`
 	Serial        string `gorm:"unique_index;not null;comment:'任务编号'" json:"serial"`
 	CancelTime    Time   `gorm:"type:datetime;not null;comment:'取消时间'" json:"cancelTime"`
 	CancelUserId  int    `gorm:"comment:'取消人id'"`
@@ -43,15 +43,15 @@ type Task struct {
 	ExeUserId     int    `gorm:"index;comment:'被指派人员id'" json:"exeUserId"`
 }
 
-var TaskStatus = map[string]int{
-	"create":  1,
-	"cancel":  2,
-	"confirm": 3,
-	"frozen":  4,
-	"assign":  5,
-	"execute": 6,
-	"finish":  7,
-	"end":     8,
+var TaskStatus = map[string]string{
+	"create":  "create",
+	"cancel":  "cancel",
+	"confirm": "confirm",
+	"frozen":  "frozen",
+	"assign":  "assign",
+	"execute": "execute",
+	"finish":  "finish",
+	"end":     "end",
 }
 
 // 任务详细信息

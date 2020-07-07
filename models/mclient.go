@@ -15,9 +15,9 @@ type Client struct {
 	Number       string `gorm:"unique_index;size:50;not null;comment:'编号'" json:"number"`
 	Type         int    `gorm:"type:tinyint;default:0;comment:'0内部1外部'" json:"type"`
 	Level        string `gorm:"size:5;not null;comment:'级别S,A,B'" json:"level"`
-	SaleId       int    `gorm:"not null;comment:'销售id'" json:"saleId"`
-	MainManageId int    `gorm:"not null;comment:'主客户服务经理id'" json:"mainManageId"`
-	SubManageId  int    `gorm:"not null;comment:'副客户服务经理id'" json:"subManageId"`
+	SaleId       int    `gorm:"comment:'销售id'" json:"saleId"`
+	MainManageId int    `gorm:"comment:'主客户服务经理id'" json:"mainManageId"`
+	SubManageId  int    `gorm:"comment:'副客户服务经理id'" json:"subManageId"`
 }
 
 // 客户额度
@@ -58,6 +58,7 @@ type RspAmount struct {
 	ServiceName string `json:"service_name"`
 	Amount      int    `json:"amount"`
 	Deadline    Time   `json:"deadline"`
+	ServiceId   int    `json:"service_id"`
 }
 
 // 额度历史

@@ -97,6 +97,15 @@ func init() {
 			Filters:          nil,
 			Params:           nil})
 
+	beego.GlobalControllerRouter["bfimpl/controllers:TaskController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:TaskController"],
+		beego.ControllerComments{
+			Method:           "NewTask",
+			Router:           `/`,
+			AllowHTTPMethods: []string{"post"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
 	beego.GlobalControllerRouter["bfimpl/controllers:UserController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:UserController"],
 		beego.ControllerComments{
 			Method:           "AddUser",

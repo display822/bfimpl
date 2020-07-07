@@ -62,7 +62,7 @@ func (a *AmountController) AddAmount() {
 // @Title 查询客户的额度列表
 // @Description 查询客户的额度列表
 // @Param	clientId	query	int	true	"客户id"
-// @Param	deadline	query	string	true	"过期时间，默认今天"
+// @Param	deadline	query	string	false	"过期时间，默认今天"
 // @Success 200 {object} models.RspAmount
 // @Failure 500 server err
 // @router /list [get]
@@ -73,8 +73,8 @@ func (a *AmountController) GetAmounts() {
 		deadline = time.Now().Format(models.DateFormat)
 	}
 	res := make([]models.RspAmount, 0)
-	services.Slave().Raw("select s.service_name, a.amount, a.deadline  "+
-		"from amounts a, services s where a.service_id = s.id and a.id = ? and a.deadline > ?",
+	services.Slave().Raw("select s.service_name, sum(a.amount) amount, min(a.deadline) deadline, a.service_id from amounts a, "+
+		"services s where a.service_id = s.id and a.client_id = ? and a.amount >0 and a.deadline > ? and s.use != 2 group by a.service_id",
 		clientId, deadline).Scan(&res)
 
 	a.Correct(res)
@@ -147,18 +147,21 @@ func (a *AmountController) SwitchAmount() {
 	tx := services.Slave().Begin()
 	//转入aIn[0]
 	err = tx.Model(models.Amount{}).Where("id = ?", aIn[0].Id).Update("amount", aIn[0].Amount+param.SInNum).Error
-	createAmountLogSimple(tx, aIn[0], "额度转换", models.Amount_Conv, param.Remark, refer)
+	msg := fmt.Sprintf("%s，订单编号:%s", "额度转换", aIn[0].OrderNumber)
+	createAmountLogSimple(tx, aIn[0], msg, models.Amount_Conv, param.Remark, refer)
 	if err != nil {
 		tx.Rollback()
 		a.ErrorOK(MsgServerErr)
 	}
 	//转出aOut
 	remain := param.SOutNum
+
 	for _, o := range aOut {
+		msg = fmt.Sprintf("%s，订单编号:%s", "额度转换", o.OrderNumber)
 		if o.Amount < remain {
 			//转换完break
 			err = tx.Model(models.Amount{}).Where("id = ?", o.Id).Update("amount", 0).Error
-			createAmountLogSimple(tx, o, "额度转换", models.Amount_Conv, param.Remark, refer)
+			createAmountLogSimple(tx, o, msg, models.Amount_Conv, param.Remark, refer)
 			if err != nil {
 				tx.Rollback()
 				a.ErrorOK(MsgServerErr)
@@ -167,7 +170,7 @@ func (a *AmountController) SwitchAmount() {
 			continue
 		}
 		err = tx.Model(models.Amount{}).Where("id = ?", o.Id).Update("amount", o.Amount-remain).Error
-		createAmountLogSimple(tx, o, "额度转换", models.Amount_Conv, param.Remark, refer)
+		createAmountLogSimple(tx, o, msg, models.Amount_Conv, param.Remark, refer)
 		if err != nil {
 			tx.Rollback()
 			a.ErrorOK(MsgServerErr)
@@ -197,7 +200,7 @@ func createAmountLogSimple(db *gorm.DB, param *models.AmountSimple, msg, t, r, r
 	amountLog := new(models.AmountLog)
 	amountLog.AmountId = int(param.Id)
 	amountLog.Change = param.Amount
-	amountLog.Desc = fmt.Sprintf("%s，订单编号:%s", msg, param.OrderNumber)
+	amountLog.Desc = msg
 	amountLog.RealTime = models.Time(time.Now())
 	amountLog.Type = t
 	amountLog.Remark = r

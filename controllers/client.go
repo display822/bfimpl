@@ -60,12 +60,23 @@ func (c *ClientController) AddClient() {
 
 // @Title 客户列表
 // @Description 客户列表
+// @Param	saleId		query	int		false	"销售id"
+// @Param	manageId	query	int		false	"客服经理id"
 // @Success 200 {object} []models.Client
 // @Failure 500 server err
 // @router /list [get]
 func (c *ClientController) GetClients() {
+	saleId, _ := c.GetInt("saleId", 0)
+	manageId, _ := c.GetInt("manageId", 0)
 	clients := make([]models.Client, 0)
-	services.Slave().Model(models.Client{}).Find(&clients)
+	db := services.Slave().Model(models.Client{})
+	if saleId > 0 {
+		db = db.Where("sale_id = ?", saleId)
+	}
+	if manageId > 0 {
+		db = db.Where("main_manage_id = ? or sub_manage_id = ?", manageId, manageId)
+	}
+	db.Find(&clients)
 
 	c.Correct(clients)
 }
