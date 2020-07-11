@@ -21,3 +21,8 @@ var UserType = map[int]string{
 	4: "tm",
 	5: "implement",
 }
+
+type ReqLogin struct {
+	UserName string `json:"username"`
+	Password string `json:"password"`
+}

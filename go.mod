@@ -22,6 +22,8 @@ replace github.com/derekparker/delve/terminal => github.com/go-delve/delve/termi
 
 require (
 	github.com/astaxie/beego v1.11.1
+	github.com/go-ldap/ldap v0.0.0-20200627001853-45321a6717b4
+	github.com/go-ldap/ldap/v3 v3.2.1 // indirect
 	github.com/go-redis/redis v6.14.2+incompatible
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/google/go-querystring v1.0.0 // indirect
@@ -29,4 +31,5 @@ require (
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/levigross/grequests v0.0.0-20190130132859-37c80f76a0da
 	github.com/smartystreets/goconvey v0.0.0-20190330032615-68dc04aab96a
+	gopkg.in/asn1-ber.v1 v1.0.0-20181015200546-f715ec2f112d // indirect
 )

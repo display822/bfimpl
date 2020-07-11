@@ -15,6 +15,7 @@ import (
 func init() {
 	ns := beego.NewNamespace("/v1",
 
+		beego.NSNamespace("/login", beego.NSInclude(&controllers.LoginController{})),
 		beego.NSNamespace("/user", beego.NSInclude(&controllers.UserController{})),
 		beego.NSNamespace("/client", beego.NSInclude(&controllers.ClientController{})),
 		beego.NSNamespace("/service", beego.NSInclude(&controllers.ServiceController{})),

@@ -80,3 +80,68 @@ func (c *ClientController) GetClients() {
 
 	c.Correct(clients)
 }
+
+// @Title 修改客户
+// @Description 修改客户
+// @Param	name		body	string	true	"客户名称"
+// @Param	number		body	string	true	"编号"
+// @Param	type		body	int		true	"0内部1外部"
+// @Param	level		body	string	true	"S,A,B"
+// @Param	saleId		body	int		true	"销售id"
+// @Param	mainManageId	body	int	true	"主客户服务经理id"
+// @Param	subManageId		body	int	true	"副客户服务经理id"
+// @Success 200 {string} "success"
+// @Failure 500 server err
+// @router /:id [put]
+func (c *ClientController) UpdateClient() {
+	param := new(models.Client)
+	id, _ := c.GetInt(":id")
+	err := json.Unmarshal(c.Ctx.Input.RequestBody, param)
+	if err != nil {
+		c.ErrorOK(MsgInvalidParam)
+	}
+	services.Slave().Model(models.Client{}).Where("id = ?", id).Updates(map[string]interface{}{
+		"name":         param.Name,
+		"number":       param.Number,
+		"type":         param.Type,
+		"level":        param.Level,
+		"saleId":       param.SaleId,
+		"mainManageId": param.MainManageId,
+		"subManageId":  param.SubManageId,
+	})
+	c.Correct("")
+}
+
+// @Title 获取客户
+// @Description 获取客户
+// @Param	id		path	int	true	"客户id"
+// @Success 200 {string} models.Client
+// @Failure 500 server err
+// @router /:id [get]
+func (c *ClientController) GetClient() {
+	id, _ := c.GetInt(":id")
+	var client models.Client
+	err := services.Slave().Table("clients").Take(&client, "id = ?", id).Error
+	if err != nil {
+		c.ErrorOK(MsgServerErr)
+	}
+	users := make([]models.User, 0)
+	services.Slave().Table("users").Where("id in (?,?,?)",
+		client.SaleId, client.MainManageId, client.SubManageId).Find(&users)
+	result := models.RspClient{
+		Client: client,
+	}
+	for i := range users {
+		if users[i].ID == uint(client.SaleId) {
+			result.Sale = users[i]
+		}
+		if users[i].ID == uint(client.MainManageId) {
+			result.Manager = users[i]
+		}
+		if users[i].ID == uint(client.SubManageId) {
+			result.SubManager = users[i]
+		}
+	}
+
+	c.Correct(result)
+}

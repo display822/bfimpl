@@ -38,6 +38,7 @@ func (a *AmountController) AddAmount() {
 	err := json.Unmarshal(a.Ctx.Input.RequestBody, param)
 	if err != nil || param.ID != 0 || param.OrderNumber == "" ||
 		param.Amount <= 0 || time.Time(param.Deadline).Before(time.Now()) {
+		log.GLogger.Error(err.Error())
 		a.ErrorOK(MsgInvalidParam)
 	}
 	ok, _ := a.valid.Valid(param)

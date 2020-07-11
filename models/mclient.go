@@ -85,3 +85,10 @@ type AmountSimple struct {
 	Amount      int    `json:"amount"`
 	OrderNumber string `json:"order_number"`
 }
+
+type RspClient struct {
+	Client
+	Sale       User `json:"sale"`
+	Manager    User `json:"manager"`
+	SubManager User `json:"subManager"`
+}
