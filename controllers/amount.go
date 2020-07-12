@@ -64,19 +64,29 @@ func (a *AmountController) AddAmount() {
 // @Description 查询客户的额度列表
 // @Param	clientId	query	int	true	"客户id"
 // @Param	deadline	query	string	false	"过期时间，默认今天"
+// @Param	use			query	int	false	"服务类型，不传返回所有，1可实施2可转换3可实施可转换"
 // @Success 200 {object} models.RspAmount
 // @Failure 500 server err
 // @router /list [get]
 func (a *AmountController) GetAmounts() {
 	clientId, _ := a.GetInt("clientId")
 	deadline := a.GetString("deadline")
+	use, _ := a.GetInt("use", 0)
 	if deadline == "" {
-		deadline = time.Now().Format(models.DateFormat)
+		deadline = "2020-07-01"
 	}
+	query := "select s.service_name, sum(a.amount) amount, min(a.deadline) deadline, a.service_id from amounts a, " +
+		"services s where a.service_id = s.id and a.client_id = ? and a.amount >0 and a.deadline > ? "
+	if use != 0 {
+		query += "and s.use = ? "
+	}
+	query += "group by a.service_id"
 	res := make([]models.RspAmount, 0)
-	services.Slave().Raw("select s.service_name, sum(a.amount) amount, min(a.deadline) deadline, a.service_id from amounts a, "+
-		"services s where a.service_id = s.id and a.client_id = ? and a.amount >0 and a.deadline > ? and s.use != 2 group by a.service_id",
-		clientId, deadline).Scan(&res)
+	if use != 0 {
+		services.Slave().Raw(query, clientId, deadline, use).Scan(&res)
+	} else {
+		services.Slave().Raw(query, clientId, deadline).Scan(&res)
+	}
 
 	a.Correct(res)
 }
