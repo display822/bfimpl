@@ -21,8 +21,8 @@ type TaskController struct {
 	BaseController
 }
 
-// @Title 提测
-// @Description 提测
+// @Title 任务提测
+// @Description 任务提测
 // @Param	clientId	body	int	true	"客户id"
 // @Param	appName		body	string	true	"应用名称"
 // @Param	serviceId	body	int		true	"服务id"
@@ -67,6 +67,7 @@ func (t *TaskController) NewTask() {
 	task.ManageId = param.ManageId
 	task.PreDate = param.PreDate
 	task.ExpEndDate = param.ExpEndDate
+	task.Status = models.TaskCreate
 	task.RealTime = models.Time(time.Now())
 	//任务编号
 	task.Serial = time.Now().Format("20060102") + "_" + util.StringMd5(strconv.FormatInt(time.Now().Unix(), 10))
@@ -86,7 +87,7 @@ func (t *TaskController) NewTask() {
 		if o.Amount < remain {
 			//转换完break
 			err = tx.Model(models.Amount{}).Where("id = ?", o.Id).Update("amount", 0).Error
-			createAmountLogSimple(tx, o, msg, models.Amount_Use, "", task.Serial)
+			createAmountLogSimple(tx, o, msg, models.Amount_Use, "", task.Serial, o.Amount)
 			if err != nil {
 				tx.Rollback()
 				t.ErrorOK(MsgServerErr)
@@ -95,7 +96,7 @@ func (t *TaskController) NewTask() {
 			continue
 		}
 		err = tx.Model(models.Amount{}).Where("id = ?", o.Id).Update("amount", o.Amount-remain).Error
-		createAmountLogSimple(tx, o, msg, models.Amount_Use, "", task.Serial)
+		createAmountLogSimple(tx, o, msg, models.Amount_Use, "", task.Serial, remain)
 		if err != nil {
 			tx.Rollback()
 			t.ErrorOK(MsgServerErr)
@@ -108,4 +109,87 @@ func (t *TaskController) NewTask() {
 		t.ErrorOK(MsgServerErr)
 	}
 	t.Correct(task)
+}
+
+// @Title 任务确认
+// @Description 任务确认
+// @Param	id	path	int	true	"任务id"
+// @Success 200 {"string"} success
+// @Failure 500 server err
+// @router /confirm/:id [put]
+func (t *TaskController) ConfirmTask() {
+	id, _ := t.GetInt(":id", 0)
+	if id == 0 {
+		t.ErrorOK(MsgInvalidParam)
+	}
+
+	//更新任务状态和 确认时间
+	err := services.Slave().Model(models.Task{}).Where("id = ?", id).Updates(map[string]interface{}{
+		"tm_accept_time": models.Time(time.Now()),
+		"status":         models.TaskConfirm,
+	}).Error
+	if err != nil {
+		t.ErrorOK(MsgServerErr)
+	}
+	t.Correct("")
+}
+
+// @Title 任务取消
+// @Description 任务取消
+// @Param	id		path	int		true	"任务id"
+// @Param	userId	body	int		true	"操作人id"
+// @Param	reason	body	string	true	"取消原因"
+// @Success 200 {"string"} success
+// @Failure 500 server err
+// @router /cancel/:id [put]
+func (t *TaskController) CancelTask() {
+	id, _ := t.GetInt(":id", 0)
+	if id == 0 {
+		t.ErrorOK(MsgInvalidParam)
+	}
+	param := new(forms.ReqCancelTask)
+	err := json.Unmarshal(t.Ctx.Input.RequestBody, param)
+	if err != nil {
+		t.ErrorOK(MsgInvalidParam)
+	}
+
+	tx := services.Slave().Begin()
+	var task models.Task
+	err = tx.Model(models.Task{}).Take(&task, "id = ?", id).Error
+	if err != nil {
+		t.ErrorOK("task not found")
+	}
+	//更新任务状态，取消时间，原因，取消人id
+	err = tx.Model(&task).Updates(map[string]interface{}{
+		"cancel_time":    models.Time(time.Now()),
+		"status":         models.TaskCancel,
+		"cancel_user_id": param.UserId,
+		"reason":         param.Reason,
+	}).Error
+	if err != nil {
+		tx.Rollback()
+		t.ErrorOK(MsgServerErr)
+	}
+	// 额度反冲
+	// 查询额度
+	var amount models.Amount
+	err = tx.Model(models.Amount{}).Where("client_id = ? and service_id = ?", task.ClientId, task.ServiceId).
+		Order("deadline desc").First(&amount).Error
+	if err != nil {
+		tx.Rollback()
+		t.ErrorOK("add amount fail")
+	}
+	err = tx.Model(&amount).UpdateColumn("amount", amount.Amount+task.PreAmount).Error
+	if err != nil {
+		tx.Rollback()
+		t.ErrorOK("add amount fail")
+	}
+	// 反冲记录
+	err = createAmountLog(tx, &amount, "任务取消", models.Amount_Cancel, task.PreAmount)
+	if err != nil {
+		tx.Rollback()
+		t.ErrorOK("add amount fail")
+	}
+	tx.Commit()
+	t.Correct("")
 }

@@ -52,7 +52,7 @@ func (a *AmountController) AddAmount() {
 		tx.Rollback()
 		a.ErrorOK(MsgServerErr)
 	}
-	createAmountLog(tx, param, "订单采买", "buy")
+	createAmountLog(tx, param, "订单采买", models.Amount_Buy, param.Amount)
 	if tx.Commit().Error != nil {
 		tx.Rollback()
 		a.ErrorOK(MsgServerErr)
@@ -159,7 +159,7 @@ func (a *AmountController) SwitchAmount() {
 	//转入aIn[0]
 	err = tx.Model(models.Amount{}).Where("id = ?", aIn[0].Id).Update("amount", aIn[0].Amount+param.SInNum).Error
 	msg := fmt.Sprintf("%s，订单编号:%s", "额度转换", aIn[0].OrderNumber)
-	createAmountLogSimple(tx, aIn[0], msg, models.Amount_Conv, param.Remark, refer)
+	createAmountLogSimple(tx, aIn[0], msg, models.Amount_ConvIn, param.Remark, refer, param.SInNum)
 	if err != nil {
 		tx.Rollback()
 		a.ErrorOK(MsgServerErr)
@@ -172,7 +172,7 @@ func (a *AmountController) SwitchAmount() {
 		if o.Amount < remain {
 			//转换完break
 			err = tx.Model(models.Amount{}).Where("id = ?", o.Id).Update("amount", 0).Error
-			createAmountLogSimple(tx, o, msg, models.Amount_Conv, param.Remark, refer)
+			createAmountLogSimple(tx, o, msg, models.Amount_ConvOut, param.Remark, refer, o.Amount)
 			if err != nil {
 				tx.Rollback()
 				a.ErrorOK(MsgServerErr)
@@ -181,7 +181,7 @@ func (a *AmountController) SwitchAmount() {
 			continue
 		}
 		err = tx.Model(models.Amount{}).Where("id = ?", o.Id).Update("amount", o.Amount-remain).Error
-		createAmountLogSimple(tx, o, msg, models.Amount_Conv, param.Remark, refer)
+		createAmountLogSimple(tx, o, msg, models.Amount_ConvOut, param.Remark, refer, remain)
 		if err != nil {
 			tx.Rollback()
 			a.ErrorOK(MsgServerErr)
@@ -196,10 +196,10 @@ func (a *AmountController) SwitchAmount() {
 	a.Correct("")
 }
 
-func createAmountLog(db *gorm.DB, param *models.Amount, msg, t string) error {
+func createAmountLog(db *gorm.DB, param *models.Amount, msg, t string, amount int) error {
 	amountLog := new(models.AmountLog)
 	amountLog.AmountId = int(param.ID)
-	amountLog.Change = param.Amount
+	amountLog.Change = amount * models.AmountChange[t]
 	amountLog.Desc = fmt.Sprintf("%s，订单编号:%s", msg, param.OrderNumber)
 	amountLog.RealTime = models.Time(time.Now())
 	amountLog.Type = t
@@ -207,10 +207,10 @@ func createAmountLog(db *gorm.DB, param *models.Amount, msg, t string) error {
 	return db.Create(amountLog).Error
 }
 
-func createAmountLogSimple(db *gorm.DB, param *models.AmountSimple, msg, t, r, refer string) error {
+func createAmountLogSimple(db *gorm.DB, param *models.AmountSimple, msg, t, r, refer string, amount int) error {
 	amountLog := new(models.AmountLog)
 	amountLog.AmountId = int(param.Id)
-	amountLog.Change = param.Amount
+	amountLog.Change = amount * models.AmountChange[t]
 	amountLog.Desc = msg
 	amountLog.RealTime = models.Time(time.Now())
 	amountLog.Type = t

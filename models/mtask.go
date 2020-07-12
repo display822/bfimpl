@@ -36,23 +36,23 @@ type Task struct {
 
 	Status        string `gorm:"index;size:100;not null;comment:'任务状态'" json:"status"`
 	Serial        string `gorm:"unique_index;not null;comment:'任务编号'" json:"serial"`
-	CancelTime    Time   `gorm:"type:datetime;not null;comment:'取消时间'" json:"cancelTime"`
+	CancelTime    Time   `gorm:"type:datetime;comment:'取消时间'" json:"cancelTime"`
 	CancelUserId  int    `gorm:"comment:'取消人id'"`
 	Reason        string `gorm:"default:'';comment:'任务取消原因'" json:"reason"`
 	DeliverAmount int    `gorm:"comment:'交付评估额度'" json:"realAmount"`
 	ExeUserId     int    `gorm:"index;comment:'被指派人员id'" json:"exeUserId"`
 }
 
-var TaskStatus = map[string]string{
-	"create":  "create",
-	"cancel":  "cancel",
-	"confirm": "confirm",
-	"frozen":  "frozen",
-	"assign":  "assign",
-	"execute": "execute",
-	"finish":  "finish",
-	"end":     "end",
-}
+const (
+	TaskCreate  = "create"
+	TaskCancel  = "cancel"
+	TaskConfirm = "confirm"
+	TaskFrozen  = "frozen"
+	TaskAssign  = "assign"
+	TaskExecute = "execute"
+	TaskFinish  = "finish"
+	TaskEnd     = "end"
+)
 
 // 任务详细信息
 type TaskDetail struct {
