@@ -49,7 +49,7 @@ func (c *ClientController) AddClient() {
 	tmp := new(models.Client)
 	err = services.Slave().Where("number =?", param.Number).First(tmp).Error
 	if err != gorm.ErrRecordNotFound {
-		c.ErrorOK("客户编号重复")
+		c.ErrorOK("客户编号已存在")
 	}
 	err = services.Slave().Create(param).Error
 	if err != nil {

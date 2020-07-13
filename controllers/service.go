@@ -112,6 +112,6 @@ func (s *ServiceController) SwitchService() {
 // @router /list [get]
 func (s *ServiceController) GetServices() {
 	srvs := make([]models.Service, 0)
-	services.Slave().Model(models.Service{}).Find(&srvs)
+	services.Slave().Model(models.Service{}).Order("sort").Find(&srvs)
 	s.Correct(srvs)
 }
