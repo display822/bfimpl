@@ -53,12 +53,37 @@ type Service struct {
 	Sort        int    `gorm:"index;comment:'排序字段'" json:"sort"`
 }
 
+type ClientAmount struct {
+	ServiceName string `json:"service_name"`
+	Type        string `json:"type"`
+	ServiceId   int    `json:"service_id"`
+	Deadline    Time   `json:"deadline"`
+	Change      int    `json:"change"`
+}
+
 // 额度列表
 type RspAmount struct {
 	ServiceName string `json:"service_name"`
-	Amount      int    `json:"amount"`
-	Deadline    Time   `json:"deadline"`
-	ServiceId   int    `json:"service_id"`
+	//总数
+	Amount    int  `json:"amount"`
+	Used      int  `json:"used"`
+	Remain    int  `json:"remain"`
+	Delay     int  `json:"delay"`
+	Deadline  Time `json:"deadline"`
+	ServiceId int  `json:"service_id"`
+}
+
+func (amount *RspAmount) CalData(ca ClientAmount) {
+	amount.Remain += ca.Change
+	if ca.Type == Amount_ConvOut || ca.Type == Amount_Use {
+		amount.Used += ca.Change * AmountChange[Amount_Use]
+	} else if ca.Type == Amount_Delay {
+		amount.Delay += ca.Change * AmountChange[Amount_Delay]
+	} else if ca.Type == Amount_Buy || ca.Type == Amount_ConvIn {
+		amount.Amount += ca.Change
+	} else if ca.Type == Amount_Cancel {
+		amount.Used -= ca.Change
+	}
 }
 
 // 额度历史
