@@ -64,16 +64,34 @@ func (u *UserController) GroupLeaders() {
 //	3: "manager",
 //	4: "tm",
 //	5: "implement",
-// @Param	type	query	int		true	"类型"
+// @Param	type		query	int		true	"类型"
+// @Param	pageSize	query	int		true	"每页条数"
+// @Param	pageNum		query	int		true	"页数"
 // @Success 200 {object} []models.User
 // @Failure 500 server err
 // @router /list [get]
 func (u *UserController) UserList() {
-	userType, _ := u.GetInt("type")
+	userType, _ := u.GetInt("type", 0)
+	pageSize, _ := u.GetInt("pageSize", 10)
+	pageNum, _ := u.GetInt("pageNum", 1)
+
 	users := make([]*models.User, 0)
-	err := services.Slave().Where("user_type = ?", userType).Find(&users).Error
+	query := services.Slave().Model(models.User{})
+	if userType != 0 {
+		query.Where("user_type = ?", userType)
+	}
+	total := 0
+	err := query.Limit(pageSize).Offset((pageNum - 1) * pageSize).Find(&users).Limit(-1).Offset(-1).Count(&total).Error
 	if err != nil {
 		u.ErrorOK(err.Error())
 	}
-	u.Correct(users)
+	var res = struct {
+		Total int           `json:"total"`
+		Users []*models.User `json:"users"`
+	}{
+		Total: total,
+		Users: users,
+	}
+
+	u.Correct(res)
 }

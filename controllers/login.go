@@ -38,5 +38,11 @@ func (l *LoginController) Login() {
 	if !b {
 		l.ErrorOK("login fail")
 	}
-	l.Correct("")
+	//ldap登录成功后，查看信息是否录入
+	var user models.User
+	err = services.Slave().Where("email = ?", param.UserName+"@broadfun.cn").First(&user).Error
+	if err != nil {
+		l.ErrorOK("user not found")
+	}
+	l.Correct(user)
 }

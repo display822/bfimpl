@@ -34,11 +34,6 @@ func NewLDAPService(config LDAPConfig) (*LDAPService, error) {
 	if err != nil {
 		return nil, err
 	}
-	// 暂时先不skip verify
-	// err = conn.StartTLS(&tls.Config{InsecureSkipVerify: true})
-	// if err != nil {
-	//  return nil, err
-	// }
 
 	err = conn.Bind(config.BindUserName, config.BindPassword)
 	if err != nil {
@@ -51,10 +46,10 @@ func NewLDAPService(config LDAPConfig) (*LDAPService, error) {
 func LdapService() *LDAPService {
 	if ldapService == nil {
 		config := LDAPConfig{
-			Addr:         "172.16.9.111:389",
-			BindUserName: "CN=lie.chen@broadfun.cn,OU=BF-Wetest-云测,OU=BF-Wetest,OU=BF-Users,DC=broadfun,DC=cn",
+			Addr:         "172.16.9.230:389",
+			BindUserName: "CN=测试,OU=BF-IT,OU=BF-Users,DC=broadfun,DC=cn",
 			BindPassword: "123456q@",
-			SearchDN:     "ou=BF-Users,dc=broadfun,dc=cn",
+			SearchDN:     "OU=BF-Users,DC=broadfun,DC=cn",
 		}
 		s, err := NewLDAPService(config)
 		if err != nil {
@@ -71,7 +66,7 @@ func (l *LDAPService) Login(userName, password string) (bool, error) {
 	searchRequest := ldap.NewSearchRequest(
 		l.Config.SearchDN,
 		ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false,
-		fmt.Sprintf("(&(objectClass=organizationalPerson)(cn=%s))", userName),
+		fmt.Sprintf("(&(objectClass=organizationalPerson)(sAMAccountName=%s))", userName),
 		[]string{"dn"},
 		nil,
 	)
@@ -92,10 +87,10 @@ func (l *LDAPService) Login(userName, password string) (bool, error) {
 		return false, err
 	}
 
-	err = l.Conn.Bind(l.Config.BindUserName, l.Config.BindPassword)
-	if err != nil {
-		return false, nil
-	}
+	//err = l.Conn.Bind(l.Config.BindUserName, l.Config.BindPassword)
+	//if err != nil {
+	//	return false, nil
+	//}
 
 	return true, nil
 }
