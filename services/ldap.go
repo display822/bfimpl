@@ -59,6 +59,8 @@ func LdapService() *LDAPService {
 
 // Login 登录
 func (l *LDAPService) Login(userName, password string) (bool, error) {
+
+	defer l.Conn.Close()
 	searchRequest := ldap.NewSearchRequest(
 		l.Config.SearchDN,
 		ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false,
