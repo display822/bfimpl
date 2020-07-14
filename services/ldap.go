@@ -14,8 +14,6 @@ import (
 	"github.com/go-ldap/ldap"
 )
 
-var ldapService *LDAPService
-
 type LDAPConfig struct {
 	Addr         string
 	BindUserName string
@@ -44,21 +42,19 @@ func NewLDAPService(config LDAPConfig) (*LDAPService, error) {
 }
 
 func LdapService() *LDAPService {
-	if ldapService == nil {
-		config := LDAPConfig{
-			Addr:         "172.16.9.230:389",
-			BindUserName: "CN=测试,OU=BF-IT,OU=BF-Users,DC=broadfun,DC=cn",
-			BindPassword: "123456q@",
-			SearchDN:     "OU=BF-Users,DC=broadfun,DC=cn",
-		}
-		s, err := NewLDAPService(config)
-		if err != nil {
-			log.GLogger.Error(err.Error())
-			return nil
-		}
-		ldapService = s
+
+	config := LDAPConfig{
+		Addr:         "172.16.9.230:389",
+		BindUserName: "CN=测试,OU=BF-IT,OU=BF-Users,DC=broadfun,DC=cn",
+		BindPassword: "123456q@",
+		SearchDN:     "OU=BF-Users,DC=broadfun,DC=cn",
 	}
-	return ldapService
+	s, err := NewLDAPService(config)
+	if err != nil {
+		log.GLogger.Error(err.Error())
+		return nil
+	}
+	return s
 }
 
 // Login 登录
