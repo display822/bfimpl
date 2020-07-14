@@ -78,7 +78,7 @@ func (u *UserController) UserList() {
 	users := make([]*models.User, 0)
 	query := services.Slave().Model(models.User{})
 	if userType != 0 {
-		query.Where("user_type = ?", userType)
+		query = query.Where("user_type = ?", userType)
 	}
 	total := 0
 	err := query.Limit(pageSize).Offset((pageNum - 1) * pageSize).Find(&users).Limit(-1).Offset(-1).Count(&total).Error
@@ -86,7 +86,7 @@ func (u *UserController) UserList() {
 		u.ErrorOK(err.Error())
 	}
 	var res = struct {
-		Total int           `json:"total"`
+		Total int            `json:"total"`
 		Users []*models.User `json:"users"`
 	}{
 		Total: total,
