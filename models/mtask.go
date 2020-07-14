@@ -13,7 +13,8 @@ import "github.com/jinzhu/gorm"
 type Task struct {
 	gorm.Model
 
-	ClientId   int    `gorm:"not null;comment:'客户id'" json:"clientId"`
+	Client     Client `gorm:"ForeignKey:ClientId" json:"client"`
+	ClientId   int    `gorm:"not null;comment:'客户id'" json:"-"`
 	AppName    string `gorm:"size:50;not null;comment:'游戏名称'" json:"appName"`
 	ServiceId  int    `gorm:"not null;comment:'服务id'" json:"serviceId"`
 	PreAmount  int    `gorm:"not null;comment:'预计额度'" json:"preAmount"`
@@ -34,13 +35,14 @@ type Task struct {
 	FinishTime   Time `gorm:"type:datetime;comment:'完成时间'" json:"finishTime"`
 	EndTime      Time `gorm:"type:datetime;comment:'结单时间'" json:"endTime"`
 
-	Status        string `gorm:"index;size:100;not null;comment:'任务状态'" json:"status"`
-	Serial        string `gorm:"unique_index;not null;comment:'任务编号'" json:"serial"`
-	CancelTime    Time   `gorm:"type:datetime;comment:'取消时间'" json:"cancelTime"`
-	CancelUserId  int    `gorm:"comment:'取消人id'"`
-	Reason        string `gorm:"default:'';comment:'任务取消原因'" json:"reason"`
-	DeliverAmount int    `gorm:"comment:'交付评估额度'" json:"realAmount"`
-	ExeUserId     int    `gorm:"index;comment:'被指派人员id'" json:"exeUserId"`
+	Status        string     `gorm:"index;size:100;not null;comment:'任务状态'" json:"status"`
+	Serial        string     `gorm:"unique_index;not null;comment:'任务编号'" json:"serial"`
+	CancelTime    Time       `gorm:"type:datetime;comment:'取消时间'" json:"cancelTime"`
+	CancelUserId  int        `gorm:"comment:'取消人id'" json:"-"`
+	Reason        string     `gorm:"default:'';comment:'任务取消原因'" json:"reason"`
+	DeliverAmount int        `gorm:"comment:'交付评估额度'" json:"realAmount"`
+	ExeUserId     int        `gorm:"index;comment:'被指派人员id'" json:"exeUserId"`
+	TaskDetail    TaskDetail `json:"taskDetail"`
 }
 
 const (

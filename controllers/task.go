@@ -111,6 +111,57 @@ func (t *TaskController) NewTask() {
 	t.Correct(task)
 }
 
+// @Title 单个任务
+// @Description 单个任务
+// @Param	id		path	int		true	"任务id"
+// @Success 200 {object} models.Task
+// @Failure 500 server err
+// @router /:id [get]
+func (t *TaskController) Task() {
+	id, _ := t.GetInt(":id", 0)
+	if id == 0 {
+		t.GetInt("need id")
+	}
+	var task models.Task
+	err := services.Slave().Preload("Client").Preload("TaskDetail").Take(&task, "id = ?", id).Error
+	if err != nil {
+		t.ErrorOK("invalid id")
+	}
+	t.Correct(task)
+}
+
+// @Title 任务列表
+// @Description 任务列表
+// @Param	status		query	string	true	"状态"
+// @Param	pageSize	query	int		false	"条数"
+// @Param	pageNum		query	int		false	"页数"
+// @Success 200 {object} []models.Task
+// @Failure 500 server err
+// @router /list [get]
+func (t *TaskController) TaskList() {
+	status := t.GetString("status")
+	if status == "" {
+		t.ErrorOK("need status")
+	}
+	pageSize, _ := t.GetInt("pageSize", 10)
+	pageNum, _ := t.GetInt("pageNum", 1)
+
+	tasks := make([]models.Task, 0)
+	total := 0
+	err := services.Slave().Model(models.Task{}).Where("status = ?", status).Preload("Client").
+		Limit(pageSize).Offset((pageNum - 1) * pageSize).Find(&tasks).Limit(-1).Offset(-1).Count(&total).Error
+	if err != nil {
+		t.ErrorOK(MsgServerErr)
+	}
+	var resp struct {
+		Total int           `json:"total"`
+		List  []models.Task `json:"list"`
+	}
+	resp.Total = total
+	resp.List = tasks
+	t.Correct(resp)
+}
+
 // @Title 任务确认
 // @Description 任务确认
 // @Param	id	path	int	true	"任务id"
