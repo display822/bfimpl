@@ -37,7 +37,7 @@ func (u *UserController) AddUser() {
 
 	err = services.Slave().Create(reqUser).Error
 	if err != nil {
-		u.ErrorOK(err.Error())
+		u.ErrorOK("用户邮箱已存在")
 	}
 	u.Correct(reqUser)
 }
