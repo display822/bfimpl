@@ -10,6 +10,7 @@ import (
 	"bfimpl/models"
 	"bfimpl/models/forms"
 	"bfimpl/services"
+	"bfimpl/services/log"
 	"bfimpl/services/util"
 	"encoding/json"
 	"fmt"
@@ -123,7 +124,8 @@ func (t *TaskController) Task() {
 		t.GetInt("need id")
 	}
 	var task models.Task
-	err := services.Slave().Preload("Client").Preload("TaskDetail").Take(&task, "id = ?", id).Error
+	err := services.Slave().Preload("Client").Preload("Service").Preload("RealService").
+		Preload("TaskDetail").Take(&task, "id = ?", id).Error
 	if err != nil {
 		t.ErrorOK("invalid id")
 	}
@@ -149,6 +151,7 @@ func (t *TaskController) TaskList() {
 	tasks := make([]models.Task, 0)
 	total := 0
 	err := services.Slave().Model(models.Task{}).Where("status = ?", status).Preload("Client").
+		Preload("Service").Preload("RealService").
 		Limit(pageSize).Offset((pageNum - 1) * pageSize).Find(&tasks).Limit(-1).Offset(-1).Count(&total).Error
 	if err != nil {
 		t.ErrorOK(MsgServerErr)
@@ -242,5 +245,45 @@ func (t *TaskController) CancelTask() {
 		t.ErrorOK("add amount fail")
 	}
 	tx.Commit()
+	t.Correct("")
+}
+
+// @Title 任务信息录入
+// @Description 任务信息录入
+// @Param	id		path	int		true	"任务id"
+// @Param   json    body   forms.ReqTaskDetail true "任务详情"
+// @Success 200 {"string"} success
+// @Failure 500 server err
+// @router /save/:id [post]
+func (t *TaskController) SaveTaskDetail() {
+	id, _ := t.GetInt(":id", 0)
+	param := new(forms.ReqTaskDetail)
+	err := json.Unmarshal(t.Ctx.Input.RequestBody, param)
+	if err != nil {
+		log.GLogger.Error(err.Error())
+		t.ErrorOK(MsgInvalidParam)
+	}
+	var task models.Task
+	err = services.Slave().Take(&task, "id = ?", id).Error
+	if err != nil {
+		t.ErrorOK("invalid taskId")
+	}
+	//更新task
+	services.Slave().Model(&task).Updates(map[string]interface{}{
+		"exp_deliver_time": param.ExpDeliverTime,
+		"exp_end_time":     param.ExpEndTime,
+		"real_amount":      param.RealAmount,
+		"real_service_id":  param.RealServiceId,
+	})
+	tmp := new(models.TaskDetail)
+	services.Slave().Where("task_id = ?", id).First(tmp)
+	taskDetail := param.GetTaskDetail()
+	taskDetail.TaskID = id
+	if tmp.ID == 0 {
+		services.Slave().Create(taskDetail)
+	} else {
+		taskDetail.ID = tmp.ID
+		services.Slave().Save(taskDetail)
+	}
 	t.Correct("")
 }

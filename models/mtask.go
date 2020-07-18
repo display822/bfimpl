@@ -13,12 +13,15 @@ import "github.com/jinzhu/gorm"
 type Task struct {
 	gorm.Model
 
-	Client     Client `gorm:"ForeignKey:ClientId" json:"client"`
-	ClientId   int    `gorm:"not null;comment:'客户id'" json:"-"`
-	AppName    string `gorm:"size:50;not null;comment:'游戏名称'" json:"appName"`
-	ServiceId  int    `gorm:"not null;comment:'服务id'" json:"serviceId"`
-	PreAmount  int    `gorm:"not null;comment:'预计额度'" json:"preAmount"`
-	RealAmount int    `gorm:"not null;default:0;comment:'实际提测额度'" json:"realAmount"`
+	Client        *Client  `gorm:"ForeignKey:ClientId" json:"client"`
+	ClientId      int      `gorm:"not null;comment:'客户id'" json:"-"`
+	AppName       string   `gorm:"size:50;not null;comment:'游戏名称'" json:"appName"`
+	Service       *Service `gorm:"ForeignKey:ServiceId" json:"service"`
+	ServiceId     int      `gorm:"not null;comment:'服务id'" json:"serviceId"`
+	PreAmount     int      `gorm:"not null;comment:'预计额度'" json:"preAmount"`
+	RealAmount    int      `gorm:"not null;default:0;comment:'实际提测额度'" json:"realAmount"`
+	RealService   *Service `gorm:"ForeignKey:RealServiceId" json:"realService"`
+	RealServiceId int      `gorm:"not null;comment:'实际提测服务id'" json:"realServiceId"`
 
 	ManageId       int  `gorm:"comment:'客户服务经理id'" json:"manageId"`
 	PreDate        Time `gorm:"type:date;comment:'预计提测日期'" json:"preDate"`
@@ -62,9 +65,8 @@ type TaskDetail struct {
 	TaskID          int    `gorm:"index;comment:'任务id'" json:"taskId"`
 	Version         string `gorm:"size:30;comment:'测试版本'" json:"version"`
 	PkgAddress      string `gorm:"size:256;comment:'安装包地址'" json:"pkgAddress"`
-	TestType        int    `gorm:"comment:'环境类型'" json:"testType"`
+	TestType        string `gorm:"comment:'环境类型'" json:"testType"`
 	TestExtInfo     string `gorm:"size:256;comment:'测试环境补充信息'" json:"testExtInfo"`
-	WhiteListType   int    `gorm:"type:tinyint;comment:'白名单类型'" json:"whiteListType"`
 	WhiteList       string `gorm:"size:512;comment:'白名单'" json:"whiteList"`
 	TestAccountType string `gorm:"size:40;comment:'测试账号类型'" json:"testAccountType"`
 	AccountReUse    int    `gorm:"type:tinyint;default:0;comment:'账号是否重复使用'" json:"reUse"`
