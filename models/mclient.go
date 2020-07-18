@@ -34,7 +34,7 @@ type Amount struct {
 // 额度变动
 type AmountLog struct {
 	gorm.Model
-	AmountId int    `gorm:"not null;comment:'额度id'" json:"-"`
+	AmountId int    `gorm:"index;not null;comment:'额度id'" json:"-"`
 	Change   int    `gorm:"not null;comment:'额度变动'" json:"change"`
 	Desc     string `gorm:"size:100;comment:'事项说明'" json:"desc"`
 	RealTime Time   `gorm:"type:datetime;comment:'发生时间'" json:"realTime"`
@@ -75,13 +75,13 @@ type RspAmount struct {
 
 func (amount *RspAmount) CalData(ca ClientAmount) {
 	amount.Remain += ca.Change
-	if ca.Type == Amount_ConvOut || ca.Type == Amount_Use {
+	if ca.Type == Amount_ConvOut || ca.Type == Amount_Use || ca.Type == Amount_Frozen_Out {
 		amount.Used += ca.Change * AmountChange[Amount_Use]
 	} else if ca.Type == Amount_Delay {
 		amount.Delay += ca.Change * AmountChange[Amount_Delay]
 	} else if ca.Type == Amount_Buy || ca.Type == Amount_ConvIn {
 		amount.Amount += ca.Change
-	} else if ca.Type == Amount_Cancel {
+	} else if ca.Type == Amount_Cancel || ca.Type == Amount_Frozen_In {
 		amount.Used -= ca.Change
 	}
 }

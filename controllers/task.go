@@ -82,9 +82,8 @@ func (t *TaskController) NewTask() {
 	// 扣除额度
 	// 转出aOut
 	remain := param.PreAmount
-	var msg string
+	msg := fmt.Sprintf("%s，任务编号:%s", "实施消耗", task.Serial)
 	for _, o := range aOut {
-		msg = fmt.Sprintf("%s，任务编号:%s", "实施消耗", o.OrderNumber)
 		if o.Amount < remain {
 			//转换完break
 			err = tx.Model(models.Amount{}).Where("id = ?", o.Id).Update("amount", 0).Error
@@ -285,5 +284,164 @@ func (t *TaskController) SaveTaskDetail() {
 		taskDetail.ID = tmp.ID
 		services.Slave().Save(taskDetail)
 	}
+	t.Correct("")
+}
+
+// @Title 任务冻结
+// @Description 任务冻结
+// @Param	id		path	int		true	"任务id"
+// @Success 200 {"string"} success
+// @Failure 500 server err
+// @router /frozen/:id [put]
+func (t *TaskController) FrozenTask() {
+	id, _ := t.GetInt(":id", 0)
+	if id == 0 {
+		t.ErrorOK(MsgInvalidParam)
+	}
+
+	var task models.Task
+	err := services.Slave().Take(&task, "id = ?", id).Error
+	if task.ID == 0 || err != nil {
+		t.ErrorOK("invalid taskID")
+	}
+	//冻结时服务类型变更
+	if task.ServiceId != task.RealServiceId {
+		//查询状态启用,可实施,amount>0的 amounts
+		aOut := make([]*models.AmountSimple, 0)
+		services.Slave().Raw("select a.id,a.amount,a.order_number from amounts a,services s where a.service_id = s.id "+
+			"and a.client_id = ? and s.id = ? and a.deadline > ? and s.state=0 and s.use !=2 and a.amount >0 "+
+			"order by deadline", task.ClientId, task.RealServiceId, time.Now().Format(models.DateFormat)).Scan(&aOut)
+		outSum := 0
+		for _, a := range aOut {
+			outSum += a.Amount
+		}
+		if outSum < task.RealAmount {
+			t.ErrorOK("额度不足")
+		}
+		tx := services.Slave().Begin()
+		//原额度反冲，类似取消
+		var amount models.Amount
+		err = tx.Model(models.Amount{}).Where("client_id = ? and service_id = ?", task.ClientId, task.ServiceId).
+			Order("deadline desc").First(&amount).Error
+		if err != nil {
+			tx.Rollback()
+			t.ErrorOK("add amount fail")
+		}
+		err = tx.Model(&amount).UpdateColumn("amount", amount.Amount+task.PreAmount).Error
+		if err != nil {
+			tx.Rollback()
+			t.ErrorOK("add amount fail")
+		}
+		// 反冲记录
+		err = createAmountLog(tx, &amount, "冻结变更", models.Amount_Frozen_In, task.PreAmount)
+		if err != nil {
+			tx.Rollback()
+			t.ErrorOK("add amount fail")
+		}
+		//消耗新额度
+		// 转出aOut
+		remain := task.RealAmount
+		msg := fmt.Sprintf("%s，任务编号:%s", "实施消耗", task.Serial)
+		for _, o := range aOut {
+			if o.Amount < remain {
+				//转换完break
+				err = tx.Model(models.Amount{}).Where("id = ?", o.Id).Update("amount", 0).Error
+				createAmountLogSimple(tx, o, msg, models.Amount_Use, "", task.Serial, o.Amount)
+				if err != nil {
+					tx.Rollback()
+					t.ErrorOK(MsgServerErr)
+				}
+				remain -= o.Amount
+				continue
+			}
+			err = tx.Model(models.Amount{}).Where("id = ?", o.Id).Update("amount", o.Amount-remain).Error
+			createAmountLogSimple(tx, o, msg, models.Amount_Use, "", task.Serial, remain)
+			if err != nil {
+				tx.Rollback()
+				t.ErrorOK(MsgServerErr)
+			}
+			break
+		}
+		err = tx.Commit().Error
+		if err != nil {
+			tx.Rollback()
+			t.ErrorOK(MsgServerErr)
+		}
+	} else {
+		if task.RealAmount < task.PreAmount {
+			//反冲
+			tx := services.Slave().Begin()
+			//原额度反冲，类似取消
+			var amount models.Amount
+			err = tx.Model(models.Amount{}).Where("client_id = ? and service_id = ?", task.ClientId, task.ServiceId).
+				Order("deadline desc").First(&amount).Error
+			if err != nil {
+				tx.Rollback()
+				t.ErrorOK("add amount fail")
+			}
+			err = tx.Model(&amount).UpdateColumn("amount", amount.Amount+task.PreAmount-task.RealAmount).Error
+			if err != nil {
+				tx.Rollback()
+				t.ErrorOK("add amount fail")
+			}
+			// 反冲记录
+			err = createAmountLog(tx, &amount, "冻结变更", models.Amount_Frozen_In, task.PreAmount-task.RealAmount)
+			if err != nil {
+				tx.Rollback()
+				t.ErrorOK("add amount fail")
+			}
+		} else if task.RealAmount > task.PreAmount {
+			//消耗
+			aOut := make([]*models.AmountSimple, 0)
+			services.Slave().Raw("select a.id,a.amount,a.order_number from amounts a,services s where a.service_id = s.id "+
+				"and a.client_id = ? and s.id = ? and a.deadline > ? and s.state=0 and s.use !=2 and a.amount >0 "+
+				"order by deadline", task.ClientId, task.ServiceId, time.Now().Format(models.DateFormat)).Scan(&aOut)
+			outSum := 0
+			for _, a := range aOut {
+				outSum += a.Amount
+			}
+			remain := task.RealAmount - task.PreAmount
+			if outSum < remain {
+				t.ErrorOK("额度不足")
+			}
+			tx := services.Slave().Begin()
+			msg := fmt.Sprintf("%s，任务编号:%s", "实施消耗", task.Serial)
+			for _, o := range aOut {
+				if o.Amount < remain {
+					//转换完break
+					err = tx.Model(models.Amount{}).Where("id = ?", o.Id).Update("amount", 0).Error
+					createAmountLogSimple(tx, o, msg, models.Amount_Use, "", task.Serial, o.Amount)
+					if err != nil {
+						tx.Rollback()
+						t.ErrorOK(MsgServerErr)
+					}
+					remain -= o.Amount
+					continue
+				}
+				err = tx.Model(models.Amount{}).Where("id = ?", o.Id).Update("amount", o.Amount-remain).Error
+				createAmountLogSimple(tx, o, msg, models.Amount_Use, "", task.Serial, remain)
+				if err != nil {
+					tx.Rollback()
+					t.ErrorOK(MsgServerErr)
+				}
+				break
+			}
+			err = tx.Commit().Error
+			if err != nil {
+				tx.Rollback()
+				t.ErrorOK(MsgServerErr)
+			}
+		}
+	}
+
+	//更新任务状态和 确认时间
+	err = services.Slave().Model(models.Task{}).Where("id = ?", id).Updates(map[string]interface{}{
+		"frozen_time": models.Time(time.Now()),
+		"status":      models.TaskFrozen,
+	}).Error
+	if err != nil {
+		t.ErrorOK(MsgServerErr)
+	}
+
 	t.Correct("")
 }

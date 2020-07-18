@@ -17,21 +17,25 @@ const (
 	timeFormat = "2006-01-02 15:04:05"
 	DateFormat = "2006-01-02"
 
-	Amount_Use     = "use"
-	Amount_Cancel  = "cancel"
-	Amount_ConvIn  = "convert_in"
-	Amount_ConvOut = "convert_out"
-	Amount_Buy     = "buy"
-	Amount_Delay   = "delay"
+	Amount_Use        = "use"
+	Amount_Cancel     = "cancel"
+	Amount_ConvIn     = "convert_in"
+	Amount_ConvOut    = "convert_out"
+	Amount_Frozen_In  = "frozen_in"
+	Amount_Frozen_Out = "frozen_out"
+	Amount_Buy        = "buy"
+	Amount_Delay      = "delay"
 )
 
 var AmountChange = map[string]int{
-	Amount_Use:     -1,
-	Amount_Cancel:  1,
-	Amount_ConvIn:  1,
-	Amount_ConvOut: -1,
-	Amount_Buy:     1,
-	Amount_Delay:   -1,
+	Amount_Use:        -1,
+	Amount_Cancel:     1,
+	Amount_ConvIn:     1,
+	Amount_ConvOut:    -1,
+	Amount_Buy:        1,
+	Amount_Delay:      -1,
+	Amount_Frozen_In:  1,
+	Amount_Frozen_Out: -1,
 }
 
 func (t *Time) UnmarshalJSON(data []byte) (err error) {
