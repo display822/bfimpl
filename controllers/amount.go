@@ -115,16 +115,18 @@ func (a *AmountController) GetAmounts() {
 
 // @Title 查询客户的额度历史
 // @Description 查询客户的额度历史
-// @Param	amountId	query	int	true	"额度id"
+// @Param	clientId	query	int	true	"客户id"
+// @Param	serviceId	query	int	true	"服务id"
 // @Success 200 {object} models.RspAmountLog
 // @Failure 500 server err
 // @router /log [get]
 func (a *AmountController) GetAmountLogs() {
-	amountId, _ := a.GetInt("amountId")
+	clientId, _ := a.GetInt("clientId")
+	serviceId, _ := a.GetInt("serviceId")
 	res := make([]models.RspAmountLog, 0)
-	services.Slave().Raw("SELECT al.real_time,s.service_name,c.name,al.change,al.desc,"+
-		"al.remark FROM amounts a,services s,amount_logs al,clients c WHERE "+
-		"a.id = al.amount_id AND a.client_id = c.id AND a.service_id = s.id AND a.id = ?", amountId).Scan(&res)
+	services.Slave().Raw("SELECT al.real_time,s.service_name,a.order_number,al.change,al.desc,"+
+		"al.remark FROM amounts a,amount_logs al,services s WHERE a.client_id = ? AND a.service_id = ?"+
+		" AND a.id = al.amount_id AND a.service_id = s.id order by al.real_time desc", clientId, serviceId).Scan(&res)
 
 	a.Correct(res)
 }

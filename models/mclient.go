@@ -90,7 +90,7 @@ func (amount *RspAmount) CalData(ca ClientAmount) {
 type RspAmountLog struct {
 	RealTime    Time   `json:"real_time"`
 	ServiceName string `json:"service_name"`
-	Name        string `json:"name"`
+	OrderNumber string `json:"order_number"`
 	Change      int    `json:"change"`
 	Desc        string `json:"desc"`
 	Remark      string `json:"remark"`
