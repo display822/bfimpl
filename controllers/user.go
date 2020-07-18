@@ -57,13 +57,86 @@ func (u *UserController) GroupLeaders() {
 	u.Correct(users)
 }
 
+// @Title 实施人员列表
+// @Description 实施人员列表, 任务指派时根据leaderId筛选
+// @Param  leaderId	query	int		true	"组长id"
+// @Success 200 {object} []models.User
+// @Failure 500 server err
+// @router /impls [get]
+func (u *UserController) Implementers() {
+	leadId, _ := u.GetInt("leaderId", 0)
+	data := make([]*models.Impler, 0)
+	err := services.Slave().Raw("SELECT u.id,u.`name`,t.app_name,t.status,s.service_name,t.real_amount,t.exp_deliver_time "+
+		"FROM users u left join tasks t on u.id = t.exe_user_id left join services s on t.real_service_id = s.id WHERE "+
+		"u.leader_id = ? order by t.exp_deliver_time", leadId).Scan(&data).Error
+	if err != nil {
+		u.ErrorOK(err.Error())
+	}
+	m := make(map[int][]*models.Impler)
+	sortData := make(map[int]models.SortImpl)
+	for i, tmp := range data {
+		if d, ok := m[tmp.Id]; ok {
+			if tmp.Status == models.TaskExecute || tmp.Status == models.TaskAssign {
+				m[tmp.Id] = append(d, data[i])
+			}
+			tmpSort := sortData[tmp.Id]
+			if tmp.Status == models.TaskExecute {
+				tmpSort.ExeNum++
+			} else if tmp.Status == models.TaskAssign {
+				tmpSort.AssignNum++
+			}
+			sortData[tmp.Id] = tmpSort
+		} else {
+			m[tmp.Id] = []*models.Impler{}
+			sort := models.SortImpl{Id: tmp.Id, Name: tmp.Name}
+			if tmp.Status == models.TaskExecute || tmp.Status == models.TaskAssign {
+				m[tmp.Id] = append(m[tmp.Id], data[i])
+				if tmp.Status == models.TaskExecute {
+					sort.ExeNum = 1
+				} else if tmp.Status == models.TaskAssign {
+					sort.AssignNum = 1
+				}
+			}
+			sortData[tmp.Id] = sort
+		}
+	}
+	result := make([]models.RspImpl, 0)
+	sort := sortImpl(sortData)
+	for _, id := range sort {
+		t := models.RspImpl{
+			SortImpl: sortData[id],
+			List:     m[id],
+		}
+		result = append(result, t)
+	}
+	u.Correct(result)
+}
+
+func sortImpl(data map[int]models.SortImpl) []int {
+	arr := make([]models.SortImpl, 0)
+	result := make([]int, 0)
+	for _, v := range data {
+		arr = append(arr, v)
+	}
+	for i := 1; i < len(arr); i++ {
+		for j := 0; j < len(arr)-i; j++ {
+			if arr[j].ExeNum > arr[j+1].ExeNum {
+				arr[j], arr[j+1] = arr[j+1], arr[j]
+			} else if arr[j].ExeNum == arr[j+1].ExeNum {
+				if arr[j].AssignNum > arr[j+1].AssignNum {
+					arr[j], arr[j+1] = arr[j+1], arr[j]
+				}
+			}
+		}
+	}
+	for i := range arr {
+		result = append(result, arr[i].Id)
+	}
+	return result
+}
+
 // @Title 人员列表
-// @Description 按类型查询
-//  1: "admin",
-//	2: "sale",
-//	3: "manager",
-//	4: "tm",
-//	5: "implement",
+// @Description 按类型查询 \n1: "admin",\n2: "sale",	\n3: "manager",	\n4: "tm",	\n5: "implement"
 // @Param	type		query	int		true	"类型"
 // @Param	pageSize	query	int		true	"每页条数"
 // @Param	pageNum		query	int		true	"页数"

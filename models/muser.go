@@ -26,3 +26,26 @@ type ReqLogin struct {
 	UserName string `json:"username"`
 	Password string `json:"password"`
 }
+
+// 组长下实施人员信息
+type Impler struct {
+	Id          int    `json:"id"`
+	Name        string `json:"name"`
+	AppName     string `json:"app_name"`
+	Status      string `json:"status"`
+	ServiceName string `json:"service_name"`
+	Amount      int    `json:"real_amount"`
+	ExpTime     Time   `json:"exp_deliver_time"`
+}
+
+type SortImpl struct {
+	Id        int
+	Name      string
+	ExeNum    int
+	AssignNum int
+}
+
+type RspImpl struct {
+	SortImpl
+	List []*Impler
+}

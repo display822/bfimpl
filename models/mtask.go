@@ -43,7 +43,7 @@ type Task struct {
 	CancelTime    Time       `gorm:"type:datetime;comment:'取消时间'" json:"cancelTime"`
 	CancelUserId  int        `gorm:"comment:'取消人id'" json:"-"`
 	Reason        string     `gorm:"default:'';comment:'任务取消原因'" json:"reason"`
-	DeliverAmount int        `gorm:"comment:'交付评估额度'" json:"realAmount"`
+	DeliverAmount int        `gorm:"comment:'交付评估额度'" json:"deliverAmount"`
 	ExeUserId     int        `gorm:"index;comment:'被指派人员id'" json:"exeUserId"`
 	TaskDetail    TaskDetail `json:"taskDetail"`
 }

@@ -445,3 +445,35 @@ func (t *TaskController) FrozenTask() {
 
 	t.Correct("")
 }
+
+// @Title 任务指派
+// @Description 任务指派
+// @Param	id		path	int		true	"任务id"
+// @Param	json	body	forms.ReqAssignTask		true	"body参数"
+// @Success 200 {"string"} success
+// @Failure 500 server err
+// @router /assign/:id [put]
+func (t *TaskController) AssignTask() {
+	id, _ := t.GetInt(":id", 0)
+	param := new(forms.ReqAssignTask)
+	err := json.Unmarshal(t.Ctx.Input.RequestBody, param)
+	if err != nil {
+		t.ErrorOK(MsgInvalidParam)
+	}
+	var task models.Task
+	err = services.Slave().Take(&task, "id = ?", id).Error
+	if err != nil {
+		t.ErrorOK("invalid taskId")
+	}
+	//更新任务状态，取消时间，原因，取消人id
+	err = services.Slave().Model(&task).Updates(map[string]interface{}{
+		"assign_time":    models.Time(time.Now()),
+		"status":         models.TaskAssign,
+		"exe_user_id":    param.ExeUserId,
+		"deliver_amount": param.Amount,
+	}).Error
+	if err != nil {
+		t.ErrorOK(MsgServerErr)
+	}
+	t.Correct("")
+}

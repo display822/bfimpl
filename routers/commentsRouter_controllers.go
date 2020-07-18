@@ -187,6 +187,15 @@ func init() {
 			Filters:          nil,
 			Params:           nil})
 
+	beego.GlobalControllerRouter["bfimpl/controllers:TaskController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:TaskController"],
+		beego.ControllerComments{
+			Method:           "AssignTask",
+			Router:           `/assign/:id`,
+			AllowHTTPMethods: []string{"put"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
 	beego.GlobalControllerRouter["bfimpl/controllers:UserController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:UserController"],
 		beego.ControllerComments{
 			Method:           "AddUser",
@@ -200,6 +209,15 @@ func init() {
 		beego.ControllerComments{
 			Method:           "GroupLeaders",
 			Router:           `/leaders`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:UserController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:UserController"],
+		beego.ControllerComments{
+			Method:           "Implementers",
+			Router:           `/impls`,
 			AllowHTTPMethods: []string{"get"},
 			MethodParams:     param.Make(),
 			Filters:          nil,

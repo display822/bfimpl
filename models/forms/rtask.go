@@ -70,3 +70,9 @@ func (d *ReqTaskDetail) GetTaskDetail() *models.TaskDetail {
 		InstanceMv:      d.InstanceMv,
 	}
 }
+
+//指派任务参数
+type ReqAssignTask struct {
+	ExeUserId int `json:"exeUserId"`
+	Amount    int `json:"amount"`
+}
