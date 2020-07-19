@@ -55,6 +55,7 @@ const (
 	TaskFrozen  = "frozen"
 	TaskAssign  = "assign"
 	TaskExecute = "execute"
+	TaskPause   = "pause"
 	TaskFinish  = "finish"
 	TaskEnd     = "end"
 )
@@ -96,12 +97,12 @@ type TaskExeInfo struct {
 	ExecuteTai   int    `gorm:"comment:'任务执行台次'" json:"executeTai"`
 	DelayTime    int    `gorm:"comment:'外部延误时常'" json:"delayTime"`
 	Desc         string `gorm:"comment:'执行说明'" json:"desc"`
-	Tags         []Tag  `gorm:"many2many:task_tags;" json:"tags"`
+	Tags         []*Tag `gorm:"many2many:task_tags;" json:"tags"`
 }
 
 type Tag struct {
-	gorm.Model
-	Name string `gorm:"size:50;comment:'标签名'"`
+	ID   uint   `gorm:"primary_key" json:"id"`
+	Name string `gorm:"size:50;comment:'标签名'" json:"name"`
 }
 
 type TaskComment struct {

@@ -68,6 +68,7 @@ func (d *ReqTaskDetail) GetTaskDetail() *models.TaskDetail {
 		ExtReq:          d.ExtReq,
 		InstanceTxt:     d.InstanceTxt,
 		InstanceMv:      d.InstanceMv,
+		ChangeLog:       d.ChangeLog,
 	}
 }
 
@@ -75,4 +76,14 @@ func (d *ReqTaskDetail) GetTaskDetail() *models.TaskDetail {
 type ReqAssignTask struct {
 	ExeUserId int `json:"exeUserId"`
 	Amount    int `json:"amount"`
+}
+
+// 完成任务参数
+type ReqFinishTask struct {
+	UsedTime     int    `json:"usedTime"`
+	ExecuteBatch int    `json:"executeBatch"`
+	ExecuteTai   int    `json:"executeTai"`
+	DelayTime    int    `json:"delayTime"`
+	Desc         string `json:"desc"`
+	Tags         []int  `json:"tags"`
 }

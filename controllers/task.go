@@ -434,7 +434,7 @@ func (t *TaskController) FrozenTask() {
 		}
 	}
 
-	//更新任务状态和 确认时间
+	//更新任务状态和 冻结时间
 	err = services.Slave().Model(models.Task{}).Where("id = ?", id).Updates(map[string]interface{}{
 		"frozen_time": models.Time(time.Now()),
 		"status":      models.TaskFrozen,
@@ -476,4 +476,130 @@ func (t *TaskController) AssignTask() {
 		t.ErrorOK(MsgServerErr)
 	}
 	t.Correct("")
+}
+
+// @Title 任务执行
+// @Description 任务启动执行
+// @Param	id	path	int	true	"任务id"
+// @Success 200 {"string"} success
+// @Failure 500 server err
+// @router /execute/:id [put]
+func (t *TaskController) ExecuteTask() {
+	id, _ := t.GetInt(":id", 0)
+	if id == 0 {
+		t.ErrorOK(MsgInvalidParam)
+	}
+
+	//更新任务状态和 执行时间
+	err := services.Slave().Model(models.Task{}).Where("id = ?", id).Updates(map[string]interface{}{
+		"execute_time": models.Time(time.Now()),
+		"status":       models.TaskExecute,
+	}).Error
+	if err != nil {
+		t.ErrorOK(MsgServerErr)
+	}
+	t.Correct("")
+}
+
+// @Title 任务暂停
+// @Description 任务暂停
+// @Param	id	path	int	true	"任务id"
+// @Success 200 {"string"} success
+// @Failure 500 server err
+// @router /pause/:id [put]
+func (t *TaskController) PauseTask() {
+	id, _ := t.GetInt(":id", 0)
+	if id == 0 {
+		t.ErrorOK(MsgInvalidParam)
+	}
+
+	//更新任务状态和 暂停时间
+	err := services.Slave().Model(models.Task{}).Where("id = ?", id).Updates(map[string]interface{}{
+		"pause_time": models.Time(time.Now()),
+		"status":     models.TaskPause,
+	}).Error
+	if err != nil {
+		t.ErrorOK(MsgServerErr)
+	}
+	t.Correct("")
+}
+
+// @Title 任务执行标签
+// @Description 标签列表
+// @Success 200 {object} []models.Tag
+// @Failure 500 server err
+// @router /tags [get]
+func (t *TaskController) TaskTags() {
+	data := make([]models.Tag, 0)
+	services.Slave().Model(models.Tag{}).Find(&data)
+	t.Correct(data)
+}
+
+// @Title 任务完成
+// @Description 任务完成
+// @Param	id	path	int	true	"任务id"
+// @Param	json	path	forms.ReqFinishTask	true	"body请求参数"
+// @Success 200 {"string"} success
+// @Failure 500 server err
+// @router /finish/:id [put]
+func (t *TaskController) FinishTask() {
+	id, _ := t.GetInt(":id", 0)
+	if id == 0 {
+		t.ErrorOK(MsgInvalidParam)
+	}
+	param := new(forms.ReqFinishTask)
+	err := json.Unmarshal(t.Ctx.Input.RequestBody, param)
+	if err != nil {
+		log.GLogger.Error(err.Error())
+		t.ErrorOK(MsgInvalidParam)
+	}
+
+	tags := make([]*models.Tag, 0)
+	err = services.Slave().Where(param.Tags).Find(&tags).Error
+	if err != nil {
+		t.ErrorOK("need tag id")
+	}
+	tx := services.Slave().Begin()
+	//创建执行任务信息
+	taskExeInfo := models.TaskExeInfo{
+		TaskID:       id,
+		UsedTime:     param.UsedTime,
+		ExecuteBatch: param.ExecuteBatch,
+		ExecuteTai:   param.ExecuteTai,
+		DelayTime:    param.DelayTime,
+		Desc:         param.Desc,
+		Tags:         tags,
+	}
+	err = tx.Create(&taskExeInfo).Error
+	if err != nil {
+		tx.Rollback()
+		t.Error(MsgServerErr)
+	}
+	//更新任务状态和 完成时间
+	err = tx.Model(models.Task{}).Where("id = ?", id).Updates(map[string]interface{}{
+		"finish_time": models.Time(time.Now()),
+		"status":      models.TaskFinish,
+	}).Error
+	if err != nil {
+		tx.Rollback()
+		t.ErrorOK(MsgServerErr)
+	}
+	tx.Commit()
+	t.Correct("")
+}
+
+// @Title 任务执行信息
+// @Description 任务执行信息
+// @Param	id	path	int	true	"任务id"
+// @Success 200 {"string"} models.TaskExeInfo
+// @Failure 500 server err
+// @router /exeinfo/:id [get]
+func (t *TaskController) GetTaskExeInfo() {
+	id, _ := t.GetInt(":id", 0)
+	if id == 0 {
+		t.ErrorOK("invalid id")
+	}
+	var info models.TaskExeInfo
+	services.Slave().Where("task_id = ?", id).Preload("Tags").First(&info)
+	t.Correct(info)
 }
