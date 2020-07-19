@@ -538,7 +538,7 @@ func (t *TaskController) TaskTags() {
 // @Title 任务完成
 // @Description 任务完成
 // @Param	id	path	int	true	"任务id"
-// @Param	json	path	forms.ReqFinishTask	true	"body请求参数"
+// @Param	json	body	forms.ReqFinishTask	true	"body请求参数"
 // @Success 200 {"string"} success
 // @Failure 500 server err
 // @router /finish/:id [put]
@@ -607,7 +607,7 @@ func (t *TaskController) GetTaskExeInfo() {
 // @Title 任务结单
 // @Description 任务结单
 // @Param	id	path	int	true	"任务id"
-// @Param	json	path	forms.ReqCommentTask	true	"body请求参数"
+// @Param	json	body	forms.ReqCommentTask	true	"body请求参数"
 // @Success 200 {"string"} success
 // @Failure 500 server err
 // @router /end/:id [put]
@@ -654,7 +654,7 @@ func (t *TaskController) EndTask() {
 // @Title 结单任务评价
 // @Description 结单任务评价，销售评价客户经理
 // @Param	id	path	int	true	"任务id"
-// @Param	json	path	forms.ReqCommentTask	true	"body请求参数"
+// @Param	json	body	forms.ReqCommentTask	true	"body请求参数"
 // @Success 200 {"string"} success
 // @Failure 500 server err
 // @router /comment/:id [put]
@@ -694,7 +694,7 @@ func (t *TaskController) CommentTask() {
 // @Title 获取任务评价信息
 // @Description commentType 0实施评价1客服经理评价
 // @Param	id	path	int	true	"任务id"
-// @Success 200 {"string"} success
+// @Success 200 {object} []models.TaskComment
 // @Failure 500 server err
 // @router /comment/:id [get]
 func (t *TaskController) TaskComments() {
