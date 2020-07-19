@@ -109,7 +109,7 @@ type TaskComment struct {
 	gorm.Model
 	TaskID         int    `gorm:"index;comment:'任务id'" json:"taskId"`
 	CommentType    int    `gorm:"comment:'0实施评价1客户经理评价'" json:"commentType"`
-	RealTime       Time   `gorm:"type:time;not null;comment:'交付时间'" json:"realTime"`
+	RealTime       Time   `gorm:"type:datetime;not null;comment:'交付时间'" json:"realTime"`
 	ReExecuteTimes int    `gorm:"default:0;comment:'返工次数'" json:"reExeTimes"`
 	Score          int    `gorm:"comment:'评分'" json:"score"`
 	Other          string `gorm:"size:256;comment:'其他信息'" json:"other"`

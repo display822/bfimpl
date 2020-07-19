@@ -603,3 +603,106 @@ func (t *TaskController) GetTaskExeInfo() {
 	services.Slave().Where("task_id = ?", id).Preload("Tags").First(&info)
 	t.Correct(info)
 }
+
+// @Title 任务结单
+// @Description 任务结单
+// @Param	id	path	int	true	"任务id"
+// @Param	json	path	forms.ReqCommentTask	true	"body请求参数"
+// @Success 200 {"string"} success
+// @Failure 500 server err
+// @router /end/:id [put]
+func (t *TaskController) EndTask() {
+	id, _ := t.GetInt(":id", 0)
+	if id == 0 {
+		t.ErrorOK(MsgInvalidParam)
+	}
+	param := new(forms.ReqCommentTask)
+	err := json.Unmarshal(t.Ctx.Input.RequestBody, param)
+	if err != nil {
+		log.GLogger.Error(err.Error())
+		t.ErrorOK(MsgInvalidParam)
+	}
+
+	tx := services.Slave().Begin()
+	//创建执行任务信息
+	taskComment := models.TaskComment{
+		TaskID:         id,
+		CommentType:    0,
+		RealTime:       param.RealTime,
+		ReExecuteTimes: param.ReExecuteTimes,
+		Score:          param.Score,
+		Other:          param.Other,
+	}
+	err = tx.Create(&taskComment).Error
+	if err != nil {
+		tx.Rollback()
+		t.Error(MsgServerErr)
+	}
+	//更新任务状态和 完成时间
+	err = tx.Model(models.Task{}).Where("id = ?", id).Updates(map[string]interface{}{
+		"end_time": models.Time(time.Now()),
+		"status":   models.TaskEnd,
+	}).Error
+	if err != nil {
+		tx.Rollback()
+		t.ErrorOK(MsgServerErr)
+	}
+	tx.Commit()
+	t.Correct("")
+}
+
+// @Title 结单任务评价
+// @Description 结单任务评价，销售评价客户经理
+// @Param	id	path	int	true	"任务id"
+// @Param	json	path	forms.ReqCommentTask	true	"body请求参数"
+// @Success 200 {"string"} success
+// @Failure 500 server err
+// @router /comment/:id [put]
+func (t *TaskController) CommentTask() {
+	id, _ := t.GetInt(":id", 0)
+	if id == 0 {
+		t.ErrorOK(MsgInvalidParam)
+	}
+	var task models.Task
+	services.Slave().Take(&task, "id = ?", id)
+	if task.Status != models.TaskEnd {
+		t.ErrorOK("任务未结单")
+	}
+	param := new(forms.ReqCommentTask)
+	err := json.Unmarshal(t.Ctx.Input.RequestBody, param)
+	if err != nil {
+		log.GLogger.Error(err.Error())
+		t.ErrorOK(MsgInvalidParam)
+	}
+
+	//创建执行任务信息
+	taskComment := models.TaskComment{
+		TaskID:         id,
+		CommentType:    1,
+		RealTime:       param.RealTime,
+		ReExecuteTimes: param.ReExecuteTimes,
+		Score:          param.Score,
+		Other:          param.Other,
+	}
+	err = services.Slave().Create(&taskComment).Error
+	if err != nil {
+		t.Error(MsgServerErr)
+	}
+	t.Correct("")
+}
+
+// @Title 获取任务评价信息
+// @Description commentType 0实施评价1客服经理评价
+// @Param	id	path	int	true	"任务id"
+// @Success 200 {"string"} success
+// @Failure 500 server err
+// @router /comment/:id [get]
+func (t *TaskController) TaskComments() {
+	id, _ := t.GetInt(":id", 0)
+	if id == 0 {
+		t.ErrorOK(MsgInvalidParam)
+	}
+	comments := make([]models.TaskComment, 0)
+	services.Slave().Where("task_id = ?", id).Find(&comments)
+	t.Correct(comments)
+}

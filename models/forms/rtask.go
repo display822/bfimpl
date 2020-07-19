@@ -87,3 +87,11 @@ type ReqFinishTask struct {
 	Desc         string `json:"desc"`
 	Tags         []int  `json:"tags"`
 }
+
+// 结单任务参数
+type ReqCommentTask struct {
+	RealTime       models.Time `json:"realTime"`
+	ReExecuteTimes int         `json:"reExeTimes"`
+	Score          int         `json:"score"`
+	Other          string      `json:"other"`
+}
