@@ -95,3 +95,9 @@ type ReqCommentTask struct {
 	Score          int         `json:"score"`
 	Other          string      `json:"other"`
 }
+
+// 退次任务参数
+type ReqBackAmount struct {
+	Amount int    `json:"amount"`
+	Remark string `json:"remark"`
+}

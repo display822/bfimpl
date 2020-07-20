@@ -126,7 +126,7 @@ func (a *AmountController) GetAmountLogs() {
 	serviceId, _ := a.GetInt("serviceId")
 	res := make([]models.RspAmountLog, 0)
 	services.Slave().Raw("SELECT al.real_time,s.service_name,a.order_number,al.change,al.desc,"+
-		"al.remark FROM amounts a,amount_logs al,services s WHERE a.client_id = ? AND a.service_id = ?"+
+		"al.remark,al.type FROM amounts a,amount_logs al,services s WHERE a.client_id = ? AND a.service_id = ?"+
 		" AND a.id = al.amount_id AND a.service_id = s.id order by al.real_time desc", clientId, serviceId).Scan(&res)
 
 	a.Correct(res)
@@ -242,4 +242,33 @@ func createAmountLogSimple(db *gorm.DB, param *models.AmountSimple, msg, t, r, r
 	amountLog.Remark = r
 	amountLog.Refer = refer
 	return db.Create(amountLog).Error
+}
+
+func AmountDelayOut() {
+	log.GLogger.Info("start amount delay...")
+	//查询到期日期小于今天的amount
+	amounts := make([]*models.Amount, 0)
+	err := services.Slave().Where("amount > 0 and deadline < ?", time.Now().Format(models.DateFormat)).
+		Find(&amounts).Error
+	if err != nil {
+		log.GLogger.Error("amount delay task err:%s", err.Error())
+		return
+	}
+	tx := services.Slave().Begin()
+	for _, a := range amounts {
+		//创建log
+		err = createAmountLog(tx, a, "额度过期", models.Amount_Delay_Out, a.Amount)
+		if err != nil {
+			tx.Rollback()
+			break
+		}
+		//更新额度为0
+		err = tx.Model(&a).Update("amount", 0).Error
+		if err != nil {
+			tx.Rollback()
+			break
+		}
+	}
+	tx.Commit()
+	log.GLogger.Info("amount delay finish")
 }

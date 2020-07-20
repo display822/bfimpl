@@ -75,14 +75,27 @@ type RspAmount struct {
 
 func (amount *RspAmount) CalData(ca ClientAmount) {
 	amount.Remain += ca.Change
-	if ca.Type == Amount_ConvOut || ca.Type == Amount_Use || ca.Type == Amount_Frozen_Out {
+	switch ca.Type {
+	case Amount_ConvOut:
+		fallthrough
+	case Amount_Use:
+		fallthrough
+	case Amount_Frozen_Out:
 		amount.Used += ca.Change * AmountChange[Amount_Use]
-	} else if ca.Type == Amount_Delay {
-		amount.Delay += ca.Change * AmountChange[Amount_Delay]
-	} else if ca.Type == Amount_Buy || ca.Type == Amount_ConvIn {
-		amount.Amount += ca.Change
-	} else if ca.Type == Amount_Cancel || ca.Type == Amount_Frozen_In {
+	case Amount_Cancel:
+		fallthrough
+	case Amount_Frozen_In:
+		fallthrough
+	case Amount_Back:
 		amount.Used -= ca.Change
+	case Amount_Buy:
+		fallthrough
+	case Amount_ConvIn:
+		amount.Amount += ca.Change
+	case Amount_Delay_Out:
+		amount.Delay += ca.Change * AmountChange[Amount_Delay_Out]
+	case Amount_Delay_In:
+		amount.Delay -= ca.Change
 	}
 }
 
@@ -94,6 +107,7 @@ type RspAmountLog struct {
 	Change      int    `json:"change"`
 	Desc        string `json:"desc"`
 	Remark      string `json:"remark"`
+	Type        string `json:"type"`
 }
 
 type ReqSwitchAmount struct {

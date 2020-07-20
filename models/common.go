@@ -24,7 +24,9 @@ const (
 	Amount_Frozen_In  = "frozen_in"
 	Amount_Frozen_Out = "frozen_out"
 	Amount_Buy        = "buy"
-	Amount_Delay      = "delay"
+	Amount_Back       = "back"
+	Amount_Delay_In   = "delay_in"
+	Amount_Delay_Out  = "delay_out"
 )
 
 var AmountChange = map[string]int{
@@ -33,9 +35,11 @@ var AmountChange = map[string]int{
 	Amount_ConvIn:     1,
 	Amount_ConvOut:    -1,
 	Amount_Buy:        1,
-	Amount_Delay:      -1,
+	Amount_Delay_In:   1,
+	Amount_Delay_Out:  -1,
 	Amount_Frozen_In:  1,
 	Amount_Frozen_Out: -1,
+	Amount_Back:       1,
 }
 
 func (t *Time) UnmarshalJSON(data []byte) (err error) {

@@ -29,5 +29,6 @@ require (
 	github.com/jinzhu/gorm v1.9.9
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/levigross/grequests v0.0.0-20190130132859-37c80f76a0da
+	github.com/robfig/cron/v3 v3.0.0
 	github.com/smartystreets/goconvey v0.0.0-20190330032615-68dc04aab96a
 )

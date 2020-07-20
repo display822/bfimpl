@@ -435,7 +435,7 @@ func (t *TaskController) FrozenTask() {
 	}
 
 	//更新任务状态和 冻结时间
-	err = services.Slave().Model(models.Task{}).Where("id = ?", id).Updates(map[string]interface{}{
+	err = services.Slave().Model(&task).Updates(map[string]interface{}{
 		"frozen_time": models.Time(time.Now()),
 		"status":      models.TaskFrozen,
 	}).Error
@@ -705,4 +705,61 @@ func (t *TaskController) TaskComments() {
 	comments := make([]models.TaskComment, 0)
 	services.Slave().Where("task_id = ?", id).Find(&comments)
 	t.Correct(comments)
+}
+
+// @Title 任务退次
+// @Description 任务退次,退次额度小于实际额度 realAmount
+// @Param	id		path	int	true	"任务id"
+// @Param	json	body	forms.ReqBackAmount	true	"退次参数"
+// @Success 200 {"string"} success
+// @Failure 500 server err
+// @router /backamount/:id [put]
+func (t *TaskController) TaskBackAmount() {
+	id, _ := t.GetInt(":id", 0)
+	param := new(forms.ReqBackAmount)
+	err := json.Unmarshal(t.Ctx.Input.RequestBody, param)
+	if err != nil {
+		log.GLogger.Error(err.Error())
+		t.ErrorOK(MsgInvalidParam)
+	}
+	if id == 0 || param.Amount <= 0 {
+		t.ErrorOK(MsgInvalidParam)
+	}
+	var task models.Task
+	err = services.Slave().Take(&task, "id = ?", id).Error
+	if err != nil {
+		t.ErrorOK("invalid taskId")
+	}
+	//检查真实提测额度
+	if param.Amount >= task.RealAmount {
+		t.ErrorOK("退次额度超过提测额度")
+	}
+	tx := services.Slave().Begin()
+	err = tx.UpdateColumn("real_amount", task.RealAmount-param.Amount).Error
+	if err != nil {
+		tx.Rollback()
+		t.ErrorOK(MsgServerErr)
+	}
+	//反冲额度
+	var amount models.Amount
+	err = tx.Model(models.Amount{}).Where("client_id = ? and service_id = ?", task.ClientId, task.RealServiceId).
+		Order("deadline desc").First(&amount).Error
+	if err != nil {
+		tx.Rollback()
+		t.ErrorOK("add amount fail")
+	}
+	err = tx.Model(&amount).UpdateColumn("amount", amount.Amount+param.Amount).Error
+	if err != nil {
+		tx.Rollback()
+		t.ErrorOK("add amount fail")
+	}
+	// 反冲记录
+	amount.Remark = param.Remark
+	err = createAmountLog(tx, &amount, "任务退次", models.Amount_Back, param.Amount)
+	if err != nil {
+		tx.Rollback()
+		t.ErrorOK("add amount fail")
+	}
+	tx.Commit()
+	t.Correct("")
 }
