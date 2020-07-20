@@ -39,7 +39,7 @@ type ReqTaskDetail struct {
 	TestExtInfo     string      `json:"testExtInfo"`
 	WhiteList       string      `json:"whiteList"`
 	TestAccountType string      `json:"testAccountType"`
-	AccountReUse    int         `json:"reUse"`
+	AccountReUse    string      `json:"reUse"`
 	AccountAddress  string      `json:"accountAddress"`
 	AccountNum      int         `json:"accountNum"`
 	PhoneNum        int         `json:"phoneNum"`

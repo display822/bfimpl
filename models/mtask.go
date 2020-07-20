@@ -70,7 +70,7 @@ type TaskDetail struct {
 	TestExtInfo     string `gorm:"size:256;comment:'测试环境补充信息'" json:"testExtInfo"`
 	WhiteList       string `gorm:"size:512;comment:'白名单'" json:"whiteList"`
 	TestAccountType string `gorm:"size:40;comment:'测试账号类型'" json:"testAccountType"`
-	AccountReUse    int    `gorm:"type:tinyint;default:0;comment:'账号是否重复使用'" json:"reUse"`
+	AccountReUse    string `gorm:"size:60;default:'';comment:'账号是否重复使用'" json:"reUse"`
 	AccountAddress  string `gorm:"size:256;comment:'账号文件地址'" json:"accountAddress"`
 	ChangeLog       string `gorm:"size:256;comment:'变更说明'" json:"changeLog"`
 	AccountNum      int    `gorm:"comment:'账号数量'" json:"accountNum"`

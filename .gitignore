@@ -2,3 +2,4 @@
 swagger/
 swagger.zip
 lastupdate.tmp
+routers/commentsRouter_.go
