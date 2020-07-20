@@ -124,7 +124,7 @@ func (t *TaskController) Task() {
 	}
 	var task models.Task
 	err := services.Slave().Preload("Client").Preload("Service").Preload("RealService").
-		Preload("TaskDetail").Take(&task, "id = ?", id).Error
+		Preload("ExeUser").Preload("TaskDetail").Take(&task, "id = ?", id).Error
 	if err != nil {
 		t.ErrorOK("invalid id")
 	}

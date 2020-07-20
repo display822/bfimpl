@@ -46,6 +46,7 @@ func (a *AmountController) AddAmount() {
 		log.GLogger.Error("%s:%s", a.valid.Errors[0].Field, a.valid.Errors[0].Message)
 		a.ErrorOK(MsgInvalidParam)
 	}
+	param.OrderNumber = strconv.FormatInt(time.Now().Unix(), 10)
 	tx := services.Slave().Begin()
 	err = tx.Create(param).Error
 	if err != nil {
