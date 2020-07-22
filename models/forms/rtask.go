@@ -94,6 +94,7 @@ type ReqCommentTask struct {
 	ReExecuteTimes int         `json:"reExeTimes"`
 	Score          int         `json:"score"`
 	Other          string      `json:"other"`
+	CommentType    int         `json:"commentType"`
 }
 
 // 退次任务参数
