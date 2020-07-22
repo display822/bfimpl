@@ -4,6 +4,10 @@ import (
 	"bfimpl/services/log"
 	"net/http"
 
+	"strings"
+
+	"bfimpl/services"
+
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/validation"
 )
@@ -73,4 +77,16 @@ func (b *BaseController) ErrorObject(code int, msg string, obj interface{}) {
 	}{code, msg, obj}
 	b.ServeJSON()
 	b.StopRun()
+}
+
+func (b *BaseController) Prepare() {
+	if strings.Contains(b.Ctx.Request.URL.Path, "login") {
+		return
+	}
+	userKey := b.Ctx.Request.Header.Get("Authorization")
+	userID, err := services.RedisClient().Get(userKey).Result()
+	if err != nil {
+		b.ErrorCode(http.StatusUnauthorized, http.StatusOK, "login required")
+	}
+	b.Input().Set("userID", userID)
 }

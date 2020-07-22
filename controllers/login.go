@@ -10,7 +10,11 @@ import (
 	"bfimpl/models"
 	"bfimpl/services"
 	"bfimpl/services/log"
+	"bfimpl/services/util"
 	"encoding/json"
+	"math/rand"
+	"strconv"
+	"time"
 )
 
 type LoginController struct {
@@ -44,5 +48,9 @@ func (l *LoginController) Login() {
 	if err != nil {
 		l.ErrorOK("user not found")
 	}
+
+	key := strconv.Itoa(rand.Intn(100)) + strconv.FormatInt(time.Now().Unix(), 10)
+	user.Session = key
+	services.RedisClient().Set(util.StringMd5(key), user.ID, time.Hour*24)
 	l.Correct(user)
 }

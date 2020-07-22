@@ -35,6 +35,19 @@ type TaskController struct {
 // @Failure 500 server err
 // @router / [post]
 func (t *TaskController) NewTask() {
+
+	uID, _ := t.GetInt("userID", 0)
+	if uID == 0 {
+		t.ErrorOK("need user id")
+	}
+	//查询用户
+	var user models.User
+	services.Slave().Take(&user, "id = ?", uID)
+	// 管理员，销售，经理
+	if user.UserType != 1 && user.UserType != 2 && user.UserType != 3 {
+		t.ErrorOK("无提测权限")
+	}
+
 	param := new(forms.ReqTask)
 	err := json.Unmarshal(t.Ctx.Input.RequestBody, param)
 	if err != nil {
@@ -144,14 +157,44 @@ func (t *TaskController) TaskList() {
 	if status == "" {
 		t.ErrorOK("need status")
 	}
+	uID, _ := t.GetInt("userID", 0)
+	if uID == 0 {
+		t.ErrorOK("need user id")
+	}
 	pageSize, _ := t.GetInt("pageSize", 10)
 	pageNum, _ := t.GetInt("pageNum", 1)
 
 	tasks := make([]models.Task, 0)
 	total := 0
-	err := services.Slave().Model(models.Task{}).Where("status = ?", status).Preload("Client").
-		Preload("Service").Preload("RealService").
+	query := services.Slave().Model(models.Task{})
+
+	//查询用户
+	var user models.User
+	services.Slave().Take(&user, "id = ?", uID)
+	switch user.UserType {
+	case 1:
+		query = query.Where("status = ?", status)
+	case 2:
+		clientIds := make([]int, 0)
+		services.Slave().Model(models.Client{}).Where("sale_id = ?", uID).Pluck("id", &clientIds)
+		query = query.Where("status = ? and client_id in (?)", status, clientIds)
+	case 3:
+		query = query.Where("status = ? and manage_id = ?", status, uID)
+	case 4:
+		if status != models.TaskCreate && status != models.TaskConfirm && status != models.TaskFrozen {
+			exeIds := make([]int, 0)
+			services.Slave().Model(models.User{}).Where("leader_id = ?", uID).Pluck("id", &exeIds)
+			query = query.Where("status = ? and exe_user_id in (?)", uID, exeIds)
+		}
+	case 5:
+		query = query.Where("status = ? and and exe_user_id = ?", status, uID)
+	default:
+		t.ErrorOK("invalid user type")
+	}
+
+	err := query.Preload("Client").Preload("Service").Preload("RealService").
 		Limit(pageSize).Offset((pageNum - 1) * pageSize).Find(&tasks).Limit(-1).Offset(-1).Count(&total).Error
+
 	if err != nil {
 		t.ErrorOK(MsgServerErr)
 	}
@@ -162,6 +205,60 @@ func (t *TaskController) TaskList() {
 	resp.Total = total
 	resp.List = tasks
 	t.Correct(resp)
+}
+
+// @Title 亟需关注
+// @Description 亟需关注
+// @Param	type	query	int 	true	"默认今天，1明天"
+// @Success 200 {object} []models.Task
+// @Failure 500 server err
+// @router /focus [get]
+func (t *TaskController) TaskToday() {
+	qType, _ := t.GetInt("type", 0)
+	if qType != 0 {
+		qType = 1
+	}
+	uID, _ := t.GetInt("userID", 0)
+	if uID == 0 {
+		t.ErrorOK("need user id")
+	}
+	//查询用户
+	var user models.User
+	services.Slave().Take(&user, "id = ?", uID)
+	// 查询任务
+	tasks := make([]models.Task, 0)
+	query := services.Slave().Model(models.Task{})
+	today := time.Now().AddDate(0, 0, qType).Format(models.DateFormat)
+	morrow := time.Now().AddDate(0, 0, qType+1).Format(models.DateFormat)
+	switch user.UserType {
+	case 1:
+		//管理员
+		query = query.Where("exp_end_time >= ? and exp_end_time<=?", today, morrow)
+	case 2:
+		//销售,自己客户信息
+		clientIds := make([]int, 0)
+		services.Slave().Model(models.Client{}).Where("sale_id = ?", uID).Pluck("id", &clientIds)
+		query = query.Where("exp_end_time >= ? and exp_end_time <= ? and client_id in (?)",
+			today, morrow, clientIds)
+	case 3:
+		//客户服务经理
+		query = query.Where("exp_end_time >= ? and exp_end_time <= ? and manage_id = ?",
+			today, morrow, uID)
+	case 4:
+		//组长
+		exeIds := make([]int, 0)
+		services.Slave().Model(models.User{}).Where("leader_id = ?", uID).Pluck("id", &exeIds)
+		query = query.Where("exp_end_time >= ? and exp_end_time <= ? and exe_user_id in (?)",
+			today, morrow, exeIds)
+	case 5:
+		//实施
+		query = query.Where("exp_deliver_time >= ? and exp_deliver_time <= ? and exe_user_id = ?",
+			today, morrow, uID)
+	default:
+		t.ErrorOK("invalid user type")
+	}
+	query.Find(&tasks)
+	t.Correct(tasks)
 }
 
 // @Title 任务确认

@@ -6,6 +6,7 @@ import (
 
 	"bfimpl/controllers"
 
+	"math/rand"
 	"time"
 
 	"github.com/astaxie/beego"
@@ -22,10 +23,6 @@ func main() {
 		beego.AppConfig.String("httpaddr"),
 		beego.AppConfig.String("httpport"))
 
-	go func() {
-		time.Sleep(time.Second * 4)
-		controllers.AmountDelayOut()
-	}()
 	c := cron.New()
 	_, err := c.AddFunc("* 2 * * *", func() {
 		controllers.AmountDelayOut()
@@ -36,5 +33,6 @@ func main() {
 	}
 	c.Start()
 	defer c.Stop()
+	rand.Seed(time.Now().Unix())
 	beego.Run()
 }

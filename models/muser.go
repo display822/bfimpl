@@ -12,6 +12,7 @@ type User struct {
 	Phone    string `gorm:"size:30;not null;comment:'手机'" json:"phone" valid:"Required"`
 	UserType int    `gorm:"tinyint;default:0;comment:'用户类型'" json:"userType" valid:"Required"`
 	LeaderId int    `gorm:"default:0;comment:'组长id'" json:"leaderId"`
+	Session  string `gorm:"-" json:"session"`
 }
 
 var UserType = map[int]string{
