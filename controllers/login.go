@@ -50,7 +50,7 @@ func (l *LoginController) Login() {
 	}
 
 	key := strconv.Itoa(rand.Intn(100)) + strconv.FormatInt(time.Now().Unix(), 10)
-	user.Session = key
-	services.RedisClient().Set(util.StringMd5(key), user.ID, time.Hour*24)
+	user.Session = util.StringMd5(key)
+	services.RedisClient().Set(user.Session, user.ID, time.Hour*24)
 	l.Correct(user)
 }
