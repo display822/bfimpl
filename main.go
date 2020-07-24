@@ -24,7 +24,7 @@ func main() {
 		beego.AppConfig.String("httpport"))
 
 	c := cron.New()
-	_, err := c.AddFunc("* 2 * * *", func() {
+	_, err := c.AddFunc("0 2 * * *", func() {
 		controllers.AmountDelayOut()
 	})
 	if err != nil {

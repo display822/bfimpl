@@ -166,28 +166,29 @@ func (t *TaskController) TaskList() {
 
 	tasks := make([]models.Task, 0)
 	total := 0
-	query := services.Slave().Model(models.Task{})
-
+	query := services.Slave().Model(models.Task{}).Where("status = ?", status)
+	if status == models.TaskExecute {
+		query = query.Or("status = ?", models.TaskPause)
+	}
 	//查询用户
 	var user models.User
 	services.Slave().Take(&user, "id = ?", uID)
 	switch user.UserType {
 	case 1:
-		query = query.Where("status = ?", status)
 	case 2:
 		clientIds := make([]int, 0)
 		services.Slave().Model(models.Client{}).Where("sale_id = ?", uID).Pluck("id", &clientIds)
-		query = query.Where("status = ? and client_id in (?)", status, clientIds)
+		query = query.Where("client_id in (?)", clientIds)
 	case 3:
-		query = query.Where("status = ? and manage_id = ?", status, uID)
+		query = query.Where("manage_id = ?", uID)
 	case 4:
 		if status != models.TaskCreate && status != models.TaskConfirm && status != models.TaskFrozen {
 			exeIds := make([]int, 0)
 			services.Slave().Model(models.User{}).Where("leader_id = ?", uID).Pluck("id", &exeIds)
-			query = query.Where("status = ? and exe_user_id in (?)", uID, exeIds)
+			query = query.Where("exe_user_id in (?)", exeIds)
 		}
 	case 5:
-		query = query.Where("status = ? and and exe_user_id = ?", status, uID)
+		query = query.Where("exe_user_id = ?", uID)
 	default:
 		t.ErrorOK("invalid user type")
 	}
@@ -297,6 +298,10 @@ func (t *TaskController) CancelTask() {
 	if id == 0 {
 		t.ErrorOK(MsgInvalidParam)
 	}
+	uID, _ := t.GetInt("userID", 0)
+	if uID == 0 {
+		t.ErrorOK("need user id")
+	}
 	param := new(forms.ReqCancelTask)
 	err := json.Unmarshal(t.Ctx.Input.RequestBody, param)
 	if err != nil {
@@ -313,7 +318,7 @@ func (t *TaskController) CancelTask() {
 	err = tx.Model(&task).Updates(map[string]interface{}{
 		"cancel_time":    models.Time(time.Now()),
 		"status":         models.TaskCancel,
-		"cancel_user_id": param.UserId,
+		"cancel_user_id": uID,
 		"reason":         param.Reason,
 	}).Error
 	if err != nil {
@@ -688,7 +693,7 @@ func (t *TaskController) FinishTask() {
 // @Title 任务执行信息
 // @Description 任务执行信息
 // @Param	id	path	int	true	"任务id"
-// @Success 200 {"string"} models.TaskExeInfo
+// @Success 200 {object} models.TaskExeInfo
 // @Failure 500 server err
 // @router /exeinfo/:id [get]
 func (t *TaskController) GetTaskExeInfo() {
