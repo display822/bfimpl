@@ -125,11 +125,22 @@ func (a *AmountController) GetAmountLogs() {
 	clientId, _ := a.GetInt("clientId")
 	serviceId, _ := a.GetInt("serviceId")
 	res := make([]models.RspAmountLog, 0)
-	services.Slave().Raw("SELECT al.real_time,s.service_name,a.order_number,al.change,al.desc,"+
+	services.Slave().Raw("SELECT al.id,al.real_time,s.service_name,a.order_number,al.change,al.desc,"+
 		"al.remark,al.type FROM amounts a,amount_logs al,services s WHERE a.client_id = ? AND a.service_id = ?"+
 		" AND a.id = al.amount_id AND a.service_id = s.id order by al.real_time desc", clientId, serviceId).Scan(&res)
 
 	a.Correct(res)
+}
+
+// @Title 额度延期
+// @Description 额度延期
+// @Param	id	path	int		true	"额度日志id"
+// @Success 200 {string} models.RspAmountLog
+// @Failure 500 server err
+// @router /delay/:id [put]
+func (a *AmountController) DelayInAmount() {
+	//logId, _ := a.GetInt(":id", 0)
+
 }
 
 // @Title 客户额度转换
