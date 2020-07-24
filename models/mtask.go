@@ -6,7 +6,9 @@
 
 package models
 
-import "github.com/jinzhu/gorm"
+import (
+	"github.com/jinzhu/gorm"
+)
 
 // 若是客户服务经理提测，则状态标记为对接中，提测时间点和需求对接起始点保持一致
 // 需求变更 任务状态变为deliver，涉及额度和任务类型，变为 cancel
@@ -47,6 +49,7 @@ type Task struct {
 	ExeUser       *User      `gorm:"ForeignKey:ExeUserId" json:"exeUser"`
 	ExeUserId     int        `gorm:"index;comment:'被指派人员id'" json:"exeUserId"`
 	TaskDetail    TaskDetail `json:"taskDetail"`
+	Logs          []*TaskLog `json:"logs"`
 }
 
 const (
@@ -60,6 +63,15 @@ const (
 	TaskFinish  = "finish"
 	TaskEnd     = "end"
 )
+
+// 任务日志
+type TaskLog struct {
+	ID         uint   `gorm:"primary_key" json:"id"`
+	CreateTime Time   `gorm:"type:datetime;comment:'创建时间'" json:"createTime"`
+	TaskID     uint   `json:"-"`
+	Title      string `gorm:"size:40;comment:'标题'" json:"title"`
+	Desc       string `gorm:"size:256;comment:'变更说明'" json:"desc"`
+}
 
 // 任务详细信息
 type TaskDetail struct {

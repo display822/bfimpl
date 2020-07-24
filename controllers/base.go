@@ -1,8 +1,10 @@
 package controllers
 
 import (
+	"bfimpl/models"
 	"bfimpl/services/log"
 	"net/http"
+	"strconv"
 
 	"strings"
 
@@ -88,5 +90,10 @@ func (b *BaseController) Prepare() {
 	if err != nil {
 		b.ErrorCode(http.StatusUnauthorized, http.StatusOK, "login required")
 	}
+	//查询用户
+	var user models.User
+	services.Slave().Take(&user, "id = ?", userID)
 	b.Input().Set("userID", userID)
+	b.Input().Set("userName", user.Name)
+	b.Input().Set("userType", strconv.Itoa(user.UserType))
 }

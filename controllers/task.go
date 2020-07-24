@@ -40,11 +40,9 @@ func (t *TaskController) NewTask() {
 	if uID == 0 {
 		t.ErrorOK("need user id")
 	}
-	//查询用户
-	var user models.User
-	services.Slave().Take(&user, "id = ?", uID)
+	userType, _ := t.GetInt("userType", 0)
 	// 管理员，销售，经理
-	if user.UserType != 1 && user.UserType != 2 && user.UserType != 3 {
+	if userType != 1 && userType != 2 && userType != 3 {
 		t.ErrorOK("无提测权限")
 	}
 
@@ -116,6 +114,17 @@ func (t *TaskController) NewTask() {
 		}
 		break
 	}
+	//task log
+	taskLog := models.TaskLog{
+		TaskID:     task.ID,
+		CreateTime: models.Time(time.Now()),
+		Title:      t.GetString("userName") + "创建任务",
+	}
+	err = tx.Create(&taskLog).Error
+	if err != nil {
+		tx.Rollback()
+		t.ErrorOK(MsgServerErr)
+	}
 	err = tx.Commit().Error
 	if err != nil {
 		tx.Rollback()
@@ -133,11 +142,11 @@ func (t *TaskController) NewTask() {
 func (t *TaskController) Task() {
 	id, _ := t.GetInt(":id", 0)
 	if id == 0 {
-		t.GetInt("need id")
+		t.ErrorOK("need id")
 	}
 	var task models.Task
 	err := services.Slave().Preload("Client").Preload("Service").Preload("RealService").
-		Preload("ExeUser").Preload("TaskDetail").Take(&task, "id = ?", id).Error
+		Preload("ExeUser").Preload("TaskDetail").Preload("Logs").Take(&task, "id = ?", id).Error
 	if err != nil {
 		t.ErrorOK("invalid id")
 	}
@@ -171,9 +180,8 @@ func (t *TaskController) TaskList() {
 		query = query.Or("status = ?", models.TaskPause)
 	}
 	//查询用户
-	var user models.User
-	services.Slave().Take(&user, "id = ?", uID)
-	switch user.UserType {
+	userType, _ := t.GetInt("userType", 0)
+	switch userType {
 	case 1:
 	case 2:
 		clientIds := make([]int, 0)
@@ -223,15 +231,13 @@ func (t *TaskController) TaskToday() {
 	if uID == 0 {
 		t.ErrorOK("need user id")
 	}
-	//查询用户
-	var user models.User
-	services.Slave().Take(&user, "id = ?", uID)
+	userType, _ := t.GetInt("userType", 0)
 	// 查询任务
 	tasks := make([]models.Task, 0)
 	query := services.Slave().Model(models.Task{})
 	today := time.Now().AddDate(0, 0, qType).Format(models.DateFormat)
 	morrow := time.Now().AddDate(0, 0, qType+1).Format(models.DateFormat)
-	switch user.UserType {
+	switch userType {
 	case 1:
 		//管理员
 		query = query.Where("exp_end_time >= ? and exp_end_time<=?", today, morrow)
@@ -274,14 +280,28 @@ func (t *TaskController) ConfirmTask() {
 		t.ErrorOK(MsgInvalidParam)
 	}
 
+	//task log
+	taskLog := models.TaskLog{
+		TaskID:     uint(id),
+		CreateTime: models.Time(time.Now()),
+		Title:      t.GetString("userName") + "接受任务",
+	}
+	tx := services.Slave().Begin()
 	//更新任务状态和 确认时间
-	err := services.Slave().Model(models.Task{}).Where("id = ?", id).Updates(map[string]interface{}{
+	err := tx.Model(models.Task{}).Where("id = ?", id).Updates(map[string]interface{}{
 		"tm_accept_time": models.Time(time.Now()),
 		"status":         models.TaskConfirm,
 	}).Error
 	if err != nil {
+		tx.Rollback()
 		t.ErrorOK(MsgServerErr)
 	}
+	err = tx.Create(&taskLog).Error
+	if err != nil {
+		tx.Rollback()
+		t.ErrorOK(MsgServerErr)
+	}
+	tx.Commit()
 	t.Correct("")
 }
 
@@ -345,6 +365,16 @@ func (t *TaskController) CancelTask() {
 		tx.Rollback()
 		t.ErrorOK("add amount fail")
 	}
+	taskLog := models.TaskLog{
+		TaskID:     uint(id),
+		CreateTime: models.Time(time.Now()),
+		Title:      t.GetString("userName") + "取消任务",
+	}
+	err = tx.Create(&taskLog).Error
+	if err != nil {
+		tx.Rollback()
+		t.ErrorOK(MsgServerErr)
+	}
 	tx.Commit()
 	t.Correct("")
 }
@@ -386,6 +416,17 @@ func (t *TaskController) SaveTaskDetail() {
 		taskDetail.ID = tmp.ID
 		services.Slave().Save(taskDetail)
 	}
+	logContent := "信息录入"
+	if param.ChangeLog != "" {
+		logContent = "变更需求"
+	}
+	taskLog := models.TaskLog{
+		TaskID:     uint(id),
+		CreateTime: models.Time(time.Now()),
+		Title:      t.GetString("userName") + logContent,
+		Desc:       param.ChangeLog,
+	}
+	services.Slave().Create(&taskLog)
 	t.Correct("")
 }
 
@@ -544,7 +585,12 @@ func (t *TaskController) FrozenTask() {
 	if err != nil {
 		t.ErrorOK(MsgServerErr)
 	}
-
+	taskLog := models.TaskLog{
+		TaskID:     uint(id),
+		CreateTime: models.Time(time.Now()),
+		Title:      t.GetString("userName") + "冻结需求",
+	}
+	services.Slave().Create(&taskLog)
 	t.Correct("")
 }
 
@@ -577,6 +623,12 @@ func (t *TaskController) AssignTask() {
 	if err != nil {
 		t.ErrorOK(MsgServerErr)
 	}
+	taskLog := models.TaskLog{
+		TaskID:     uint(id),
+		CreateTime: models.Time(time.Now()),
+		Title:      t.GetString("userName") + "资源指派",
+	}
+	services.Slave().Create(&taskLog)
 	t.Correct("")
 }
 
@@ -600,6 +652,12 @@ func (t *TaskController) ExecuteTask() {
 	if err != nil {
 		t.ErrorOK(MsgServerErr)
 	}
+	taskLog := models.TaskLog{
+		TaskID:     uint(id),
+		CreateTime: models.Time(time.Now()),
+		Title:      t.GetString("userName") + "启动执行",
+	}
+	services.Slave().Create(&taskLog)
 	t.Correct("")
 }
 
@@ -623,6 +681,12 @@ func (t *TaskController) PauseTask() {
 	if err != nil {
 		t.ErrorOK(MsgServerErr)
 	}
+	taskLog := models.TaskLog{
+		TaskID:     uint(id),
+		CreateTime: models.Time(time.Now()),
+		Title:      t.GetString("userName") + "暂停任务",
+	}
+	services.Slave().Create(&taskLog)
 	t.Correct("")
 }
 
@@ -682,6 +746,16 @@ func (t *TaskController) FinishTask() {
 		"finish_time": models.Time(time.Now()),
 		"status":      models.TaskFinish,
 	}).Error
+	if err != nil {
+		tx.Rollback()
+		t.ErrorOK(MsgServerErr)
+	}
+	taskLog := models.TaskLog{
+		TaskID:     uint(id),
+		CreateTime: models.Time(time.Now()),
+		Title:      t.GetString("userName") + "执行完成",
+	}
+	err = tx.Create(&taskLog).Error
 	if err != nil {
 		tx.Rollback()
 		t.ErrorOK(MsgServerErr)
@@ -747,6 +821,12 @@ func (t *TaskController) EndTask() {
 		log.GLogger.Error("EndTask:%s", err.Error())
 		t.ErrorOK(MsgServerErr)
 	}
+	taskLog := models.TaskLog{
+		TaskID:     uint(id),
+		CreateTime: models.Time(time.Now()),
+		Title:      t.GetString("userName") + "任务结单",
+	}
+	services.Slave().Create(&taskLog)
 	t.Correct("")
 }
 
