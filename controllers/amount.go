@@ -41,6 +41,9 @@ func (a *AmountController) AddAmount() {
 		log.GLogger.Error(err.Error())
 		a.ErrorOK(MsgInvalidParam)
 	}
+	if param.Amount > 99999 {
+		a.ErrorOK("充值最大额度为99999")
+	}
 	ok, _ := a.valid.Valid(param)
 	if !ok {
 		log.GLogger.Error("%s:%s", a.valid.Errors[0].Field, a.valid.Errors[0].Message)
@@ -186,7 +189,20 @@ func (a *AmountController) SwitchAmount() {
 		"and a.client_id = ? and s.id = ? and a.deadline > ? and s.state=0 and s.use >1 "+
 		"order by deadline", param.ClientId, param.SInId, deadline).Scan(&aIn)
 	if len(aIn) == 0 {
-		a.ErrorOK("不存在可转入的服务")
+		//创建新额度
+		tmpAmount := models.Amount{
+			ClientId:    param.ClientId,
+			ServiceId:   param.SInId,
+			Amount:      0,
+			Deadline:    models.Time(time.Now().AddDate(0, 1, 0)),
+			OrderNumber: strconv.FormatInt(time.Now().Unix(), 10),
+		}
+		services.Slave().Create(&tmpAmount)
+		aIn = append(aIn, &models.AmountSimple{
+			Id:          int(tmpAmount.ID),
+			Amount:      tmpAmount.Amount,
+			OrderNumber: tmpAmount.OrderNumber,
+		})
 	}
 	// ==============start convert===============
 	// 额度转换关联字段

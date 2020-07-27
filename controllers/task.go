@@ -192,6 +192,10 @@ func (t *TaskController) Task() {
 	if err != nil {
 		t.ErrorOK("invalid id")
 	}
+	userType, _ := t.GetInt("userType", 0)
+	if task.Status == models.TaskEnd && userType != 2 {
+		t.ErrorOK("无权限查看")
+	}
 	t.Correct(task)
 }
 
