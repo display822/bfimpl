@@ -71,6 +71,8 @@ func (t *TaskController) NewTask() {
 		t.ErrorOK("额度不足")
 	}
 
+	client := new(models.Client)
+	services.Slave().Take(client, "id = ?", param.ClientId)
 	task := new(models.Task)
 	task.ClientId = param.ClientId
 	task.AppName = param.AppName
@@ -79,6 +81,11 @@ func (t *TaskController) NewTask() {
 	task.ManageId = param.ManageId
 	task.PreDate = param.PreDate
 	task.ExpEndDate = param.ExpEndDate
+	if client.Level == "A" {
+		task.ClientLevel = 3
+	} else if client.Level == "B" {
+		task.ClientLevel = 6
+	}
 	task.Status = models.TaskCreate
 	task.RealTime = models.Time(time.Now())
 	//任务编号
@@ -216,8 +223,65 @@ func (t *TaskController) TaskList() {
 	t.Correct(resp)
 }
 
+/*
+1. 期望结单时间<=当天
+2. 期望结单时间-当时<=2但未进入执行中
+3. 期望结单日期-当天<=3但未进入需求对接中（仅对管理员、销售、客户服务经理）
+4. 任务处于执行中：暂停、待重启执行
+5. 按期望结单时间升序排列(仅有结单日期的时间视做23：59：59)，客户级别降序排列
+*/
+
 // @Title 亟需关注
 // @Description 亟需关注
+// @Success 200 {object} []models.Task
+// @Failure 500 server err
+// @router /high [get]
+func (t *TaskController) TaskImportant() {
+	uID, _ := t.GetInt("userID", 0)
+	if uID == 0 {
+		t.ErrorOK("need user id")
+	}
+	userType, _ := t.GetInt("userType", 0)
+	// 查询任务
+	tasks := make([]models.Task, 0)
+	today := time.Now().AddDate(0, 0, 1).Format(models.DateFormat)
+	nextTwo := time.Now().AddDate(0, 0, 2).Format(models.TimeFormat)
+	nextThree := time.Now().AddDate(0, 0, 3).Format(models.DateFormat)
+	query := services.Slave().Model(models.Task{}).Where("status = ? or status = ?",
+		models.TaskFrozen, models.TaskPause).Or("exp_end_time < ?", today).
+		Or("status != ? and exp_end_time <= ?", models.TaskExecute, nextTwo)
+	switch userType {
+	case 1:
+		//管理员
+		query = query.Or("status = ? and exp_end_date <= ?", models.TaskCreate, nextThree)
+	case 2:
+		//销售,自己客户信息
+		clientIds := make([]int, 0)
+		services.Slave().Model(models.Client{}).Where("sale_id = ?", uID).Pluck("id", &clientIds)
+		query = query.Or("status = ? and exp_end_date <= ? ", models.TaskCreate, nextThree).
+			Where("client_id in (?)", clientIds)
+	case 3:
+		//客户服务经理
+		query = query.Or("status = ? and exp_end_date <= ? ", models.TaskCreate, nextThree).
+			Where("manage_id = ?", uID)
+	case 4:
+		//组长
+		exeIds := make([]int, 0)
+		services.Slave().Model(models.User{}).Where("leader_id = ?", uID).Pluck("id", &exeIds)
+		query = query.Where("exe_user_id in (?)", exeIds)
+	case 5:
+		//实施
+		query = query.Where("exe_user_id = ?", uID)
+	default:
+		t.ErrorOK("invalid user type")
+	}
+	query = query.Order("exp_end_time, client_level")
+	query.Find(&tasks)
+	t.Correct(tasks)
+}
+
+// @Title 今日结单
+// @Description 今日结单
 // @Param	type	query	int 	true	"默认今天，1明天"
 // @Success 200 {object} []models.Task
 // @Failure 500 server err
@@ -240,26 +304,26 @@ func (t *TaskController) TaskToday() {
 	switch userType {
 	case 1:
 		//管理员
-		query = query.Where("exp_end_time >= ? and exp_end_time<=?", today, morrow)
+		query = query.Where("exp_end_time >= ? and exp_end_time < ?", today, morrow)
 	case 2:
 		//销售,自己客户信息
 		clientIds := make([]int, 0)
 		services.Slave().Model(models.Client{}).Where("sale_id = ?", uID).Pluck("id", &clientIds)
-		query = query.Where("exp_end_time >= ? and exp_end_time <= ? and client_id in (?)",
+		query = query.Where("exp_end_time >= ? and exp_end_time < ? and client_id in (?)",
 			today, morrow, clientIds)
 	case 3:
 		//客户服务经理
-		query = query.Where("exp_end_time >= ? and exp_end_time <= ? and manage_id = ?",
+		query = query.Where("exp_end_time >= ? and exp_end_time < ? and manage_id = ?",
 			today, morrow, uID)
 	case 4:
 		//组长
 		exeIds := make([]int, 0)
 		services.Slave().Model(models.User{}).Where("leader_id = ?", uID).Pluck("id", &exeIds)
-		query = query.Where("exp_end_time >= ? and exp_end_time <= ? and exe_user_id in (?)",
+		query = query.Where("exp_end_time >= ? and exp_end_time < ? and exe_user_id in (?)",
 			today, morrow, exeIds)
 	case 5:
 		//实施
-		query = query.Where("exp_deliver_time >= ? and exp_deliver_time <= ? and exe_user_id = ?",
+		query = query.Where("exp_deliver_time >= ? and exp_deliver_time < ? and exe_user_id = ?",
 			today, morrow, uID)
 	default:
 		t.ErrorOK("invalid user type")

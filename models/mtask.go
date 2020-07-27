@@ -17,12 +17,13 @@ type Task struct {
 
 	Client        *Client  `gorm:"ForeignKey:ClientId" json:"client"`
 	ClientId      int      `gorm:"not null;comment:'客户id'" json:"-"`
+	ClientLevel   int      `gorm:"not null;default:0;comment:'客户级别'" json:"-"`
 	AppName       string   `gorm:"size:50;not null;comment:'游戏名称'" json:"appName"`
 	Service       *Service `gorm:"ForeignKey:ServiceId" json:"service"`
 	ServiceId     int      `gorm:"not null;comment:'服务id'" json:"serviceId"`
 	PreAmount     int      `gorm:"not null;comment:'预计额度'" json:"preAmount"`
 	RealAmount    int      `gorm:"not null;default:0;comment:'实际提测额度'" json:"realAmount"`
-	RealService   *Service `gorm:"ForeignKey:RealServiceId" json:"realService"`
+	RealService   *Service `gorm:"ForeignKey:RealServiceId" json:"realService,omitempty"`
 	RealServiceId int      `gorm:"not null;comment:'实际提测服务id'" json:"realServiceId"`
 
 	ManageId       int  `gorm:"comment:'客户服务经理id'" json:"manageId"`
@@ -46,10 +47,10 @@ type Task struct {
 	CancelUserId  int        `gorm:"comment:'取消人id'" json:"-"`
 	Reason        string     `gorm:"default:'';comment:'任务取消原因'" json:"reason"`
 	DeliverAmount int        `gorm:"comment:'交付评估额度'" json:"deliverAmount"`
-	ExeUser       *User      `gorm:"ForeignKey:ExeUserId" json:"exeUser"`
+	ExeUser       *User      `gorm:"ForeignKey:ExeUserId" json:"exeUser,omitempty"`
 	ExeUserId     int        `gorm:"index;comment:'被指派人员id'" json:"exeUserId"`
-	TaskDetail    TaskDetail `json:"taskDetail"`
-	Logs          []*TaskLog `json:"logs"`
+	TaskDetail    TaskDetail `json:"taskDetail,omitempty"`
+	Logs          []*TaskLog `json:"logs,omitempty"`
 }
 
 const (

@@ -14,7 +14,7 @@ type RetValue struct {
 type Time time.Time
 
 const (
-	timeFormat = "2006-01-02 15:04:05"
+	TimeFormat = "2006-01-02 15:04:05"
 	DateFormat = "2006-01-02"
 
 	Amount_Use        = "use"
@@ -43,19 +43,19 @@ var AmountChange = map[string]int{
 }
 
 func (t *Time) UnmarshalJSON(data []byte) (err error) {
-	now, err := time.ParseInLocation(`"`+timeFormat+`"`, string(data), time.Local)
+	now, err := time.ParseInLocation(`"`+TimeFormat+`"`, string(data), time.Local)
 	*t = Time(now)
 	return
 }
 func (t Time) MarshalJSON() ([]byte, error) {
-	b := make([]byte, 0, len(timeFormat)+2)
+	b := make([]byte, 0, len(TimeFormat)+2)
 	b = append(b, '"')
-	b = time.Time(t).AppendFormat(b, timeFormat)
+	b = time.Time(t).AppendFormat(b, TimeFormat)
 	b = append(b, '"')
 	return b, nil
 }
 func (t Time) String() string {
-	return time.Time(t).Format(timeFormat)
+	return time.Time(t).Format(TimeFormat)
 }
 
 // Value insert timestamp into mysql need this function.
