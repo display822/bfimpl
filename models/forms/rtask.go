@@ -102,3 +102,15 @@ type ReqBackAmount struct {
 	Amount int    `json:"amount"`
 	Remark string `json:"remark"`
 }
+
+type QueryTaskSum struct {
+	Id          int    `json:"id"`
+	ServiceName string `json:"service_name"`
+	Status      string `json:"status"`
+}
+
+type RspTaskSum struct {
+	Name   string `json:"name"`
+	ReqNum int    `json:"reqNum"`
+	ImpNum int    `json:"impNum"`
+}

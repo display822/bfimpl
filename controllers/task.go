@@ -22,6 +22,35 @@ type TaskController struct {
 	BaseController
 }
 
+// @Title 任务看板
+// @Description 任务看板
+// @Success 200 {object} []forms.RspTaskSum
+// @Failure 500 server err
+// @router /dashboard [get]
+func (t *TaskController) TaskDashboard() {
+	data := make([]forms.QueryTaskSum, 0)
+	services.Slave().Raw("select s.id,s.service_name, t.status from services s LEFT JOIN tasks t on s.id = t.service_id ").Scan(&data)
+	var sId []int
+	services.Slave().Model(models.Service{}).Pluck("id", &sId)
+	result := make([]forms.RspTaskSum, len(sId))
+	m := make(map[int]int)
+	for i, v := range sId {
+		m[v] = i
+	}
+	for _, d := range data {
+		index := m[d.Id]
+		result[index].Name = d.ServiceName
+		if d.Status == "" {
+			continue
+		} else if d.Status == models.TaskCreate {
+			result[index].ReqNum += 1
+		} else if d.Status != models.TaskEnd {
+			result[index].ImpNum += 1
+		}
+	}
+	t.Correct(result)
+}
+
 // @Title 任务提测
 // @Description 任务提测
 // @Param	clientId	body	int	true	"客户id"
@@ -88,6 +117,11 @@ func (t *TaskController) NewTask() {
 	}
 	task.Status = models.TaskCreate
 	task.RealTime = models.Time(time.Now())
+	if userType == 3 {
+		//经理提测直接显示对接中
+		task.Status = models.TaskConfirm
+		task.TMAcceptTime = task.RealTime
+	}
 	//任务编号
 	task.Serial = time.Now().Format("20060102") + "_" + util.StringMd5(strconv.FormatInt(time.Now().Unix(), 10))
 
