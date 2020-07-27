@@ -16,6 +16,7 @@ type Client struct {
 	Type         int    `gorm:"type:tinyint;default:0;comment:'0内部1外部'" json:"type"`
 	Level        string `gorm:"size:5;not null;comment:'级别S,A,B'" json:"level"`
 	SaleId       int    `gorm:"comment:'销售id'" json:"saleId"`
+	Sale         *User  `gorm:"ForeignKey:SaleId" json:"saleUser"`
 	MainManageId int    `gorm:"comment:'主客户服务经理id'" json:"mainManageId"`
 	SubManageId  int    `gorm:"comment:'副客户服务经理id'" json:"subManageId"`
 }

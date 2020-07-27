@@ -26,11 +26,12 @@ type Task struct {
 	RealService   *Service `gorm:"ForeignKey:RealServiceId" json:"realService,omitempty"`
 	RealServiceId int      `gorm:"not null;comment:'实际提测服务id'" json:"realServiceId"`
 
-	ManageId       int  `gorm:"comment:'客户服务经理id'" json:"manageId"`
-	PreDate        Time `gorm:"type:date;comment:'预计提测日期'" json:"preDate"`
-	ExpEndDate     Time `gorm:"type:date;comment:'期望结单日期'" json:"expEndDate"`
-	ExpDeliverTime Time `gorm:"type:datetime;comment:'期望交付时间'" json:"expDeliverTime"`
-	ExpEndTime     Time `gorm:"type:datetime;comment:'期望结单时间'" json:"expEndTime"`
+	ManageId       int   `gorm:"comment:'客户服务经理id'" json:"-"`
+	Manage         *User `gorm:"ForeignKey:ManageId" json:"manage"`
+	PreDate        Time  `gorm:"type:date;comment:'预计提测日期'" json:"preDate"`
+	ExpEndDate     Time  `gorm:"type:date;comment:'期望结单日期'" json:"expEndDate"`
+	ExpDeliverTime Time  `gorm:"type:datetime;comment:'期望交付时间'" json:"expDeliverTime"`
+	ExpEndTime     Time  `gorm:"type:datetime;comment:'期望结单时间'" json:"expEndTime"`
 
 	TMAcceptTime Time `gorm:"type:datetime;comment:'TM接受时间'" json:"tmAcceptTime"`
 	RealTime     Time `gorm:"type:datetime;comment:'创建时间'" json:"realTime"`
