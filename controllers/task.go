@@ -314,7 +314,7 @@ func (t *TaskController) TaskImportant() {
 	default:
 		t.ErrorOK("invalid user type")
 	}
-	query = query.Order("exp_end_time, client_level")
+	query = query.Preload("Client").Preload("Service").Preload("RealService").Order("exp_end_time, client_level")
 	query.Find(&tasks)
 	t.Correct(tasks)
 }
@@ -367,7 +367,7 @@ func (t *TaskController) TaskToday() {
 	default:
 		t.ErrorOK("invalid user type")
 	}
-	query.Find(&tasks)
+	query.Preload("Client").Preload("Service").Preload("RealService").Find(&tasks)
 	t.Correct(tasks)
 }
 
