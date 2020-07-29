@@ -192,10 +192,6 @@ func (t *TaskController) Task() {
 	if err != nil {
 		t.ErrorOK("invalid id")
 	}
-	userType, _ := t.GetInt("userType", 0)
-	if task.Status == models.TaskEnd && userType != 2 {
-		t.ErrorOK("无权限查看")
-	}
 	t.Correct(task)
 }
 
@@ -247,7 +243,7 @@ func (t *TaskController) TaskList() {
 		t.ErrorOK("invalid user type")
 	}
 
-	err := query.Preload("Client").Preload("Service").Preload("RealService").
+	err := query.Preload("Client").Preload("Service").Preload("RealService").Preload("Manage").
 		Limit(pageSize).Offset((pageNum - 1) * pageSize).Find(&tasks).Limit(-1).Offset(-1).Count(&total).Error
 
 	if err != nil {
