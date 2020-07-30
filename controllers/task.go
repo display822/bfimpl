@@ -459,7 +459,7 @@ func (t *TaskController) CancelTask() {
 		t.ErrorOK("add amount fail")
 	}
 	// 反冲记录
-	err = createAmountLog(tx, &amount, "任务取消", models.Amount_Cancel, task.PreAmount)
+	err = createAmountLogSimpleT(tx, int(amount.ID), "任务取消", models.Amount_Cancel, "", task.Serial, task.PreAmount)
 	if err != nil {
 		tx.Rollback()
 		t.ErrorOK("add amount fail")
@@ -575,7 +575,7 @@ func (t *TaskController) FrozenTask() {
 			t.ErrorOK("add amount fail")
 		}
 		// 反冲记录
-		err = createAmountLog(tx, &amount, "冻结变更", models.Amount_Frozen_In, task.PreAmount)
+		err = createAmountLogSimpleT(tx, int(amount.ID), "冻结变更", models.Amount_Frozen_In, "", task.Serial, task.PreAmount)
 		if err != nil {
 			tx.Rollback()
 			t.ErrorOK("add amount fail")
@@ -588,7 +588,7 @@ func (t *TaskController) FrozenTask() {
 			if o.Amount < remain {
 				//转换完break
 				err = tx.Model(models.Amount{}).Where("id = ?", o.Id).Update("amount", 0).Error
-				createAmountLogSimple(tx, o, msg, models.Amount_Use, "", task.Serial, o.Amount)
+				err = createAmountLogSimple(tx, o, msg, models.Amount_Use, "", task.Serial, o.Amount)
 				if err != nil {
 					tx.Rollback()
 					t.ErrorOK(MsgServerErr)
@@ -597,7 +597,7 @@ func (t *TaskController) FrozenTask() {
 				continue
 			}
 			err = tx.Model(models.Amount{}).Where("id = ?", o.Id).Update("amount", o.Amount-remain).Error
-			createAmountLogSimple(tx, o, msg, models.Amount_Use, "", task.Serial, remain)
+			err = createAmountLogSimple(tx, o, msg, models.Amount_Use, "", task.Serial, remain)
 			if err != nil {
 				tx.Rollback()
 				t.ErrorOK(MsgServerErr)
@@ -627,7 +627,7 @@ func (t *TaskController) FrozenTask() {
 				t.ErrorOK("add amount fail")
 			}
 			// 反冲记录
-			err = createAmountLog(tx, &amount, "冻结变更", models.Amount_Frozen_In, task.PreAmount-task.RealAmount)
+			err = createAmountLogSimpleT(tx, int(amount.ID), "冻结变更", models.Amount_Frozen_In, "", task.Serial, task.PreAmount-task.RealAmount)
 			if err != nil {
 				tx.Rollback()
 				t.ErrorOK("add amount fail")
@@ -652,7 +652,7 @@ func (t *TaskController) FrozenTask() {
 				if o.Amount < remain {
 					//转换完break
 					err = tx.Model(models.Amount{}).Where("id = ?", o.Id).Update("amount", 0).Error
-					createAmountLogSimple(tx, o, msg, models.Amount_Use, "", task.Serial, o.Amount)
+					err = createAmountLogSimple(tx, o, msg, models.Amount_Use, "", task.Serial, o.Amount)
 					if err != nil {
 						tx.Rollback()
 						t.ErrorOK(MsgServerErr)
@@ -661,7 +661,7 @@ func (t *TaskController) FrozenTask() {
 					continue
 				}
 				err = tx.Model(models.Amount{}).Where("id = ?", o.Id).Update("amount", o.Amount-remain).Error
-				createAmountLogSimple(tx, o, msg, models.Amount_Use, "", task.Serial, remain)
+				err = createAmountLogSimple(tx, o, msg, models.Amount_Use, "", task.Serial, remain)
 				if err != nil {
 					tx.Rollback()
 					t.ErrorOK(MsgServerErr)
@@ -1013,7 +1013,7 @@ func (t *TaskController) TaskBackAmount() {
 		t.ErrorOK("退次额度超过提测额度")
 	}
 	tx := services.Slave().Begin()
-	err = tx.UpdateColumn("real_amount", task.RealAmount-param.Amount).Error
+	err = tx.Model(&task).UpdateColumn("real_amount", task.RealAmount-param.Amount).Error
 	if err != nil {
 		tx.Rollback()
 		t.ErrorOK(MsgServerErr)
@@ -1032,8 +1032,7 @@ func (t *TaskController) TaskBackAmount() {
 		t.ErrorOK("add amount fail")
 	}
 	// 反冲记录
-	amount.Remark = param.Remark
-	err = createAmountLog(tx, &amount, "任务退次", models.Amount_Back, param.Amount)
+	err = createAmountLogSimpleT(tx, int(amount.ID), "任务退次", models.Amount_Back, param.Remark, task.Serial, param.Amount)
 	if err != nil {
 		tx.Rollback()
 		t.ErrorOK("add amount fail")

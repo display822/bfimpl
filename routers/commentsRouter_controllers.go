@@ -45,6 +45,15 @@ func init() {
 
 	beego.GlobalControllerRouter["bfimpl/controllers:AmountController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:AmountController"],
 		beego.ControllerComments{
+			Method:           "GetTaskAmountLogs",
+			Router:           `/tasklog`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:AmountController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:AmountController"],
+		beego.ControllerComments{
 			Method:           "SwitchAmount",
 			Router:           `/switch`,
 			AllowHTTPMethods: []string{"put"},

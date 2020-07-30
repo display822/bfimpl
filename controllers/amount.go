@@ -8,6 +8,7 @@ package controllers
 
 import (
 	"bfimpl/models"
+	"bfimpl/models/forms"
 	"bfimpl/services"
 	"bfimpl/services/log"
 	"encoding/json"
@@ -117,8 +118,8 @@ func (a *AmountController) GetAmounts() {
 	a.Correct(data)
 }
 
-// @Title 查询客户的额度历史
-// @Description 查询客户的额度历史
+// @Title 订单维度额度历史
+// @Description 查询客户的额度历史,订单维度
 // @Param	clientId	query	int	true	"客户id"
 // @Param	serviceId	query	int	true	"服务id"
 // @Success 200 {object} []models.RspAmountLogs
@@ -146,6 +147,9 @@ func (a *AmountController) GetAmountLogs() {
 			Type:        l.Type,
 		}
 		if v, ok := m[l.Id]; ok {
+			if l.Type == models.Amount_Delay_Out || l.Type == models.Amount_Delay_In {
+				result[v].Amount += l.Change
+			}
 			result[v].Logs = append(result[v].Logs, p)
 			continue
 		}
@@ -158,6 +162,9 @@ func (a *AmountController) GetAmountLogs() {
 			},
 			Logs: []models.AmountLogA{p},
 		}
+		if l.Type == models.Amount_Delay_Out || l.Type == models.Amount_Delay_In {
+			t.Amount += l.Change
+		}
 		result = append(result, t)
 		m[l.Id] = index
 		index++
@@ -165,15 +172,88 @@ func (a *AmountController) GetAmountLogs() {
 	a.Correct(result)
 }
 
+// @Title 任务维度额度历史
+// @Description 查询客户的额度历史
+// @Param	clientId	query	int	true	"客户id"
+// @Param	serviceId	query	int	true	"服务id"
+// @Success 200 {object} []models.RspTaskAmountLog
+// @Failure 500 server err
+// @router /tasklog [get]
+func (a *AmountController) GetTaskAmountLogs() {
+	clientId, _ := a.GetInt("clientId")
+	serviceId, _ := a.GetInt("serviceId")
+	amountIds := make([]int, 0)
+	amountLogs := make([]models.AmountLog, 0)
+	services.Slave().Model(models.Amount{}).Where("client_id = ? and service_id = ?", clientId, serviceId).Pluck("id", &amountIds)
+	services.Slave().Model(models.AmountLog{}).Where("type in (?) and amount_id in (?)",
+		[]string{models.Amount_Use, models.Amount_Back, models.Amount_Frozen_In, models.Amount_Frozen_Out, models.Amount_Cancel},
+		amountIds).Order("real_time").Find(&amountLogs)
+	//按任务分组
+	m := make(map[string]int)
+	index := 0
+	result := make([]models.RspTaskAmountLog, 0)
+	for _, l := range amountLogs {
+		if v, ok := m[l.Refer]; ok {
+			result[v].Amount += l.Change
+			result[v].Logs = append(result[v].Logs, l)
+			continue
+		}
+		r := models.RspTaskAmountLog{
+			TaskSerial: l.Refer,
+			Amount:     l.Change,
+			Logs:       []models.AmountLog{l},
+		}
+		m[l.Refer] = index
+		result = append(result, r)
+		index++
+	}
+	a.Correct(result)
+}
+
 // @Title 额度延期
 // @Description 额度延期
-// @Param	id	path	int		true	"额度日志id"
-// @Success 200 {string} models.RspAmountLog
+// @Param	id			path	int		true	"额度id"
+// @Param	deadline	body 	string	true	"重新设置的过期时间"
+// @Param	remark		body 	string	true	"备注"
+// @Success 200 {string} "success"
 // @Failure 500 server err
 // @router /delay/:id [put]
 func (a *AmountController) DelayInAmount() {
-	//logId, _ := a.GetInt(":id", 0)
-
+	amountId, _ := a.GetInt(":id", 0)
+	param := new(forms.ReqAmountDelay)
+	err := json.Unmarshal(a.Ctx.Input.RequestBody, param)
+	if err != nil || (time.Time(param.Deadline)).Before(time.Now()) {
+		a.ErrorOK("无效的过期时间")
+	}
+	//查询 延期的额度
+	var total struct {
+		Total int `gorm:"column(total)" json:"total"`
+	}
+	services.Slave().Raw("select sum(`change`) total from amount_logs where amount_id = ? and type in (?,?)",
+		amountId, models.Amount_Delay_In, models.Amount_Delay_Out).Scan(&total)
+	if total.Total >= 0 {
+		a.ErrorOK("没有可延期的额度")
+	}
+	amount := new(models.Amount)
+	services.Slave().Take(amount, "id = ?", amountId)
+	tx := services.Slave().Begin()
+	err = tx.Model(&amount).Updates(map[string]interface{}{
+		"amount":   -total.Total,
+		"deadline": param.Deadline,
+	}).Error
+	if err != nil {
+		tx.Rollback()
+		a.ErrorOK(MsgServerErr)
+	}
+	//产生日志
+	amount.Remark = param.Remark
+	err = createAmountLog(tx, amount, "额度延期", models.Amount_Delay_In, -total.Total)
+	if err != nil {
+		tx.Rollback()
+		a.ErrorOK(MsgServerErr)
+	}
+	tx.Commit()
+	a.Correct(total.Total)
 }
 
 // @Title 客户额度转换
@@ -289,9 +369,9 @@ func createAmountLog(db *gorm.DB, param *models.Amount, msg, t string, amount in
 	return db.Create(amountLog).Error
 }
 
-func createAmountLogSimple(db *gorm.DB, param *models.AmountSimple, msg, t, r, refer string, amount int) error {
+func createAmountLogSimpleT(db *gorm.DB, amoutnId int, msg, t, r, refer string, amount int) error {
 	amountLog := new(models.AmountLog)
-	amountLog.AmountId = int(param.Id)
+	amountLog.AmountId = amoutnId
 	amountLog.Change = amount * models.AmountChange[t]
 	amountLog.Desc = msg
 	amountLog.RealTime = models.Time(time.Now())
@@ -299,6 +379,9 @@ func createAmountLogSimple(db *gorm.DB, param *models.AmountSimple, msg, t, r, r
 	amountLog.Remark = r
 	amountLog.Refer = refer
 	return db.Create(amountLog).Error
+}
+func createAmountLogSimple(db *gorm.DB, param *models.AmountSimple, msg, t, r, refer string, amount int) error {
+	return createAmountLogSimpleT(db, param.Id, msg, t, r, refer, amount)
 }
 
 func AmountDelayOut() {

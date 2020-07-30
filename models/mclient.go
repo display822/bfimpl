@@ -156,3 +156,9 @@ type RspClient struct {
 	Manager    User `json:"manager"`
 	SubManager User `json:"subManager"`
 }
+
+type RspTaskAmountLog struct {
+	TaskSerial string      `json:"taskSerial"`
+	Amount     int         `json:"amount"`
+	Logs       []AmountLog `json:"logs"`
+}

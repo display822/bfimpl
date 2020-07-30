@@ -114,3 +114,9 @@ type RspTaskSum struct {
 	ReqNum int    `json:"reqNum"`
 	ImpNum int    `json:"impNum"`
 }
+
+//额度延期参数
+type ReqAmountDelay struct {
+	Deadline models.Time `json:"deadline"`
+	Remark   string      `json:"remark"`
+}
