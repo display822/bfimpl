@@ -244,7 +244,7 @@ func (t *TaskController) TaskList() {
 	}
 
 	err := query.Preload("Client").Preload("Service").Preload("RealService").Preload("Manage").
-		Limit(pageSize).Offset((pageNum - 1) * pageSize).Find(&tasks).Limit(-1).Offset(-1).Count(&total).Error
+		Preload("ExeUser").Limit(pageSize).Offset((pageNum - 1) * pageSize).Find(&tasks).Limit(-1).Offset(-1).Count(&total).Error
 
 	if err != nil {
 		t.ErrorOK(MsgServerErr)

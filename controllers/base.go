@@ -2,13 +2,11 @@ package controllers
 
 import (
 	"bfimpl/models"
+	"bfimpl/services"
 	"bfimpl/services/log"
 	"net/http"
 	"strconv"
-
 	"strings"
-
-	"bfimpl/services"
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/validation"

@@ -121,18 +121,48 @@ func (a *AmountController) GetAmounts() {
 // @Description 查询客户的额度历史
 // @Param	clientId	query	int	true	"客户id"
 // @Param	serviceId	query	int	true	"服务id"
-// @Success 200 {object} models.RspAmountLog
+// @Success 200 {object} []models.RspAmountLogs
 // @Failure 500 server err
 // @router /log [get]
 func (a *AmountController) GetAmountLogs() {
 	clientId, _ := a.GetInt("clientId")
 	serviceId, _ := a.GetInt("serviceId")
 	res := make([]models.RspAmountLog, 0)
-	services.Slave().Raw("SELECT al.id,al.real_time,s.service_name,a.order_number,al.change,al.desc,"+
+	services.Slave().Raw("SELECT al.real_time,s.service_name,a.order_number,a.id,a.amount,a.deadline,al.change,al.desc,"+
 		"al.remark,al.type FROM amounts a,amount_logs al,services s WHERE a.client_id = ? AND a.service_id = ?"+
-		" AND a.id = al.amount_id AND a.service_id = s.id order by al.real_time desc", clientId, serviceId).Scan(&res)
+		" AND a.id = al.amount_id AND a.service_id = s.id order by a.deadline,al.real_time desc", clientId, serviceId).Scan(&res)
 
-	a.Correct(res)
+	//按amount分组
+	result := make([]models.RspAmountLogs, 0)
+	m := make(map[int]int)
+	index := 0
+	for _, l := range res {
+		p := models.AmountLogA{
+			RealTime:    l.RealTime,
+			ServiceName: l.ServiceName,
+			Change:      l.Change,
+			Desc:        l.Desc,
+			Remark:      l.Remark,
+			Type:        l.Type,
+		}
+		if v, ok := m[l.Id]; ok {
+			result[v].Logs = append(result[v].Logs, p)
+			continue
+		}
+		t := models.RspAmountLogs{
+			AmountA: models.AmountA{
+				Id:          l.Id,
+				Deadline:    l.Deadline,
+				OrderNumber: l.OrderNumber,
+				Amount:      l.Amount,
+			},
+			Logs: []models.AmountLogA{p},
+		}
+		result = append(result, t)
+		m[l.Id] = index
+		index++
+	}
+	a.Correct(result)
 }
 
 // @Title 额度延期

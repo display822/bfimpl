@@ -103,13 +103,36 @@ func (amount *RspAmount) CalData(ca ClientAmount) {
 // 额度历史
 type RspAmountLog struct {
 	Id          int    `json:"id"`
+	Deadline    Time   `json:"deadline"`
 	RealTime    Time   `json:"real_time"`
+	Amount      int    `json:"amount"`
 	ServiceName string `json:"service_name"`
 	OrderNumber string `json:"order_number"`
 	Change      int    `json:"change"`
 	Desc        string `json:"desc"`
 	Remark      string `json:"remark"`
 	Type        string `json:"type"`
+}
+
+type RspAmountLogs struct {
+	AmountA
+	Logs []AmountLogA `json:"logs"`
+}
+
+type AmountLogA struct {
+	RealTime    Time   `json:"real_time"`
+	ServiceName string `json:"service_name"`
+	Change      int    `json:"change"`
+	Desc        string `json:"desc"`
+	Remark      string `json:"remark"`
+	Type        string `json:"type"`
+}
+
+type AmountA struct {
+	Id          int    `json:"id"`
+	Deadline    Time   `json:"deadline"`
+	OrderNumber string `json:"orderNumber"`
+	Amount      int    `json:"amount"`
 }
 
 type ReqSwitchAmount struct {
