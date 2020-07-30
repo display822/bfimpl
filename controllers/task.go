@@ -242,10 +242,15 @@ func (t *TaskController) TaskList() {
 	default:
 		t.ErrorOK("invalid user type")
 	}
+	query = query.Preload("Client").Preload("Service").Preload("RealService").Preload("Manage").
+		Preload("ExeUser").Limit(pageSize).Offset((pageNum - 1) * pageSize)
 
-	err := query.Preload("Client").Preload("Service").Preload("RealService").Preload("Manage").
-		Preload("ExeUser").Limit(pageSize).Offset((pageNum - 1) * pageSize).Find(&tasks).Limit(-1).Offset(-1).Count(&total).Error
-
+	if status == models.TaskConfirm || status == models.TaskCreate {
+		query = query.Order("exp_end_date, client_level")
+	} else {
+		query = query.Order("exp_end_time, client_level")
+	}
+	err := query.Find(&tasks).Limit(-1).Offset(-1).Count(&total).Error
 	if err != nil {
 		t.ErrorOK(MsgServerErr)
 	}
@@ -776,6 +781,7 @@ func (t *TaskController) PauseTask() {
 	err := services.Slave().Model(models.Task{}).Where("id = ?", id).Updates(map[string]interface{}{
 		"pause_time": models.Time(time.Now()),
 		"status":     models.TaskPause,
+		"is_pause":   1,
 	}).Error
 	if err != nil {
 		t.ErrorOK(MsgServerErr)
@@ -786,6 +792,27 @@ func (t *TaskController) PauseTask() {
 		Title:      t.GetString("userName") + "暂停任务",
 	}
 	services.Slave().Create(&taskLog)
+	t.Correct("")
+}
+
+// @Title 任务变更完成
+// @Description 任务变更完成
+// @Param	id	path	int	true	"任务id"
+// @Success 200 {"string"} success
+// @Failure 500 server err
+// @router /change/:id [put]
+func (t *TaskController) ChangeFinish() {
+	id, _ := t.GetInt(":id", 0)
+	if id == 0 {
+		t.ErrorOK(MsgInvalidParam)
+	}
+	//更新任务状态和 暂停时间
+	err := services.Slave().Model(models.Task{}).Where("id = ?", id).Updates(map[string]interface{}{
+		"is_pause":   0,
+	}).Error
+	if err != nil {
+		t.ErrorOK(MsgServerErr)
+	}
 	t.Correct("")
 }
 
@@ -981,30 +1008,39 @@ func (t *TaskController) TaskComments() {
 		t.ErrorOK(MsgInvalidParam)
 	}
 	comments := make([]models.TaskComment, 0)
-	services.Slave().Where("task_id = ?", id).Find(&comments)
+	query := services.Slave().Where("task_id = ?", id)
+	userType, _ := t.GetInt("userType", 0)
+	if userType == 3 {
+		//经理
+		query = query.Where("comment_type = ?", 0)
+	} else if userType == 5 {
+		//实施
+		query = query.Where("comment_type = ?", 10)
+	}
+	query.Find(&comments)
 	t.Correct(comments)
 }
 
 // @Title 任务退次
 // @Description 任务退次,退次额度小于实际额度 realAmount
-// @Param	id		path	int	true	"任务id"
+// @Param	id		path	int	true	"任务serial"
 // @Param	json	body	forms.ReqBackAmount	true	"退次参数"
 // @Success 200 {"string"} success
 // @Failure 500 server err
 // @router /backamount/:id [put]
 func (t *TaskController) TaskBackAmount() {
-	id, _ := t.GetInt(":id", 0)
+	taskSerial := t.GetString(":id")
 	param := new(forms.ReqBackAmount)
 	err := json.Unmarshal(t.Ctx.Input.RequestBody, param)
 	if err != nil {
 		log.GLogger.Error(err.Error())
 		t.ErrorOK(MsgInvalidParam)
 	}
-	if id == 0 || param.Amount <= 0 {
+	if param.Amount <= 0 {
 		t.ErrorOK(MsgInvalidParam)
 	}
 	var task models.Task
-	err = services.Slave().Take(&task, "id = ?", id).Error
+	err = services.Slave().Where("serial = ?", taskSerial).First(&task).Error
 	if err != nil {
 		t.ErrorOK("invalid taskId")
 	}

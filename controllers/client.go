@@ -66,15 +66,19 @@ func (c *ClientController) AddClient() {
 // @Failure 500 server err
 // @router /list [get]
 func (c *ClientController) GetClients() {
-	saleId, _ := c.GetInt("saleId", 0)
-	manageId, _ := c.GetInt("manageId", 0)
+
+	uID, _ := c.GetInt("userID", 0)
+	if uID == 0 {
+		c.ErrorOK("need user id")
+	}
+	userType, _ := c.GetInt("userType", 0)
 	clients := make([]models.Client, 0)
 	db := services.Slave().Model(models.Client{})
-	if saleId > 0 {
-		db = db.Where("sale_id = ?", saleId)
-	}
-	if manageId > 0 {
-		db = db.Where("main_manage_id = ? or sub_manage_id = ?", manageId, manageId)
+	if userType == 2 {
+		//销售
+		db = db.Where("sale_id = ?", uID)
+	} else if userType == 3 {
+		db = db.Where("main_manage_id = ? or sub_manage_id = ?", uID, uID)
 	}
 	db.Find(&clients)
 

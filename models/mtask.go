@@ -27,6 +27,7 @@ type Task struct {
 	RealServiceId int      `gorm:"not null;comment:'实际提测服务id'" json:"realServiceId"`
 
 	ManageId       int   `gorm:"comment:'客户服务经理id'" json:"-"`
+	IsPause        uint8 `gorm:"default:0;comment:'是否暂停'" json:"isPause"`
 	Manage         *User `gorm:"ForeignKey:ManageId" json:"manage"`
 	PreDate        Time  `gorm:"type:date;comment:'预计提测日期'" json:"preDate"`
 	ExpEndDate     Time  `gorm:"type:date;comment:'期望结单日期'" json:"expEndDate"`

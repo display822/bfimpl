@@ -88,7 +88,10 @@ func (u *UserController) Implementers() {
 			sortData[tmp.Id] = tmpSort
 		} else {
 			m[tmp.Id] = []*models.Impler{}
-			sort := models.SortImpl{Id: tmp.Id, Name: tmp.Name}
+			sort := models.SortImpl{
+				Id: tmp.Id,
+				Name: tmp.Name,
+			}
 			if tmp.Status == models.TaskExecute || tmp.Status == models.TaskAssign {
 				m[tmp.Id] = append(m[tmp.Id], data[i])
 				if tmp.Status == models.TaskExecute {

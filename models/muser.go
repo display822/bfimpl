@@ -30,13 +30,13 @@ type ReqLogin struct {
 
 // 组长下实施人员信息
 type Impler struct {
-	Id          int    `json:"id"`
-	Name        string `json:"name"`
-	AppName     string `json:"app_name"`
-	Status      string `json:"status"`
-	ServiceName string `json:"service_name"`
-	Amount      int    `json:"real_amount"`
-	ExpTime     Time   `json:"exp_deliver_time"`
+	Id             int    `json:"id"`
+	Name           string `json:"name"`
+	AppName        string `json:"app_name"`
+	Status         string `json:"status"`
+	ServiceName    string `json:"service_name"`
+	RealAmount     int    `json:"real_amount"`
+	ExpDeliverTime Time   `json:"exp_deliver_time"`
 }
 
 type SortImpl struct {
