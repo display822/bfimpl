@@ -291,7 +291,7 @@ func (t *TaskController) TaskImportant() {
 	today := time.Now().AddDate(0, 0, 1).Format(models.DateFormat)
 	nextTwo := time.Now().AddDate(0, 0, 2).Format(models.TimeFormat)
 	nextThree := time.Now().AddDate(0, 0, 3).Format(models.DateFormat)
-	query := services.Slave().Model(models.Task{}).Debug().Where("status = ? ", models.TaskPause).
+	query := services.Slave().Model(models.Task{}).Where("status = ? ", models.TaskPause).
 		Or("exp_end_time < ?", today).
 		Or("status != ? and exp_end_time <= ?", models.TaskExecute, nextTwo)
 	switch userType {
