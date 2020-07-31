@@ -247,6 +247,8 @@ func (t *TaskController) TaskList() {
 
 	if status == models.TaskConfirm || status == models.TaskCreate {
 		query = query.Order("exp_end_date, client_level")
+	} else if status == models.TaskCancel {
+		query = query.Order("cancel_time, client_level")
 	} else {
 		query = query.Order("exp_end_time, client_level")
 	}
@@ -320,7 +322,7 @@ func (t *TaskController) TaskImportant() {
 	//去掉end,cancel
 	result := make([]models.Task, 0)
 	for _, t := range tasks {
-		if t.Status != models.TaskEnd && t.Status != models.TaskCancel{
+		if t.Status != models.TaskEnd && t.Status != models.TaskCancel {
 			result = append(result, t)
 		}
 	}
