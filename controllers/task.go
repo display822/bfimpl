@@ -317,7 +317,14 @@ func (t *TaskController) TaskImportant() {
 	}
 	query = query.Preload("Client").Preload("Service").Preload("RealService").Order("exp_end_time, client_level")
 	query.Find(&tasks)
-	t.Correct(tasks)
+	//去掉end,cancel
+	result := make([]models.Task, 0)
+	for _, t := range tasks {
+		if t.Status != models.TaskEnd && t.Status != models.TaskCancel{
+			result = append(result, t)
+		}
+	}
+	t.Correct(result)
 }
 
 // @Title 今日结单
@@ -338,7 +345,7 @@ func (t *TaskController) TaskToday() {
 	userType, _ := t.GetInt("userType", 0)
 	// 查询任务
 	tasks := make([]models.Task, 0)
-	query := services.Slave().Model(models.Task{})
+	query := services.Slave().Model(models.Task{}).Where("status != ? and status != ?", models.TaskCancel, models.TaskEnd)
 	today := time.Now().AddDate(0, 0, qType).Format(models.DateFormat)
 	morrow := time.Now().AddDate(0, 0, qType+1).Format(models.DateFormat)
 	switch userType {
@@ -808,7 +815,7 @@ func (t *TaskController) ChangeFinish() {
 	}
 	//更新任务状态和 暂停时间
 	err := services.Slave().Model(models.Task{}).Where("id = ?", id).Updates(map[string]interface{}{
-		"is_pause":   0,
+		"is_pause": 0,
 	}).Error
 	if err != nil {
 		t.ErrorOK(MsgServerErr)

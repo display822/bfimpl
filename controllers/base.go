@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/validation"
@@ -88,6 +89,7 @@ func (b *BaseController) Prepare() {
 	if err != nil {
 		b.ErrorCode(http.StatusUnauthorized, http.StatusOK, "login required")
 	}
+	services.RedisClient().Expire(userKey, time.Hour*24)
 	//查询用户
 	var user models.User
 	services.Slave().Take(&user, "id = ?", userID)
