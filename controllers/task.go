@@ -42,9 +42,9 @@ func (t *TaskController) TaskDashboard() {
 		result[index].Name = d.ServiceName
 		if d.Status == "" {
 			continue
-		} else if d.Status == models.TaskCreate {
+		} else if d.Status == models.TaskCreate || d.Status == models.TaskConfirm {
 			result[index].ReqNum += 1
-		} else if d.Status != models.TaskEnd {
+		} else if d.Status != models.TaskEnd && d.Status != models.TaskCancel {
 			result[index].ImpNum += 1
 		}
 	}
