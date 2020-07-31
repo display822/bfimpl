@@ -248,7 +248,7 @@ func (t *TaskController) TaskList() {
 	if status == models.TaskConfirm || status == models.TaskCreate {
 		query = query.Order("exp_end_date, client_level")
 	} else if status == models.TaskCancel {
-		query = query.Order("cancel_time, client_level")
+		query = query.Order("cancel_time desc, client_level")
 	} else {
 		query = query.Order("exp_end_time, client_level")
 	}
