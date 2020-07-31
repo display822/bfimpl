@@ -29,9 +29,9 @@ type TaskController struct {
 // @router /dashboard [get]
 func (t *TaskController) TaskDashboard() {
 	data := make([]forms.QueryTaskSum, 0)
-	services.Slave().Raw("select s.id,s.service_name, t.status from services s LEFT JOIN tasks t on s.id = t.service_id ").Scan(&data)
+	services.Slave().Raw("select s.id,s.service_name, t.status from services s LEFT JOIN tasks t on s.id = t.service_id").Scan(&data)
 	var sId []int
-	services.Slave().Model(models.Service{}).Pluck("id", &sId)
+	services.Slave().Model(models.Service{}).Order("sort").Pluck("id", &sId)
 	result := make([]forms.RspTaskSum, len(sId))
 	m := make(map[int]int)
 	for i, v := range sId {
@@ -928,27 +928,6 @@ func (t *TaskController) EndTask() {
 	if id == 0 {
 		t.ErrorOK(MsgInvalidParam)
 	}
-	//param := new(forms.ReqCommentTask)
-	//err := json.Unmarshal(t.Ctx.Input.RequestBody, param)
-	//if err != nil {
-	//	log.GLogger.Error(err.Error())
-	//	t.ErrorOK(MsgInvalidParam)
-	//}
-
-	//tx := services.Slave().Begin()
-	//taskComment := models.TaskComment{
-	//	TaskID:         id,
-	//	CommentType:    0,
-	//	RealTime:       param.RealTime,
-	//	ReExecuteTimes: param.ReExecuteTimes,
-	//	Score:          param.Score,
-	//	Other:          param.Other,
-	//}
-	//err = tx.Create(&taskComment).Error
-	//if err != nil {
-	//	tx.Rollback()
-	//	t.Error(MsgServerErr)
-	//}
 	//更新任务状态和 完成时间
 	err := services.Slave().Model(models.Task{}).Where("id = ?", id).Updates(map[string]interface{}{
 		"end_time": models.Time(time.Now()),
@@ -1056,7 +1035,7 @@ func (t *TaskController) TaskBackAmount() {
 		t.ErrorOK("invalid taskId")
 	}
 	//检查真实提测额度
-	if param.Amount >= task.RealAmount {
+	if param.Amount > task.RealAmount {
 		t.ErrorOK("退次额度超过提测额度")
 	}
 	tx := services.Slave().Begin()
