@@ -72,6 +72,29 @@ func (d *ReqTaskDetail) GetTaskDetail() *models.TaskDetail {
 	}
 }
 
+func (d *ReqTaskDetail) GetTaskHistory() *models.TaskHistory {
+	return &models.TaskHistory{
+		ExpDeliverTime:  d.ExpDeliverTime,
+		ExpEndTime:      d.ExpEndTime,
+		Version:         d.Version,
+		PkgAddress:      d.PkgAddress,
+		TestType:        d.TestType,
+		TestExtInfo:     d.TestExtInfo,
+		WhiteList:       d.WhiteList,
+		TestAccountType: d.TestAccountType,
+		AccountReUse:    d.AccountReUse,
+		AccountAddress:  d.AccountAddress,
+		AccountNum:      d.AccountNum,
+		PhoneNum:        d.PhoneNum,
+		ConcurrentNum:   d.ConcurrentNum,
+		ReqPhone:        d.ReqPhone,
+		ExtReq:          d.ExtReq,
+		InstanceTxt:     d.InstanceTxt,
+		InstanceMv:      d.InstanceMv,
+		ChangeLog:       d.ChangeLog,
+	}
+}
+
 //指派任务参数
 type ReqAssignTask struct {
 	ExeUserId int `json:"exeUserId"`

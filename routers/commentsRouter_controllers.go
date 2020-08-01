@@ -324,6 +324,15 @@ func init() {
 
 	beego.GlobalControllerRouter["bfimpl/controllers:TaskController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:TaskController"],
 		beego.ControllerComments{
+			Method:           "TaskHistory",
+			Router:           `/history/:id`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:TaskController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:TaskController"],
+		beego.ControllerComments{
 			Method:           "TaskTags",
 			Router:           `/tags`,
 			AllowHTTPMethods: []string{"get"},

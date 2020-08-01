@@ -521,6 +521,11 @@ func (t *TaskController) SaveTaskDetail() {
 		"real_amount":      param.RealAmount,
 		"real_service_id":  param.RealServiceId,
 	})
+	logContent := "信息录入"
+	if param.ChangeLog != "" {
+		logContent = "变更需求"
+	}
+	// 更新detail
 	tmp := new(models.TaskDetail)
 	services.Slave().Where("task_id = ?", id).First(tmp)
 	taskDetail := param.GetTaskDetail()
@@ -531,10 +536,7 @@ func (t *TaskController) SaveTaskDetail() {
 		taskDetail.ID = tmp.ID
 		services.Slave().Save(taskDetail)
 	}
-	logContent := "信息录入"
-	if param.ChangeLog != "" {
-		logContent = "变更需求"
-	}
+	//创建日志
 	taskLog := models.TaskLog{
 		TaskID:     uint(id),
 		CreateTime: models.Time(time.Now()),
@@ -542,7 +544,28 @@ func (t *TaskController) SaveTaskDetail() {
 		Desc:       param.ChangeLog,
 	}
 	services.Slave().Create(&taskLog)
+	//创建历史版本
+	history := param.GetTaskHistory()
+	history.TaskLogID = int(taskLog.ID)
+	services.Slave().Create(&history)
 	t.Correct("")
+}
+
+// @Title 任务信息历史
+// @Description 任务信息历史
+// @Param	id		path	int		true	"任务id"
+// @Success 200 {object} []models.TaskLog
+// @Failure 500 server err
+// @router /history/:id [get]
+func (t *TaskController) TaskHistory() {
+
+	id, _ := t.GetInt(":id", 0)
+	taskLogs := make([]models.TaskLog, 0)
+	services.Slave().Model(models.TaskLog{}).Where("task_id = ?", id).Preload("TaskHistory").
+		Joins("inner join task_histories on task_logs.id = task_histories.task_log_id").
+		Order("task_logs.create_time desc").Find(&taskLogs)
+
+	t.Correct(taskLogs)
 }
 
 // @Title 任务冻结

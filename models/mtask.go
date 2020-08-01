@@ -69,11 +69,12 @@ const (
 
 // 任务日志
 type TaskLog struct {
-	ID         uint   `gorm:"primary_key" json:"id"`
-	CreateTime Time   `gorm:"type:datetime;comment:'创建时间'" json:"createTime"`
-	TaskID     uint   `json:"-"`
-	Title      string `gorm:"size:40;comment:'标题'" json:"title"`
-	Desc       string `gorm:"size:256;comment:'变更说明'" json:"desc"`
+	ID          uint         `gorm:"primary_key" json:"id"`
+	CreateTime  Time         `gorm:"type:datetime;comment:'创建时间'" json:"createTime"`
+	TaskID      uint         `json:"-"`
+	Title       string       `gorm:"size:40;comment:'标题'" json:"title"`
+	Desc        string       `gorm:"size:256;comment:'变更说明'" json:"desc"`
+	TaskHistory *TaskHistory `json:"history,omitempty"`
 }
 
 // 任务详细信息
@@ -129,4 +130,27 @@ type TaskComment struct {
 	ReExecuteTimes int    `gorm:"default:0;comment:'返工次数'" json:"reExeTimes"`
 	Score          int    `gorm:"comment:'评分'" json:"score"`
 	Other          string `gorm:"size:256;comment:'其他信息'" json:"other"`
+}
+
+type TaskHistory struct {
+	gorm.Model
+	TaskLogID       int    `gorm:"index;comment:'日志id'" json:"-"`
+	ExpDeliverTime  Time   `gorm:"type:datetime;comment:'期望交付时间'" json:"expDeliverTime"`
+	ExpEndTime      Time   `gorm:"type:datetime;comment:'期望结单时间'" json:"expEndTime"`
+	Version         string `gorm:"size:30;comment:'测试版本'" json:"version"`
+	PkgAddress      string `gorm:"size:256;comment:'安装包地址'" json:"pkgAddress"`
+	TestType        string `gorm:"comment:'环境类型'" json:"testType"`
+	TestExtInfo     string `gorm:"size:256;comment:'测试环境补充信息'" json:"testExtInfo"`
+	WhiteList       string `gorm:"size:512;comment:'白名单'" json:"whiteList"`
+	TestAccountType string `gorm:"size:40;comment:'测试账号类型'" json:"testAccountType"`
+	AccountReUse    string `gorm:"size:60;default:'';comment:'账号是否重复使用'" json:"reUse"`
+	AccountAddress  string `gorm:"size:256;comment:'账号文件地址'" json:"accountAddress"`
+	ChangeLog       string `gorm:"size:256;comment:'变更说明'" json:"changeLog"`
+	AccountNum      int    `gorm:"comment:'账号数量'" json:"accountNum"`
+	PhoneNum        int    `gorm:"comment:'手机号/微信数量'" json:"phoneNum"`
+	ConcurrentNum   int    `gorm:"comment:'并发数'" json:"concurrentNum"`
+	ReqPhone        string `gorm:"size:256;comment:'机型需求'" json:"reqPhone"`
+	ExtReq          string `gorm:"size:256;comment:'其他需求'" json:"extReq"`
+	InstanceTxt     string `gorm:"size:256;comment:'文字用例内网地址'" json:"instanceTxt"`
+	InstanceMv      string `gorm:"size:256;comment:'视频用例内网地址'" json:"instanceMv"`
 }
