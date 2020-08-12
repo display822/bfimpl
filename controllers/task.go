@@ -291,35 +291,35 @@ func (t *TaskController) TaskImportant() {
 	today := time.Now().AddDate(0, 0, 1).Format(models.DateFormat)
 	nextTwo := time.Now().AddDate(0, 0, 2).Format(models.TimeFormat)
 	nextThree := time.Now().AddDate(0, 0, 3).Format(models.DateFormat)
-	query := services.Slave().Debug().Model(models.Task{}).Where("status = ? ", models.TaskPause)
+	query := services.Slave().Debug().Model(models.Task{})
 	switch userType {
 	case 1:
 		//管理员
-		query = query.Where("exp_end_time < ? or (status = ? and exp_end_date <= ?) or (status != ? and exp_end_time <= ?)",
-			today, models.TaskCreate, nextThree, models.TaskExecute, nextTwo)
+		query = query.Where("status = ? or exp_end_time < ? or (status = ? and exp_end_date <= ?) or (status != ? and exp_end_time <= ?)",
+			models.TaskPause, today, models.TaskCreate, nextThree, models.TaskExecute, nextTwo)
 	case 2:
 		//销售,自己客户信息
-		query = query.Where("exp_end_time < ? or (status = ? and exp_end_date <= ?) or (status != ? and exp_end_time <= ?)",
-			today, models.TaskCreate, nextThree, models.TaskExecute, nextTwo)
+		query = query.Where("status = ? or exp_end_time < ? or (status = ? and exp_end_date <= ?) or (status != ? and exp_end_time <= ?)",
+			models.TaskPause, today, models.TaskCreate, nextThree, models.TaskExecute, nextTwo)
 		clientIds := make([]int, 0)
 		services.Slave().Model(models.Client{}).Where("sale_id = ?", uID).Pluck("id", &clientIds)
 		query = query.Where("client_id in (?)", clientIds)
 	case 3:
 		//客户服务经理
-		query = query.Where("exp_end_time < ? or (status = ? and exp_end_date <= ?) or (status != ? and exp_end_time <= ?)",
-			today, models.TaskCreate, nextThree, models.TaskExecute, nextTwo)
+		query = query.Where("status = ? or exp_end_time < ? or (status = ? and exp_end_date <= ?) or (status != ? and exp_end_time <= ?)",
+			models.TaskPause, today, models.TaskCreate, nextThree, models.TaskExecute, nextTwo)
 		query = query.Where("manage_id = ?", uID)
 	case 4:
 		//组长
-		query = query.Where("exp_end_time < ? or (status != ? and exp_end_time <= ?)",
-			today, models.TaskExecute, nextTwo)
+		query = query.Where("status = ? or exp_end_time < ? or (status != ? and exp_end_time <= ?)",
+			models.TaskPause, today, models.TaskExecute, nextTwo)
 		exeIds := make([]int, 0)
 		services.Slave().Model(models.User{}).Where("leader_id = ?", uID).Pluck("id", &exeIds)
 		query = query.Where("exe_user_id in (?)", exeIds)
 	case 5:
 		//实施
-		query = query.Where("exp_end_time < ? or (status != ? and exp_end_time <= ?)",
-			today, models.TaskExecute, nextTwo).Where("exe_user_id = ?", uID)
+		query = query.Where("status = ? or exp_end_time < ? or (status != ? and exp_end_time <= ?)",
+			models.TaskPause, today, models.TaskExecute, nextTwo).Where("exe_user_id = ?", uID)
 	default:
 		t.ErrorOK("invalid user type")
 	}
