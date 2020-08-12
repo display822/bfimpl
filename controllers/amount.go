@@ -369,9 +369,9 @@ func createAmountLog(db *gorm.DB, param *models.Amount, msg, t string, amount in
 	return db.Create(amountLog).Error
 }
 
-func createAmountLogSimpleT(db *gorm.DB, amoutnId int, msg, t, r, refer string, amount int) error {
+func createAmountLogSimpleT(db *gorm.DB, amountId int, msg, t, r, refer string, amount int) error {
 	amountLog := new(models.AmountLog)
-	amountLog.AmountId = amoutnId
+	amountLog.AmountId = amountId
 	amountLog.Change = amount * models.AmountChange[t]
 	amountLog.Desc = msg
 	amountLog.RealTime = models.Time(time.Now())
