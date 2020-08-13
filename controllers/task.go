@@ -291,7 +291,7 @@ func (t *TaskController) TaskImportant() {
 	today := time.Now().AddDate(0, 0, 1).Format(models.DateFormat)
 	nextTwo := time.Now().AddDate(0, 0, 2).Format(models.TimeFormat)
 	nextThree := time.Now().AddDate(0, 0, 3).Format(models.DateFormat)
-	query := services.Slave().Debug().Model(models.Task{})
+	query := services.Slave().Model(models.Task{})
 	switch userType {
 	case 1:
 		//管理员
