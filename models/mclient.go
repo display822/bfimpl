@@ -100,6 +100,16 @@ func (amount *RspAmount) CalData(ca ClientAmount) {
 	}
 }
 
+//所有额度历史
+type RspAmountAll struct {
+	RealTime    Time   `json:"real_time"`
+	Name        string `json:"name"`
+	ServiceName string `json:"service_name"`
+	Change      int    `json:"change"`
+	Desc        string `json:"desc"`
+	Remark      string `json:"remark"`
+}
+
 // 额度历史
 type RspAmountLog struct {
 	Id          int    `json:"id"`

@@ -118,6 +118,23 @@ func (a *AmountController) GetAmounts() {
 	a.Correct(data)
 }
 
+// @Title 查询所有额度log
+// @Description 查询所有额度log
+// @Param	pageSize	query	int	true	"页大小"
+// @Param	pageNum		query	int	true	"第几页"
+// @Success 200 {object} []models.RspAmountAll
+// @Failure 500 server err
+// @router /history [get]
+func (a *AmountController) GetAllAmounts() {
+	pageSize, _ := a.GetInt("pageSize", 20)
+	pageNum, _ := a.GetInt("pageNum", 1)
+	res := make([]models.RspAmountAll, 0)
+	services.Slave().Raw("SELECT al.real_time,c.name, s.service_name,al.change,al.desc,al.remark"+
+		" FROM amounts a,amount_logs al,clients c,services s WHERE a.id = al.amount_id AND a.service_id = s.id and a.client_id = c.id"+
+		" order by al.real_time desc limit ?,?", (pageNum-1)*pageSize, pageSize).Scan(&res)
+	a.Correct(res)
+}
+
 // @Title 订单维度额度历史
 // @Description 查询客户的额度历史,订单维度
 // @Param	clientId	query	int	true	"客户id"

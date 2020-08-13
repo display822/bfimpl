@@ -61,6 +61,15 @@ func init() {
 			Filters:          nil,
 			Params:           nil})
 
+    beego.GlobalControllerRouter["bfimpl/controllers:AmountController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:AmountController"],
+        beego.ControllerComments{
+            Method:           "GetAllAmounts",
+            Router:           `/history`,
+            AllowHTTPMethods: []string{"get"},
+            MethodParams:     param.Make(),
+            Filters:          nil,
+            Params:           nil})
+
 	beego.GlobalControllerRouter["bfimpl/controllers:ClientController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:ClientController"],
 		beego.ControllerComments{
 			Method:           "AddClient",
@@ -189,6 +198,15 @@ func init() {
 
 	beego.GlobalControllerRouter["bfimpl/controllers:TaskController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:TaskController"],
 		beego.ControllerComments{
+			Method:           "ChangeFinish",
+			Router:           `/change/:id`,
+			AllowHTTPMethods: []string{"put"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:TaskController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:TaskController"],
+		beego.ControllerComments{
 			Method:           "CommentTask",
 			Router:           `/comment/:id`,
 			AllowHTTPMethods: []string{"put"},
@@ -288,6 +306,15 @@ func init() {
 
 	beego.GlobalControllerRouter["bfimpl/controllers:TaskController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:TaskController"],
 		beego.ControllerComments{
+			Method:           "TaskHistory",
+			Router:           `/history/:id`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:TaskController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:TaskController"],
+		beego.ControllerComments{
 			Method:           "TaskList",
 			Router:           `/list`,
 			AllowHTTPMethods: []string{"get"},
@@ -306,27 +333,9 @@ func init() {
 
 	beego.GlobalControllerRouter["bfimpl/controllers:TaskController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:TaskController"],
 		beego.ControllerComments{
-			Method:           "ChangeFinish",
-			Router:           `/change/:id`,
-			AllowHTTPMethods: []string{"put"},
-			MethodParams:     param.Make(),
-			Filters:          nil,
-			Params:           nil})
-
-	beego.GlobalControllerRouter["bfimpl/controllers:TaskController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:TaskController"],
-		beego.ControllerComments{
 			Method:           "SaveTaskDetail",
 			Router:           `/save/:id`,
 			AllowHTTPMethods: []string{"post"},
-			MethodParams:     param.Make(),
-			Filters:          nil,
-			Params:           nil})
-
-	beego.GlobalControllerRouter["bfimpl/controllers:TaskController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:TaskController"],
-		beego.ControllerComments{
-			Method:           "TaskHistory",
-			Router:           `/history/:id`,
-			AllowHTTPMethods: []string{"get"},
 			MethodParams:     param.Make(),
 			Filters:          nil,
 			Params:           nil})
