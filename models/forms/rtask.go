@@ -97,8 +97,9 @@ func (d *ReqTaskDetail) GetTaskHistory() *models.TaskHistory {
 
 //指派任务参数
 type ReqAssignTask struct {
-	ExeUserId int `json:"exeUserId"`
-	Amount    int `json:"amount"`
+	ExeUserId   int `json:"exeUserId"`
+	AssignSrvId int `json:"serviceId"`
+	Amount      int `json:"amount"`
 }
 
 // 完成任务参数

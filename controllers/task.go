@@ -762,6 +762,7 @@ func (t *TaskController) AssignTask() {
 		"status":         models.TaskAssign,
 		"exe_user_id":    param.ExeUserId,
 		"deliver_amount": param.Amount,
+		"assign_srv_id":  param.AssignSrvId,
 	}).Error
 	if err != nil {
 		t.ErrorOK(MsgServerErr)

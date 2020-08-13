@@ -25,6 +25,7 @@ type Task struct {
 	RealAmount    int      `gorm:"not null;default:0;comment:'实际提测额度'" json:"realAmount"`
 	RealService   *Service `gorm:"ForeignKey:RealServiceId" json:"realService,omitempty"`
 	RealServiceId int      `gorm:"not null;comment:'实际提测服务id'" json:"realServiceId"`
+	AssignSrvId   int      `gorm:"comment:'指派评估任务类型'" json:"-"`
 
 	ManageId       int   `gorm:"comment:'客户服务经理id'" json:"-"`
 	IsPause        uint8 `gorm:"default:0;comment:'是否暂停'" json:"isPause"`
