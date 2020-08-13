@@ -132,7 +132,14 @@ func (a *AmountController) GetAllAmounts() {
 	services.Slave().Raw("SELECT al.real_time,c.name, s.service_name,al.change,al.desc,al.remark"+
 		" FROM amounts a,amount_logs al,clients c,services s WHERE a.id = al.amount_id AND a.service_id = s.id and a.client_id = c.id"+
 		" order by al.real_time desc limit ?,?", (pageNum-1)*pageSize, pageSize).Scan(&res)
-	a.Correct(res)
+
+	var rsp struct{
+		Total int `json:"total"`
+		List []models.RspAmountAll `json:"list"`
+	}
+	services.Slave().Model(models.AmountLog{}).Count(&rsp.Total)
+	rsp.List = res
+	a.Correct(rsp)
 }
 
 // @Title 订单维度额度历史
