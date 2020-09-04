@@ -4,6 +4,8 @@ import (
 	"bfimpl/models"
 	"bfimpl/services/log"
 
+	"bfimpl/models/oa"
+
 	"github.com/astaxie/beego"
 	"github.com/jinzhu/gorm"
 )
@@ -59,5 +61,14 @@ func DBInit() {
 		&models.Tag{},
 		&models.TaskLog{},
 		&models.TaskHistory{},
+
+		&oa.WorkflowDefinition{},
+		&oa.Workflow{},
+		&oa.WorkflowNode{},
+		&oa.WorkflowFormElement{},
+		&oa.WorkflowFormElementDef{},
+		&oa.Employee{},
+		&oa.Department{},
+		&oa.Level{},
 	)
 }

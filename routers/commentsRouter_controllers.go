@@ -61,14 +61,14 @@ func init() {
 			Filters:          nil,
 			Params:           nil})
 
-    beego.GlobalControllerRouter["bfimpl/controllers:AmountController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:AmountController"],
-        beego.ControllerComments{
-            Method:           "GetAllAmounts",
-            Router:           `/history`,
-            AllowHTTPMethods: []string{"get"},
-            MethodParams:     param.Make(),
-            Filters:          nil,
-            Params:           nil})
+	beego.GlobalControllerRouter["bfimpl/controllers:AmountController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:AmountController"],
+		beego.ControllerComments{
+			Method:           "GetAllAmounts",
+			Router:           `/history`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
 
 	beego.GlobalControllerRouter["bfimpl/controllers:ClientController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:ClientController"],
 		beego.ControllerComments{
@@ -385,4 +385,22 @@ func init() {
 			Filters:          nil,
 			Params:           nil})
 
+	//oa=============
+	beego.GlobalControllerRouter["bfimpl/controllers:DepartmentController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:DepartmentController"],
+		beego.ControllerComments{
+			Method:           "GetDepartments",
+			Router:           `/list`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:DepartmentController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:DepartmentController"],
+		beego.ControllerComments{
+			Method:           "GetLevels",
+			Router:           `/level/:id`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
 }

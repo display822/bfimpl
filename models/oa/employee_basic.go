@@ -15,7 +15,6 @@ import (
 type EmployeeBasic struct {
 	gorm.Model
 	EmployeeID              int         `json:"employee_id"`
-	IDCard                  string      `gorm:"size:20;not null;comment:'身份证'" json:"id_card"`
 	IDCardFront             string      `gorm:"not null;comment:'身份证正'" json:"id_card_front"`
 	IDCardBack              string      `gorm:"not null;comment:'身份证反面'" json:"id_card_back"`
 	DebitCard1              string      `gorm:"size:60;not null;comment:'工资卡1'" json:"debit_card1"`
@@ -34,7 +33,6 @@ type EmployeeBasic struct {
 	DegreeVerification      string      `gorm:"size:20;not null;comment:'学历验证(未验证,已验证,无法验证)'" json:"degree_verification"`
 	ENSkill                 string      `gorm:"size:20;comment:'英语技能'" json:"en_skill"`
 	OtherLanguageSkill      string      `gorm:"size:100;comment:'其他语言'" json:"other_language_skill"`
-	Gender                  string      `gorm:"size:10;not null;comment:'性别'" json:"gender"`
 	Birthday                models.Time `gorm:"type:datetime;not null;comment:'生日'" json:"birthday"`
 	Birthplace              string      `gorm:"size:30;not null;comment:'籍贯'" json:"birthplace"`
 	InhabitedCity           string      `gorm:"size:30;not null;comment:'居住城市'" json:"inhabited_city"`

@@ -14,4 +14,5 @@ type Workflow struct {
 	WorkflowDefinition   *WorkflowDefinition
 	Status               string `gorm:"size:20;not null;comment:'状态(Processing, Completed, Approved, Rejected)'"`
 	EntityID             int    `gorm:"not null;comment:'实体ID'"`
+	Elements             []*WorkflowFormElement
 }

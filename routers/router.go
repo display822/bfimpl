@@ -21,6 +21,9 @@ func init() {
 		beego.NSNamespace("/service", beego.NSInclude(&controllers.ServiceController{})),
 		beego.NSNamespace("/amount", beego.NSInclude(&controllers.AmountController{})),
 		beego.NSNamespace("/task", beego.NSInclude(&controllers.TaskController{})),
+
+		beego.NSNamespace("/employee", beego.NSInclude(&controllers.EmployeeController{})),
+		beego.NSNamespace("/department", beego.NSInclude(&controllers.DepartmentController{})),
 	)
 
 	ips := beego.AppConfig.Strings("bkcors")
