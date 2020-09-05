@@ -27,7 +27,7 @@ type EmployeeController struct {
 // @router /new [post]
 func (e *EmployeeController) NewEmpEntry() {
 	userType, _ := e.GetInt("userType", 0)
-	if userType != UserHR {
+	if userType != models.UserHR {
 		e.ErrorOK("您不是HR")
 	}
 	reqEmployee := new(oa.ReqEmployee)
@@ -57,8 +57,8 @@ func (e *EmployeeController) NewEmpEntry() {
 	e.Correct(employee)
 }
 
-// @Title 入职详情
-// @Description 入职详情
+// @Title employee详情
+// @Description employee详情
 // @Param	id	path	int	true	"入职员工id"
 // @Success 200 {string} "success"
 // @Failure 500 server err
@@ -149,9 +149,9 @@ func (e *EmployeeController) CommitWorkflowNode() {
 	workflow.Elements[1].Value = flowInfo.SeatNumber
 	workflow.Elements[2].Value = flowInfo.DeviceReq
 	switch userType {
-	case UserHR:
+	case models.UserHR:
 		e.ErrorOK("工作流不在当前节点")
-	case UserLeader:
+	case models.UserLeader:
 		if workflow.Nodes[1].Status != services.FlowProcessing {
 			e.ErrorOK("工作流不在当前节点")
 		}
@@ -166,7 +166,7 @@ func (e *EmployeeController) CommitWorkflowNode() {
 		workflow.Nodes[1].Status = services.FlowCompleted
 		workflow.Nodes[2].Status = services.FlowProcessing
 		services.Slave().Save(workflow)
-	case UserIT:
+	case models.UserIT:
 		if workflow.Nodes[2].Status != services.FlowProcessing {
 			e.ErrorOK("工作流不在当前节点")
 		}
@@ -181,6 +181,133 @@ func (e *EmployeeController) CommitWorkflowNode() {
 		workflow.Nodes[2].Status = services.FlowCompleted
 		workflow.Status = services.FlowCompleted
 		services.Slave().Save(workflow)
+	}
+	e.Correct("")
+}
+
+// @Title hr新建离职
+// @Description hr新建离职
+// @Param	json	body	string	true	"离职员工信息"
+// @Success 200 {string} "success"
+// @Failure 500 server err
+// @router /leave/:id [post]
+func (e *EmployeeController) NewEmpLeave() {
+	eID, _ := e.GetInt(":id", 0)
+	userType, _ := e.GetInt("userType", 0)
+	operator := e.GetString("userName")
+	if userType != models.UserHR {
+		e.ErrorOK("您不是HR")
+	}
+	reqLeave := new(oa.ReqQuitFlow)
+	err := json.Unmarshal(e.Ctx.Input.RequestBody, reqLeave)
+	if err != nil {
+		log.GLogger.Error("req leave err：%s", err.Error())
+		e.ErrorOK(MsgInvalidParam)
+	}
+
+	tx := services.Slave().Begin()
+	quitInfo := reqLeave.ToEntity()
+	quitInfo.EmployeeID = eID
+	err = tx.Create(quitInfo).Error
+	if err != nil {
+		log.GLogger.Error("employee leave err：%s", err.Error())
+		tx.Rollback()
+		e.ErrorOK(MsgServerErr)
+	}
+	//更新employee信息
+	err = tx.Model(oa.Employee{}).Where("id = ?", eID).Updates(map[string]interface{}{
+		"req_user":         operator,
+		"reason":           reqLeave.Reason,
+		"status":           3,
+		"resignation_date": reqLeave.ResignationDate.String(),
+	}).Error
+	if err != nil {
+		log.GLogger.Error("employee leave err：%s", err.Error())
+		tx.Rollback()
+		e.ErrorOK(MsgServerErr)
+	}
+	//创建流程信息
+	uID, _ := e.GetInt("userID", 0)
+	err = services.CreateLeaveWorkflow(tx, eID, uID)
+	if err != nil {
+		log.GLogger.Error("create leave workflow err：%s", err.Error())
+		tx.Rollback()
+		e.ErrorOK(MsgServerErr)
+	}
+	tx.Commit()
+	e.Correct("")
+}
+
+// @Title 离职流程信息
+// @Description 离职流程信息
+// @Success 200 {string} "success"
+// @Failure 500 server err
+// @router /leave/:id [get]
+func (e *EmployeeController) GetLeaveInfo() {
+	eID, _ := e.GetInt(":id", 0)
+	flowInfo := new(oa.QuitFlowInfo)
+	services.Slave().Model(oa.QuitFlowInfo{}).Where("employee_id = ?", eID).First(flowInfo)
+	e.Correct(flowInfo)
+}
+
+// @Title 提交离职流程信息
+// @Description 提交离职流程信息
+// @Success 200 {string} "success"
+// @Failure 500 server err
+// @router /leave/:id [put]
+func (e *EmployeeController) CommitLeaveInfoNode() {
+	eID, _ := e.GetInt(":id", 0)
+	flowInfo := new(oa.QuitFlowInfo)
+	err := json.Unmarshal(e.Ctx.Input.RequestBody, flowInfo)
+	if err != nil {
+		e.ErrorOK(MsgInvalidParam)
+	}
+	//修改入职流程信息
+	userType, _ := e.GetInt("userType", 0)
+	//eID 查询 workflow
+	workflow := new(oa.Workflow)
+	services.Slave().Model(oa.Workflow{}).Where("workflow_definition_id = ? and entity_id = ?",
+		services.GetLeaveDef(), eID).Preload("Nodes").Preload("Elements").First(workflow)
+	if len(workflow.Nodes) != 4 {
+		e.ErrorOK("工作流配置错误")
+	}
+	switch userType {
+	case models.UserLeader:
+		e.ErrorOK("工作流不在当前节点")
+	case models.UserHR:
+		e.ErrorOK("工作流不在当前节点")
+	case models.UserIT:
+		if workflow.Nodes[1].Status != services.FlowProcessing {
+			e.ErrorOK("工作流不在当前节点")
+		}
+		//修改 flowInfo 信息
+		services.Slave().Save(flowInfo)
+		//更新节点信息
+		workflow.Nodes[1].Status = services.FlowCompleted
+		workflow.Nodes[2].Status = services.FlowProcessing
+		services.Slave().Save(workflow)
+	case models.UserFinance:
+		if workflow.Nodes[2].Status != services.FlowProcessing {
+			e.ErrorOK("工作流不在当前节点")
+		}
+		//修改 flowInfo 信息
+		services.Slave().Save(flowInfo)
+		workflow.Nodes[2].Status = services.FlowCompleted
+		workflow.Nodes[3].Status = services.FlowProcessing
+		services.Slave().Save(workflow)
+	case models.UserFront:
+		//前台
+		if workflow.Nodes[3].Status != services.FlowProcessing {
+			e.ErrorOK("工作流不在当前节点")
+		}
+		//修改 flowInfo 信息,最后一个流程，变为已离职
+		services.Slave().Save(flowInfo)
+		workflow.Nodes[3].Status = services.FlowCompleted
+		workflow.Status = services.FlowCompleted
+		services.Slave().Save(workflow)
+		services.Slave().Model(oa.Employee{}).Where("id = ?", eID).Updates(map[string]interface{}{
+			"status": 4,
+		})
 	}
 	e.Correct("")
 }

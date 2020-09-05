@@ -35,6 +35,8 @@ type Employee struct {
 	Position         string      `gorm:"size:30;default:'';comment:'岗位'" json:"position"`
 	EntryDate        models.Time `gorm:"type:datetime;comment:'入职日期'" json:"entry_date"`
 	ResignationDate  models.Time `gorm:"type:datetime;comment:'离职日期'" json:"resignation_date"`
+	Reason           string      `gorm:"not null;default:'';comment:'离职原因'" json:"reason"`
+	ReqUser          string      `gorm:"not null;default:'';comment:'离职申请人'" json:"req_user"`
 	//EmployeeBasic    *EmployeeBasic      `json:"employee_basic"`
 	//Contracts        []*EmployeeContract `json:"contracts"`
 }

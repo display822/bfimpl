@@ -18,7 +18,8 @@ import (
 )
 
 const (
-	EmployeeEntry  = iota
+	EmployeeEntry  = "EmployeeEntry"
+	EmployeeLeave  = "EmployeeLeave"
 	FlowNA         = "NA"
 	FlowProcessing = "Processing"
 	FlowCompleted  = "Completed"
@@ -26,27 +27,39 @@ const (
 	FlowRejected   = "Rejected"
 )
 
-var WorkFlowDef map[int]int
+var WorkFlowDef map[string]int
 var itUserID int
+var financeUserID int
+var frontUserID int
 
 func init() {
-	WorkFlowDef = make(map[int]int)
-	var tmp struct {
-		ID int `json:"id"`
+	WorkFlowDef = make(map[string]int)
+	//查询流程定义id
+	flowDefs := make([]*oa.WorkflowDefinition, 0)
+	Slave().Model(oa.WorkflowDefinition{}).Find(&flowDefs)
+	for _, def := range flowDefs {
+		WorkFlowDef[def.WorkflowPurpose] = int(def.ID)
 	}
-	//查询入职流程定义id
-	Slave().Raw("select id from workflow_definitions where workflow_purpose = ? ",
-		"EmployeeEntry").Scan(&tmp)
-	WorkFlowDef[EmployeeEntry] = tmp.ID
-
-	//查询it user_id
-	var u models.User
-	Slave().Model(models.User{}).Where("user_type = ?", 7).First(&u)
-	itUserID = int(u.ID)
+	//查询hr6  it7  caiwu8
+	users := make([]*models.User, 0)
+	Slave().Model(models.User{}).Where("user_type in (?)", []int{6, 7, 8}).Find(&users)
+	for _, u := range users {
+		if u.UserType == models.UserIT {
+			itUserID = int(u.ID)
+		} else if u.UserType == models.UserFinance {
+			financeUserID = int(u.ID)
+		} else if u.UserType == models.UserFront {
+			frontUserID = int(u.ID)
+		}
+	}
 }
 
 func GetEntryDef() int {
 	return WorkFlowDef[EmployeeEntry]
+}
+
+func GetLeaveDef() int {
+	return WorkFlowDef[EmployeeLeave]
 }
 
 //入职流程工作流
@@ -70,16 +83,19 @@ func CreateEntryWorkflow(db *gorm.DB, eID, uID int, reqEmployee *oa.ReqEmployee)
 	//元素填写
 	ele1 := oa.WorkflowFormElement{
 		WfElementDefID: int(eleDef[0].ID),
+		Name:           eleDef[0].ElementName,
 		Value:          reqEmployee.EntryDate.String(),
 		WorkflowID:     workflow.ID,
 	}
 	ele2 := oa.WorkflowFormElement{
 		WfElementDefID: int(eleDef[1].ID),
+		Name:           eleDef[1].ElementName,
 		Value:          reqEmployee.SeatNumber,
 		WorkflowID:     workflow.ID,
 	}
 	ele3 := oa.WorkflowFormElement{
 		WfElementDefID: int(eleDef[2].ID),
+		Name:           eleDef[2].ElementName,
 		Value:          reqEmployee.DeviceReq,
 		WorkflowID:     workflow.ID,
 	}
@@ -122,5 +138,62 @@ func CreateEntryWorkflow(db *gorm.DB, eID, uID int, reqEmployee *oa.ReqEmployee)
 		return err
 	}
 
+	return nil
+}
+
+func CreateLeaveWorkflow(db *gorm.DB, eID, uID int) error {
+	//工作流
+	workflow := oa.Workflow{
+		WorkflowDefinitionID: WorkFlowDef[EmployeeLeave],
+		Status:               oa.Processing,
+		EntityID:             eID,
+	}
+	err := db.Create(&workflow).Error
+	if err != nil {
+		return err
+	}
+
+	//节点1，hr录入
+	nodeHr := oa.WorkflowNode{
+		WorkflowID: int(workflow.ID),
+		NodeSeq:    1,
+		OperatorID: uID,
+		Status:     FlowCompleted,
+	}
+	err = db.Create(&nodeHr).Error
+	if err != nil {
+		return err
+	}
+	//节点2，it填写
+	nodeIT := oa.WorkflowNode{
+		WorkflowID: int(workflow.ID),
+		NodeSeq:    2,
+		OperatorID: itUserID,
+		Status:     FlowProcessing,
+	}
+	err = db.Create(&nodeIT).Error
+	if err != nil {
+		return err
+	}
+	//节点3，财务填写
+	nodeFinance := oa.WorkflowNode{
+		WorkflowID: int(workflow.ID),
+		NodeSeq:    3,
+		OperatorID: financeUserID,
+	}
+	err = db.Create(&nodeFinance).Error
+	if err != nil {
+		return err
+	}
+	//节点3，财务填写
+	nodeFront := oa.WorkflowNode{
+		WorkflowID: int(workflow.ID),
+		NodeSeq:    4,
+		OperatorID: frontUserID,
+	}
+	err = db.Create(&nodeFront).Error
+	if err != nil {
+		return err
+	}
 	return nil
 }

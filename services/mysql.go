@@ -61,5 +61,6 @@ func DBInit() {
 		&oa.Employee{},
 		&oa.Department{},
 		&oa.Level{},
+		&oa.QuitFlowInfo{},
 	)
 }

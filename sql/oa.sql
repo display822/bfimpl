@@ -2,10 +2,12 @@
 -- users.user_type 1-管理员 2-销售 3-经理 4-资源分配 5-实施 6-hr 7-it
 -- 入职流程定义
 -- type: Approval, Business
--- purpose: EmployeeEntry, Overtime, Leave, Expense, DeviceRequisition
+-- purpose: EmployeeEntry, EmployeeLeave, Overtime, Leave, Expense, DeviceRequisition
 -- entity: Employee, DeviceRequisition, Overtime, Leave, Expense
 insert into workflow_definitions(created_at,updated_at,workflow_type,workflow_purpose,workflow_entity)
 values (now(),now(),'Business','EmployeeEntry','Employee');
+insert into workflow_definitions(created_at,updated_at,workflow_type,workflow_purpose,workflow_entity)
+values (now(),now(),'Business','EmployeeLeave','Employee');
 
 -- type: TextField, TextArea
 insert into workflow_form_element_defs(created_at,updated_at,workflow_definition_id,element_seq,element_type, element_name) values

@@ -14,6 +14,12 @@ type RetValue struct {
 type Time time.Time
 
 const (
+	UserLeader  = 1
+	UserHR      = 6
+	UserIT      = 7
+	UserFinance = 8
+	UserFront   = 9
+
 	TimeFormat = "2006-01-02 15:04:05"
 	DateFormat = "2006-01-02"
 

@@ -12,6 +12,7 @@ type WorkflowFormElement struct {
 	gorm.Model
 	WfElementDefID         int                     `json:"-"`
 	WorkflowFormElementDef *WorkflowFormElementDef `gorm:"ForeignKey:WfElementDefID" json:"elementDef"`
-	Value                  string                  `gorm:"not null;comment:'表单元素值'"`
+	Name                   string                  `gorm:"size:60;not null;default:'';comment:'表单元素名称'" json:"name"`
+	Value                  string                  `gorm:"not null;comment:'表单元素值'" json:"value"`
 	WorkflowID             uint                    `json:"-"`
 }
