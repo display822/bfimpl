@@ -45,6 +45,10 @@ func init() {
 	itUserID = int(u.ID)
 }
 
+func GetEntryDef() int {
+	return WorkFlowDef[EmployeeEntry]
+}
+
 func CreateEntryWorkflow(db *gorm.DB, eID, uID int, reqEmployee *oa.ReqEmployee) error {
 	//工作流
 	workflow := oa.Workflow{

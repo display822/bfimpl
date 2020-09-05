@@ -11,7 +11,7 @@ import "github.com/jinzhu/gorm"
 type WorkflowFormElement struct {
 	gorm.Model
 	WfElementDefID         int                     `json:"-"`
-	WorkflowFormElementDef *WorkflowFormElementDef `gorm:"ForeignKey:WfElementDefID" json:"-"`
+	WorkflowFormElementDef *WorkflowFormElementDef `gorm:"ForeignKey:WfElementDefID" json:"elementDef"`
 	Value                  string                  `gorm:"not null;comment:'表单元素值'"`
 	WorkflowID             uint                    `json:"-"`
 }

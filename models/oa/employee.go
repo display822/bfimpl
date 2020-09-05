@@ -9,6 +9,8 @@ package oa
 import (
 	"bfimpl/models"
 
+	"time"
+
 	"github.com/jinzhu/gorm"
 )
 
@@ -29,6 +31,7 @@ type Employee struct {
 	Department       *Department `json:"department"`
 	LevelID          int         `gorm:"not null;default:0;comment:'级别'" json:"level_id"`
 	Level            *Level      `json:"level"`
+	CreateTime       models.Time `gorm:"type:datetime" json:"create_time"`
 	Position         string      `gorm:"size:30;default:'';comment:'岗位'" json:"position"`
 	EntryDate        models.Time `gorm:"type:datetime;comment:'入职日期'" json:"entry_date"`
 	ResignationDate  models.Time `gorm:"type:datetime;comment:'离职日期'" json:"resignation_date"`
@@ -74,5 +77,6 @@ func (r *ReqEmployee) ToEmployee() *Employee {
 		LevelID:          r.LevelID,
 		Position:         r.Position,
 		EntryDate:        r.EntryDate,
+		CreateTime:       models.Time(time.Now()),
 	}
 }

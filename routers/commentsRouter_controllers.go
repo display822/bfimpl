@@ -403,4 +403,40 @@ func init() {
 			MethodParams:     param.Make(),
 			Filters:          nil,
 			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:EmployeeController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:EmployeeController"],
+		beego.ControllerComments{
+			Method:           "NewEmpEntry",
+			Router:           `/new`,
+			AllowHTTPMethods: []string{"post"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:EmployeeController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:EmployeeController"],
+		beego.ControllerComments{
+			Method:           "GetEmpEntryInfo",
+			Router:           `/entry/detail/:id`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:EmployeeController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:EmployeeController"],
+		beego.ControllerComments{
+			Method:           "GetEmpEntryList",
+			Router:           `/entry/list`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:EmployeeController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:EmployeeController"],
+		beego.ControllerComments{
+			Method:           "GetWorkflowNode",
+			Router:           `/workflow/:id`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
 }
