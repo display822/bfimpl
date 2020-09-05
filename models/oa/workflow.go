@@ -6,7 +6,11 @@
 
 package oa
 
-import "github.com/jinzhu/gorm"
+import (
+	"bfimpl/models"
+
+	"github.com/jinzhu/gorm"
+)
 
 type Workflow struct {
 	gorm.Model
@@ -16,4 +20,14 @@ type Workflow struct {
 	EntityID             int                    `gorm:"not null;comment:'实体ID'"`
 	Nodes                []*WorkflowNode        `json:"nodes"`
 	Elements             []*WorkflowFormElement `json:"elements"`
+}
+
+//入职流程信息
+type ReqEntryFlow struct {
+	Email      string      `json:"email"`
+	WxWork     string      `json:"wx_work"`
+	Tapd       string      `json:"tapd"`
+	PlanTime   models.Time `json:"plan_time"`
+	SeatNumber string      `json:"seat_number"`
+	DeviceReq  string      `json:"device_req"`
 }

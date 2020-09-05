@@ -17,6 +17,10 @@ const (
 	ErrCodeRet      = 1
 	MsgInvalidParam = "invalid param"
 	MsgServerErr    = "inter server err"
+
+	UserLeader = 1
+	UserHR     = 6
+	UserIT     = 7
 )
 
 type BaseController struct {
@@ -48,11 +52,11 @@ func (b *BaseController) CorrectEncoding(data interface{}, encoding bool) {
 
 // Error 最常用的返回错误，返回错误信息即可，错误码为1
 func (b *BaseController) Error(msg string) {
-	b.ErrorCode(1, http.StatusForbidden, msg)
+	b.ErrorCode(ErrCodeRet, http.StatusForbidden, msg)
 }
 
 func (b *BaseController) ErrorOK(msg string) {
-	b.ErrorCode(1, http.StatusOK, msg)
+	b.ErrorCode(ErrCodeRet, http.StatusOK, msg)
 }
 
 // ErrorCode 可以定制返回错误码

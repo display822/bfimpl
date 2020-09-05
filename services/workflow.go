@@ -49,6 +49,7 @@ func GetEntryDef() int {
 	return WorkFlowDef[EmployeeEntry]
 }
 
+//入职流程工作流
 func CreateEntryWorkflow(db *gorm.DB, eID, uID int, reqEmployee *oa.ReqEmployee) error {
 	//工作流
 	workflow := oa.Workflow{
@@ -104,6 +105,7 @@ func CreateEntryWorkflow(db *gorm.DB, eID, uID int, reqEmployee *oa.ReqEmployee)
 		WorkflowID: int(workflow.ID),
 		NodeSeq:    2,
 		OperatorID: reqEmployee.LeaderID,
+		Status:     FlowProcessing,
 	}
 	err = db.Create(&nodeLeader).Error
 	if err != nil {

@@ -7,10 +7,12 @@
 package controllers
 
 import (
+	"bfimpl/models"
 	"bfimpl/models/oa"
 	"bfimpl/services"
 	"bfimpl/services/log"
 	"encoding/json"
+	"time"
 )
 
 type EmployeeController struct {
@@ -25,7 +27,7 @@ type EmployeeController struct {
 // @router /new [post]
 func (e *EmployeeController) NewEmpEntry() {
 	userType, _ := e.GetInt("userType", 0)
-	if userType != 6 {
+	if userType != UserHR {
 		e.ErrorOK("您不是HR")
 	}
 	reqEmployee := new(oa.ReqEmployee)
@@ -120,4 +122,65 @@ func (e *EmployeeController) GetWorkflowNode() {
 		Preload("Elements").Preload("Elements.WorkflowFormElementDef").First(&workflow)
 
 	e.Correct(workflow)
+}
+
+// @Title 提交入职流程信息
+// @Description 提交入职流程信息
+// @Success 200 {string} "success"
+// @Failure 500 server err
+// @router /workflow/:id [put]
+func (e *EmployeeController) CommitWorkflowNode() {
+	eID, _ := e.GetInt(":id", 0)
+	flowInfo := new(oa.ReqEntryFlow)
+	err := json.Unmarshal(e.Ctx.Input.RequestBody, flowInfo)
+	if err != nil {
+		e.ErrorOK(MsgInvalidParam)
+	}
+	//修改入职流程信息
+	userType, _ := e.GetInt("userType", 0)
+	//eID 查询 workflow
+	workflow := new(oa.Workflow)
+	services.Slave().Model(oa.Workflow{}).Where("workflow_definition_id = ? and entity_id = ?",
+		services.GetEntryDef(), eID).Preload("Nodes").Preload("Elements").First(workflow)
+	if len(workflow.Nodes) != 3 || len(workflow.Elements) != 3 {
+		e.ErrorOK("工作流配置错误")
+	}
+	workflow.Elements[0].Value = (time.Time(flowInfo.PlanTime)).Format(models.TimeFormat)
+	workflow.Elements[1].Value = flowInfo.SeatNumber
+	workflow.Elements[2].Value = flowInfo.DeviceReq
+	switch userType {
+	case UserHR:
+		e.ErrorOK("工作流不在当前节点")
+	case UserLeader:
+		if workflow.Nodes[1].Status != services.FlowProcessing {
+			e.ErrorOK("工作流不在当前节点")
+		}
+		//修改employee信息
+		services.Slave().Model(oa.Employee{}).Where("id = ?", eID).Updates(map[string]interface{}{
+			"email":      flowInfo.Email,
+			"wx_work":    flowInfo.WxWork,
+			"tapd":       flowInfo.Tapd,
+			"entry_date": workflow.Elements[0].Value,
+		})
+		//更新节点信息
+		workflow.Nodes[1].Status = services.FlowCompleted
+		workflow.Nodes[2].Status = services.FlowProcessing
+		services.Slave().Save(workflow)
+	case UserIT:
+		if workflow.Nodes[2].Status != services.FlowProcessing {
+			e.ErrorOK("工作流不在当前节点")
+		}
+		//修改employee信息,最后一个流程，变为已入职
+		services.Slave().Model(oa.Employee{}).Where("id = ?", eID).Updates(map[string]interface{}{
+			"email":      flowInfo.Email,
+			"wx_work":    flowInfo.WxWork,
+			"tapd":       flowInfo.Tapd,
+			"entry_date": workflow.Elements[0].Value,
+			"status":     2,
+		})
+		workflow.Nodes[2].Status = services.FlowCompleted
+		workflow.Status = services.FlowCompleted
+		services.Slave().Save(workflow)
+	}
+	e.Correct("")
 }
