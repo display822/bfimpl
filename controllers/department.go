@@ -17,7 +17,7 @@ type DepartmentController struct {
 }
 
 // @Title 部门列表
-// @Description 新建入职
+// @Description 部门列表
 // @Param	a	query	string	true	""
 // @Success 200 {string} "success"
 // @Failure 500 server err

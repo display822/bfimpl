@@ -10,19 +10,10 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-var dbMaster *gorm.DB
 var dbSlave *gorm.DB
 
-func SetDbConnection(master, slave *gorm.DB) {
-	if slave == nil {
-		slave = master
-	}
-	dbMaster = master
+func SetDbConnection(slave *gorm.DB) {
 	dbSlave = slave
-}
-
-func Master() *gorm.DB {
-	return dbMaster
 }
 
 func Slave() *gorm.DB {
@@ -39,14 +30,14 @@ func DBInit() {
 	}
 	db, err := gorm.Open("mysql", dsn)
 	if err != nil {
-		log.GLogger.Critical("error conect to db, err=%v", err)
+		log.GLogger.Critical("error connect to db, err=%v", err)
 		return
 	}
 	log.GLogger.Info("init db connection ok")
 	db.SetLogger(log.GLogger)
 	db.DB().SetMaxOpenConns(30)
 	db.DB().SetMaxIdleConns(10)
-	SetDbConnection(db, db)
+	SetDbConnection(db)
 
 	db.AutoMigrate(
 		&models.User{},

@@ -35,3 +35,44 @@ type Employee struct {
 	//EmployeeBasic    *EmployeeBasic      `json:"employee_basic"`
 	//Contracts        []*EmployeeContract `json:"contracts"`
 }
+
+type ReqEmployee struct {
+	Name             string      `json:"name"`
+	Gender           string      `json:"gender"`
+	Status           int         `json:"status"`
+	Mobile           string      `json:"mobile"`
+	IDCard           string      `json:"id_card"`
+	InterviewComment string      `json:"interview_comment"`
+	Resume           string      `json:"resume"`
+	Email            string      `json:"email"`
+	WxWork           string      `json:"wx_work"`
+	Tapd             string      `json:"tapd"`
+	ServiceLine      string      `json:"service_line"`
+	DepartmentID     int         `json:"department_id"`
+	LeaderID         int         `json:"leader_id"`
+	LevelID          int         `json:"level_id"`
+	Position         string      `json:"position"`
+	EntryDate        models.Time `json:"entry_date"`
+	SeatNumber       string      `json:"seat_number"`
+	DeviceReq        string      `json:"device_req"`
+}
+
+func (r *ReqEmployee) ToEmployee() *Employee {
+	return &Employee{
+		Name:             r.Name,
+		Gender:           r.Gender,
+		Status:           r.Status,
+		Mobile:           r.Mobile,
+		IDCard:           r.IDCard,
+		InterviewComment: r.InterviewComment,
+		Resume:           r.Resume,
+		Email:            r.Email,
+		WxWork:           r.WxWork,
+		Tapd:             r.Tapd,
+		ServiceLine:      r.ServiceLine,
+		DepartmentID:     r.DepartmentID,
+		LevelID:          r.LevelID,
+		Position:         r.Position,
+		EntryDate:        r.EntryDate,
+	}
+}

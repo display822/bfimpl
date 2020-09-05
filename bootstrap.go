@@ -5,12 +5,12 @@ import (
 	"bfimpl/services"
 	"bfimpl/services/log"
 	"fmt"
+	"net/http"
+	"os"
+
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
 	"github.com/go-redis/redis"
-	_ "github.com/go-sql-driver/mysql"
-	"net/http"
-	"os"
 )
 
 func init() {
@@ -77,5 +77,5 @@ func init() {
 
 // 初始化的数据库连接
 func init() {
-	services.DBInit()
+	//services.DBInit()
 }

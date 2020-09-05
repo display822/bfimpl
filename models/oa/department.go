@@ -6,11 +6,15 @@
 
 package oa
 
-import "github.com/jinzhu/gorm"
+import (
+	"bfimpl/models"
+
+	"github.com/jinzhu/gorm"
+)
 
 type Department struct {
 	gorm.Model
-	DepartmentName     string    `gorm:"size:50;not null;comment:'部门名称'" json:"department_name"`
-	DepartmentLeaderID int       `gorm:"not null;comment:'领导id'" json:"department_leader_id"`
-	Leader             *Employee `gorm:"ForeignKey:DepartmentLeaderID" json:"leader"`
+	DepartmentName     string       `gorm:"size:50;not null;comment:'部门名称'" json:"department_name"`
+	DepartmentLeaderID int          `gorm:"not null;comment:'领导id'" json:"department_leader_id"`
+	Leader             *models.User `gorm:"ForeignKey:DepartmentLeaderID" json:"leader"`
 }
