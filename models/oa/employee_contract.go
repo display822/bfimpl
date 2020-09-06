@@ -17,6 +17,7 @@ type EmployeeContract struct {
 	EmployeeID        int         `json:"employee_id"`
 	ContractType      string      `gorm:"size:20;not null;comment:'(劳动合同,劳务合同)'" json:"contract_type"`
 	ContractParty     string      `gorm:"size:100;not null;comment:'签约方'" json:"contract_party"`
+	ContractMain      string      `gorm:"size:100;not null;comment:'签约主体'" json:"contract_main"`
 	ContractStartDate models.Time `gorm:"type:datetime;not null;comment:'合同开始日期'" json:"contract_start_date"`
 	ContractEndDate   models.Time `gorm:"type:datetime;not null;comment:'合同结束日期'" json:"contract_end_date"`
 	TrialPeriod       int         `gorm:"not null;comment:'试用期(2,6,0)'" json:"trial_period"`

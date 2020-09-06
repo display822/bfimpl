@@ -108,8 +108,8 @@ func (e *EmployeeController) GetEmpEntryList() {
 		//员工编号
 		query = query.Where("emp_no like ?", "%"+number+"%")
 	}
-	query.Preload("Department").Limit(pageSize).Offset((pageNum - 1) * pageSize).Find(&employees).
-		Limit(-1).Offset(-1).Count(&resp.Total)
+	query.Preload("Department").Limit(pageSize).Offset((pageNum - 1) * pageSize).Order("created_at desc").
+		Find(&employees).Limit(-1).Offset(-1).Count(&resp.Total)
 	resp.List = employees
 	e.Correct(resp)
 }
@@ -346,4 +346,120 @@ func (e *EmployeeController) GetEmpInfo() {
 	services.Slave().Model(oa.Employee{}).Where("id = ?", eID).Preload("Department").
 		Preload("Department.Leader").Preload("Level").Preload("EmployeeBasic").First(&employee)
 	e.Correct(employee)
+}
+
+// @Title employee新建合同
+// @Description 新建合同
+// @Param	id	path	int	true	"员工id"
+// @Success 200 {string} "success"
+// @Failure 500 server err
+// @router /contract/:id [post]
+func (e *EmployeeController) CreateEmpContract() {
+	eID, _ := e.GetInt(":id", 0)
+	contract := new(oa.EmployeeContract)
+	err := json.Unmarshal(e.Ctx.Input.RequestBody, contract)
+	if err != nil {
+		log.GLogger.Error("parse contract err:%s", err.Error())
+		e.ErrorOK(MsgInvalidParam)
+	}
+	contract.EmployeeID = eID
+	services.Slave().Create(contract)
+
+	e.Correct(contract)
+}
+
+// @Title 合同列表
+// @Description 合同列表
+// @Param	pagesize	query	int	true	"页大小"
+// @Param	pagenum	query	int	true	"页数"
+// @Param	name	query	string	true	"姓名"
+// @Param	status	query	string	true	"状态"
+// @Param	number 	query	string	true	"编号"
+// @Success 200 {string} "success"
+// @Failure 500 server err
+// @router /contracts [get]
+func (e *EmployeeController) GetContracts() {
+	pageSize, _ := e.GetInt("pagesize", 10)
+	pageNum, _ := e.GetInt("pagenum", 1)
+	name := e.GetString("name")
+	status := e.GetString("status")
+	number := e.GetString("number")
+	contracts := make([]*oa.EmployeeContract, 0)
+	query := services.Slave().Model(oa.EmployeeContract{})
+	var resp struct {
+		Total int                    `json:"total"`
+		List  []*oa.EmployeeContract `json:"list"`
+	}
+	if status != "" {
+		query = query.Where("status = ?", status)
+	}
+	if number != "" {
+		//查询 eID
+		eIDs := make([]int, 0)
+		services.Slave().Model(oa.Employee{}).Where("emp_no like ?", "%"+number+"%").Pluck("ID", &eIDs)
+		query = query.Where("employee_id in (?)", eIDs)
+	}
+	if name != "" {
+		query = query.Where("contract_party like ?", "%"+name+"%")
+	}
+	query.Limit(pageSize).Offset((pageNum - 1) * pageSize).Order("created_at desc").Find(&contracts).
+		Limit(-1).Offset(-1).Count(&resp.Total)
+	resp.List = contracts
+
+	e.Correct(resp)
+}
+
+// @Title 员工合同列表
+// @Description 员工合同列表
+// @Param	id	path	int	true	"员工id"
+// @Success 200 {string} "success"
+// @Failure 500 server err
+// @router /contracts/:id [get]
+func (e *EmployeeController) GetEmpContracts() {
+	eID, _ := e.GetInt(":id", 0)
+	contracts := make([]*oa.EmployeeContract, 0)
+	services.Slave().Model(oa.EmployeeContract{}).Where("employee_id = ?", eID).Find(&contracts)
+	e.Correct(contracts)
+}
+
+// @Title 修改合同
+// @Description 修改合同
+// @Param	id	path	int	true	"员工id"
+// @Success 200 {string} "success"
+// @Failure 500 server err
+// @router /contract [put]
+func (e *EmployeeController) UpdateContract() {
+	contract := new(oa.EmployeeContract)
+	err := json.Unmarshal(e.Ctx.Input.RequestBody, contract)
+	if err != nil {
+		log.GLogger.Error("parse contract err:%s", err.Error())
+		e.ErrorOK(MsgInvalidParam)
+	}
+	services.Slave().Save(contract)
+	e.Correct("")
+}
+
+// @Title 获取合同信息
+// @Description 获取合同信息
+// @Param	id	path	int	true	"合同id"
+// @Success 200 {string} "success"
+// @Failure 500 server err
+// @router /contract/:id [get]
+func (e *EmployeeController) GetContract() {
+	cID, _ := e.GetInt(":id", 0)
+	contract := new(oa.EmployeeContract)
+	services.Slave().Take(contract, "id = ?", cID)
+	e.Correct(contract)
+}
+
+// @Title 删除合同
+// @Description 删除合同
+// @Param	id	path	int	true	"员工id"
+// @Success 200 {string} "success"
+// @Failure 500 server err
+// @router /contract/:id [delete]
+func (e *EmployeeController) DelContract() {
+	cID, _ := e.GetInt(":id", 0)
+	services.Slave().Delete(oa.EmployeeContract{}, "id = ?", cID)
+	e.Correct("")
 }
