@@ -83,6 +83,7 @@ func (e *EmployeeController) GetEmpEntryList() {
 	pageNum, _ := e.GetInt("pagenum", 1)
 	pageSize, _ := e.GetInt("pagesize", 10)
 	name := e.GetString("name")
+	number := e.GetString("emp_no")
 	dID, _ := e.GetInt("departmentid", 0)
 	status, _ := e.GetInt("status", -1)
 	employees := make([]*oa.Employee, 0)
@@ -102,6 +103,10 @@ func (e *EmployeeController) GetEmpEntryList() {
 	}
 	if name != "" {
 		query = query.Where("name like ?", "%"+name+"%")
+	}
+	if number != "" {
+		//员工编号
+		query = query.Where("emp_no like ?", "%"+number+"%")
 	}
 	query.Preload("Department").Limit(pageSize).Offset((pageNum - 1) * pageSize).Find(&employees).
 		Limit(-1).Offset(-1).Count(&resp.Total)
@@ -172,11 +177,11 @@ func (e *EmployeeController) CommitWorkflowNode() {
 		}
 		//修改employee信息,最后一个流程，变为已入职
 		services.Slave().Model(oa.Employee{}).Where("id = ?", eID).Updates(map[string]interface{}{
-			"email":      flowInfo.Email,
-			"wx_work":    flowInfo.WxWork,
-			"tapd":       flowInfo.Tapd,
-			"entry_date": workflow.Elements[0].Value,
-			"status":     2,
+			"email":     flowInfo.Email,
+			"wx_work":   flowInfo.WxWork,
+			"tapd":      flowInfo.Tapd,
+			"plan_date": workflow.Elements[0].Value,
+			"status":    2,
 		})
 		workflow.Nodes[2].Status = services.FlowCompleted
 		workflow.Status = services.FlowCompleted
@@ -310,4 +315,35 @@ func (e *EmployeeController) CommitLeaveInfoNode() {
 		})
 	}
 	e.Correct("")
+}
+
+// @Title 保存员工所有信息
+// @Description 保存员工所有信息
+// @Param	json	body	string	true	"员工所有信息"
+// @Success 200 {string} "success"
+// @Failure 500 server err
+// @router /save [put]
+func (e *EmployeeController) SaveEmpInfo() {
+	employee := new(oa.Employee)
+	err := json.Unmarshal(e.Ctx.Input.RequestBody, employee)
+	if err != nil {
+		log.GLogger.Error("parse employee info err:%s", err.Error())
+		e.ErrorOK(MsgInvalidParam)
+	}
+	services.Slave().Save(employee)
+	e.Correct("")
+}
+
+// @Title employee详情
+// @Description employee详情
+// @Param	id	path	int	true	"员工id"
+// @Success 200 {string} "success"
+// @Failure 500 server err
+// @router /detail/:id [get]
+func (e *EmployeeController) GetEmpInfo() {
+	eID, _ := e.GetInt(":id", 0)
+	employee := new(oa.Employee)
+	services.Slave().Model(oa.Employee{}).Where("id = ?", eID).Preload("Department").
+		Preload("Department.Leader").Preload("Level").Preload("EmployeeBasic").First(&employee)
+	e.Correct(employee)
 }
