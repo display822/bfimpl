@@ -24,6 +24,7 @@ func init() {
 
 		beego.NSNamespace("/employee", beego.NSInclude(&controllers.EmployeeController{})),
 		beego.NSNamespace("/department", beego.NSInclude(&controllers.DepartmentController{})),
+		beego.NSNamespace("/file", beego.NSInclude(&controllers.FileController{})),
 	)
 
 	ips := beego.AppConfig.Strings("bkcors")

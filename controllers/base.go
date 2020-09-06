@@ -17,10 +17,6 @@ const (
 	ErrCodeRet      = 1
 	MsgInvalidParam = "invalid param"
 	MsgServerErr    = "inter server err"
-
-	UserLeader = 1
-	UserHR     = 6
-	UserIT     = 7
 )
 
 type BaseController struct {

@@ -493,4 +493,13 @@ func init() {
 			MethodParams:     param.Make(),
 			Filters:          nil,
 			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:FileController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:FileController"],
+		beego.ControllerComments{
+			Method:           "Upload",
+			Router:           `/upload`,
+			AllowHTTPMethods: []string{"post"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
 }
