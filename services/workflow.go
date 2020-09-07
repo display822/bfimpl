@@ -42,7 +42,7 @@ func init() {
 	}
 	//查询hr6  it7  caiwu8
 	users := make([]*models.User, 0)
-	Slave().Model(models.User{}).Where("user_type in (?)", []int{6, 7, 8}).Find(&users)
+	Slave().Model(models.User{}).Where("user_type in (?)", []int{6, 7, 8, 9, 10}).Find(&users)
 	for _, u := range users {
 		if u.UserType == models.UserIT {
 			itUserID = int(u.ID)
