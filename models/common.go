@@ -14,7 +14,7 @@ type RetValue struct {
 type Time time.Time
 
 const (
-	UserLeader  = 1
+	UserLeader  = 10
 	UserHR      = 6
 	UserIT      = 7
 	UserFinance = 8
