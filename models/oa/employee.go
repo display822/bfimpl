@@ -64,6 +64,7 @@ type ReqEmployee struct {
 	LevelID          int         `json:"level_id"`
 	Position         string      `json:"position"`
 	EntryDate        models.Time `json:"entry_date"`
+	PlanDate         models.Time `json:"plan_date"`
 	SeatNumber       string      `json:"seat_number"`
 	DeviceReq        string      `json:"device_req"`
 }
@@ -84,7 +85,7 @@ func (r *ReqEmployee) ToEmployee() *Employee {
 		DepartmentID:     r.DepartmentID,
 		LevelID:          r.LevelID,
 		Position:         r.Position,
-		PlanDate:         r.EntryDate,
+		PlanDate:         r.PlanDate,
 		CreateTime:       models.Time(time.Now()),
 	}
 }
