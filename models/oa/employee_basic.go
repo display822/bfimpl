@@ -42,22 +42,24 @@ type EmployeeBasic struct {
 	InhabitedAddress        string      `gorm:"not null;comment:'地址'" json:"inhabited_address"`
 	Marriage                string      `gorm:"size:10;not null;comment:'婚姻状况'" json:"marriage"`
 	Children                int         `gorm:"not null;comment:'子女数'" json:"children"`
-	FatherName              string      `gorm:"size:20;comment:'父名'" json:"father_name"`
-	FatherTel               string      `gorm:"size:20;comment:'父联系方式'" json:"father_tel"`
-	FatherCareer            string      `gorm:"size:50;comment:'父职'" json:"father_career"`
-	FatherCom               string      `gorm:"size:50;comment:'企业'" json:"father_com"`
-	MotherName              string      `gorm:"size:20;comment:'母名'" json:"mother_name"`
-	MotherTel               string      `gorm:"size:20;comment:'联系方式'" json:"mother_tel"`
-	MotherCareer            string      `gorm:"size:50;comment:'母职'" json:"mother_career"`
-	MotherCom               string      `gorm:"size:50;comment:'公司'" json:"mother_com"`
-	SpouseName              string      `gorm:"size:20;comment:'配偶名'" json:"spouse_name"`
-	SpouseCareer            string      `gorm:"size:50;comment:'配偶职'" json:"spouse_career"`
-	SpouseCom               string      `gorm:"size:50;comment:'公司'" json:"spouse_com"`
-	SpouseTel               string      `gorm:"size:20;comment:'联系方式'" json:"spouse_tel"`
-	EmergencyContact1       string      `gorm:"size:20;not null;comment:'紧急联系1'" json:"emergency_contact_1"`
-	Contact1Relation        string      `gorm:"size:20;not null;comment:'联系1关系'" json:"contact_1_relation"`
-	EmergencyMobile1        string      `gorm:"size:20;not null;comment:'紧急联系1tel'" json:"emergency_mobile_1"`
-	EmergencyContact2       string      `gorm:"size:20;not null;comment:'紧急联系2'" json:"emergency_contact_2"`
-	EmergencyMobile2        string      `gorm:"size:20;not null;comment:'紧急联系2tel'" json:"emergency_mobile_2"`
-	Contact2Relation        string      `gorm:"size:20;not null;comment:'联系2关系'" json:"contact_2_relation"`
+	Relations               string      `gorm:"type:text;comment:'父母和配偶信息'" json:"relations"`
+	Contacts                string      `gorm:"type:text;comment:'紧急联系人'" json:"contacts"`
+	//FatherName              string      `gorm:"size:20;comment:'父名'" json:"father_name"`
+	//FatherTel               string      `gorm:"size:20;comment:'父联系方式'" json:"father_tel"`
+	//FatherCareer            string      `gorm:"size:50;comment:'父职'" json:"father_career"`
+	//FatherCom               string      `gorm:"size:50;comment:'企业'" json:"father_com"`
+	//MotherName              string      `gorm:"size:20;comment:'母名'" json:"mother_name"`
+	//MotherTel               string      `gorm:"size:20;comment:'联系方式'" json:"mother_tel"`
+	//MotherCareer            string      `gorm:"size:50;comment:'母职'" json:"mother_career"`
+	//MotherCom               string      `gorm:"size:50;comment:'公司'" json:"mother_com"`
+	//SpouseName              string      `gorm:"size:20;comment:'配偶名'" json:"spouse_name"`
+	//SpouseCareer            string      `gorm:"size:50;comment:'配偶职'" json:"spouse_career"`
+	//SpouseCom               string      `gorm:"size:50;comment:'公司'" json:"spouse_com"`
+	//SpouseTel               string      `gorm:"size:20;comment:'联系方式'" json:"spouse_tel"`
+	//EmergencyContact1       string      `gorm:"size:20;not null;comment:'紧急联系1'" json:"emergency_contact_1"`
+	//Contact1Relation        string      `gorm:"size:20;not null;comment:'联系1关系'" json:"contact_1_relation"`
+	//EmergencyMobile1        string      `gorm:"size:20;not null;comment:'紧急联系1tel'" json:"emergency_mobile_1"`
+	//EmergencyContact2       string      `gorm:"size:20;not null;comment:'紧急联系2'" json:"emergency_contact_2"`
+	//EmergencyMobile2        string      `gorm:"size:20;not null;comment:'紧急联系2tel'" json:"emergency_mobile_2"`
+	//Contact2Relation        string      `gorm:"size:20;not null;comment:'联系2关系'" json:"contact_2_relation"`
 }
