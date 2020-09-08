@@ -50,13 +50,19 @@ var AmountChange = map[string]int{
 
 func (t *Time) UnmarshalJSON(data []byte) (err error) {
 	now, err := time.ParseInLocation(`"`+TimeFormat+`"`, string(data), time.Local)
+	if err != nil {
+		now, err = time.Parse(TimeFormat, "0000-00-00 00:00:00")
+		err = nil
+	}
 	*t = Time(now)
 	return
 }
 func (t Time) MarshalJSON() ([]byte, error) {
 	b := make([]byte, 0, len(TimeFormat)+2)
 	b = append(b, '"')
-	b = time.Time(t).AppendFormat(b, TimeFormat)
+	if !(time.Time(t)).IsZero() {
+		b = time.Time(t).AppendFormat(b, TimeFormat)
+	}
 	b = append(b, '"')
 	return b, nil
 }
