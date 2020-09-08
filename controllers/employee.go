@@ -263,6 +263,7 @@ func (e *EmployeeController) GetLeaveInfo() {
 func (e *EmployeeController) CommitLeaveInfoNode() {
 	eID, _ := e.GetInt(":id", 0)
 	flowInfo := new(oa.QuitFlowInfo)
+	flowInfo.EmployeeID = eID
 	err := json.Unmarshal(e.Ctx.Input.RequestBody, flowInfo)
 	if err != nil {
 		e.ErrorOK(MsgInvalidParam)
