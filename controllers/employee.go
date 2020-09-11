@@ -364,7 +364,11 @@ func (e *EmployeeController) CreateEmpContract() {
 		e.ErrorOK(MsgInvalidParam)
 	}
 	contract.EmployeeID = eID
-	services.Slave().Create(contract)
+	err = services.Slave().Create(contract).Error
+	if err != nil {
+		log.GLogger.Error("create contract err:%s", err.Error())
+		e.ErrorOK(MsgServerErr)
+	}
 
 	e.Correct(contract)
 }
