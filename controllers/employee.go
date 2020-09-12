@@ -157,7 +157,7 @@ func (e *EmployeeController) CommitWorkflowNode() {
 	case models.UserHR:
 		e.ErrorOK("工作流不在当前节点")
 	case models.UserLeader:
-		if workflow.Nodes[1].Status != services.FlowProcessing {
+		if workflow.Nodes[1].Status != models.FlowProcessing {
 			e.ErrorOK("工作流不在当前节点")
 		}
 		//修改employee信息
@@ -168,11 +168,11 @@ func (e *EmployeeController) CommitWorkflowNode() {
 			"entry_date": workflow.Elements[0].Value,
 		})
 		//更新节点信息
-		workflow.Nodes[1].Status = services.FlowCompleted
-		workflow.Nodes[2].Status = services.FlowProcessing
+		workflow.Nodes[1].Status = models.FlowCompleted
+		workflow.Nodes[2].Status = models.FlowProcessing
 		services.Slave().Save(workflow)
 	case models.UserIT:
-		if workflow.Nodes[2].Status != services.FlowProcessing {
+		if workflow.Nodes[2].Status != models.FlowProcessing {
 			e.ErrorOK("工作流不在当前节点")
 		}
 		//修改employee信息,最后一个流程，变为已入职
@@ -183,8 +183,8 @@ func (e *EmployeeController) CommitWorkflowNode() {
 			"plan_date": workflow.Elements[0].Value,
 			"status":    2,
 		})
-		workflow.Nodes[2].Status = services.FlowCompleted
-		workflow.Status = services.FlowCompleted
+		workflow.Nodes[2].Status = models.FlowCompleted
+		workflow.Status = models.FlowCompleted
 		services.Slave().Save(workflow)
 	}
 	e.Correct("")
@@ -283,33 +283,33 @@ func (e *EmployeeController) CommitLeaveInfoNode() {
 	case models.UserHR:
 		e.ErrorOK("工作流不在当前节点")
 	case models.UserIT:
-		if workflow.Nodes[1].Status != services.FlowProcessing {
+		if workflow.Nodes[1].Status != models.FlowProcessing {
 			e.ErrorOK("工作流不在当前节点")
 		}
 		//修改 flowInfo 信息
 		services.Slave().Save(flowInfo)
 		//更新节点信息
-		workflow.Nodes[1].Status = services.FlowCompleted
-		workflow.Nodes[2].Status = services.FlowProcessing
+		workflow.Nodes[1].Status = models.FlowCompleted
+		workflow.Nodes[2].Status = models.FlowProcessing
 		services.Slave().Save(workflow)
 	case models.UserFinance:
-		if workflow.Nodes[2].Status != services.FlowProcessing {
+		if workflow.Nodes[2].Status != models.FlowProcessing {
 			e.ErrorOK("工作流不在当前节点")
 		}
 		//修改 flowInfo 信息
 		services.Slave().Save(flowInfo)
-		workflow.Nodes[2].Status = services.FlowCompleted
-		workflow.Nodes[3].Status = services.FlowProcessing
+		workflow.Nodes[2].Status = models.FlowCompleted
+		workflow.Nodes[3].Status = models.FlowProcessing
 		services.Slave().Save(workflow)
 	case models.UserFront:
 		//前台
-		if workflow.Nodes[3].Status != services.FlowProcessing {
+		if workflow.Nodes[3].Status != models.FlowProcessing {
 			e.ErrorOK("工作流不在当前节点")
 		}
 		//修改 flowInfo 信息,最后一个流程，变为已离职
 		services.Slave().Save(flowInfo)
-		workflow.Nodes[3].Status = services.FlowCompleted
-		workflow.Status = services.FlowCompleted
+		workflow.Nodes[3].Status = models.FlowCompleted
+		workflow.Status = models.FlowCompleted
 		services.Slave().Save(workflow)
 		services.Slave().Model(oa.Employee{}).Where("id = ?", eID).Updates(map[string]interface{}{
 			"status": 4,

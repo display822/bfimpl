@@ -12,6 +12,7 @@ type RetValue struct {
 }
 
 type Time time.Time
+type Date time.Time
 
 const (
 	UserLeader  = 10
@@ -33,6 +34,13 @@ const (
 	Amount_Back       = "back"
 	Amount_Delay_In   = "delay_in"
 	Amount_Delay_Out  = "delay_out"
+
+	//flow status
+	FlowNA         = "NA"
+	FlowProcessing = "Processing"
+	FlowCompleted  = "Completed"
+	FlowApproved   = "Approved"
+	FlowRejected   = "Rejected"
 )
 
 var AmountChange = map[string]int{
@@ -79,11 +87,47 @@ func (t Time) Value() (driver.Value, error) {
 	return time.Time(t), nil
 }
 
-// Scan valueof time.Time
+// Scan value of time.Time
 func (t *Time) Scan(v interface{}) error {
 	value, ok := v.(time.Time)
 	if ok {
 		*t = Time(value)
+		return nil
+	}
+	return fmt.Errorf("can not convert %v to timestamp", v)
+}
+
+//====date type
+func (d *Date) UnmarshalJSON(data []byte) (err error) {
+	now, err := time.ParseInLocation(`"`+DateFormat+`"`, string(data), time.Local)
+	*d = Date(now)
+	return
+}
+func (d Date) MarshalJSON() ([]byte, error) {
+	b := make([]byte, 0, len(DateFormat)+2)
+	b = append(b, '"')
+	b = time.Time(d).AppendFormat(b, DateFormat)
+	b = append(b, '"')
+	return b, nil
+}
+func (d Date) String() string {
+	return time.Time(d).Format(DateFormat)
+}
+
+// Value insert timestamp into mysql need this function.
+func (d Date) Value() (driver.Value, error) {
+	var zeroTime time.Time
+	if time.Time(d).UnixNano() == zeroTime.UnixNano() {
+		return nil, nil
+	}
+	return time.Time(d), nil
+}
+
+// Scan value of time.Time
+func (d *Date) Scan(v interface{}) error {
+	value, ok := v.(time.Time)
+	if ok {
+		*d = Date(value)
 		return nil
 	}
 	return fmt.Errorf("can not convert %v to timestamp", v)

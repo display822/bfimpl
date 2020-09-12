@@ -64,5 +64,6 @@ func DBInit() {
 		&oa.QuitFlowInfo{},
 		&oa.EmployeeBasic{},
 		&oa.EmployeeContract{},
+		&oa.Overtime{},
 	)
 }

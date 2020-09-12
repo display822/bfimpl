@@ -27,7 +27,7 @@ type Employee struct {
 	PoliticStatus    string         `gorm:"size:20;not null;default:'';comment:'政治面貌'" json:"politic_status"`
 	InterviewComment string         `gorm:"not null;default:'';comment:'面试评价'" json:"interview_comment"`
 	Resume           string         `gorm:"not null;default:'';comment:'简历地址'" json:"resume"`
-	Email            string         `gorm:"size:60;not null;default:'';comment:'邮箱'" json:"email"`
+	Email            string         `gorm:"unique_index;size:60;not null;default:'';comment:'邮箱'" json:"email"`
 	PersonalEmail    string         `gorm:"size:60;not null;default:'';comment:'私人邮箱'" json:"personal_email"`
 	WxWork           string         `gorm:"size:60;not null;default:'';comment:'企业微信'" json:"wx_work"`
 	Tapd             string         `gorm:"size:60;not null;default:'';comment:'tapd账号'" json:"tapd"`

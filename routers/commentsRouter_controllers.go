@@ -556,4 +556,14 @@ func init() {
 			MethodParams:     param.Make(),
 			Filters:          nil,
 			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:WorkController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:WorkController"],
+		beego.ControllerComments{
+			Method:           "ReqOvertime",
+			Router:           `/overtime`,
+			AllowHTTPMethods: []string{"post"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
 }

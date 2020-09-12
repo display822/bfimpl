@@ -1,5 +1,5 @@
 
--- users.user_type 1-管理员 2-销售 3-经理 4-资源分配 5-实施 6-hr 7-it
+-- users.user_type 1-管理员 2-销售 3-经理 4-资源分配 5-实施 6-hr 7-it 8-财务 9-前台 10-leader
 -- 入职流程定义
 -- type: Approval, Business
 -- purpose: EmployeeEntry, EmployeeLeave, Overtime, Leave, Expense, DeviceRequisition
@@ -8,10 +8,16 @@ insert into workflow_definitions(created_at,updated_at,workflow_type,workflow_pu
 values (now(),now(),'Business','EmployeeEntry','Employee');
 insert into workflow_definitions(created_at,updated_at,workflow_type,workflow_purpose,workflow_entity)
 values (now(),now(),'Business','EmployeeLeave','Employee');
+insert into workflow_definitions(created_at,updated_at,workflow_type,workflow_purpose,workflow_entity)
+values (now(),now(),'Approval','Overtime','Overtime');
 
 -- type: TextField, TextArea
 insert into workflow_form_element_defs(created_at,updated_at,workflow_definition_id,element_seq,element_type, element_name) values
 (now(),now(),1,1,'TextField','plan_time'),(now(),now(),1,2,'TextField','seat_number'),(now(),now(),1,3,'TextArea','device_req');
+
+insert into workflow_form_element_defs(created_at,updated_at,workflow_definition_id,element_seq,element_type, element_name) values
+(now(),now(),3,1,'TextField','NULL'),(now(),now(),3,2,'TextArea','leader_comment'),(now(),now(),3,3,'TextArea','hr_comment');
+
 
 -- 新增部门
 insert into users(created_at,updated_at, name, email,wx,phone,user_type) values

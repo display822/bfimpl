@@ -18,19 +18,16 @@ import (
 )
 
 const (
-	EmployeeEntry  = "EmployeeEntry"
-	EmployeeLeave  = "EmployeeLeave"
-	FlowNA         = "NA"
-	FlowProcessing = "Processing"
-	FlowCompleted  = "Completed"
-	FlowApproved   = "Approved"
-	FlowRejected   = "Rejected"
+	EmployeeEntry = "EmployeeEntry"
+	EmployeeLeave = "EmployeeLeave"
+	Overtime      = "Overtime"
 )
 
 var WorkFlowDef map[string]int
 var itUserID int
 var financeUserID int
 var frontUserID int
+var hrUserID int
 
 func init() {
 	WorkFlowDef = make(map[string]int)
@@ -50,6 +47,8 @@ func init() {
 			financeUserID = int(u.ID)
 		} else if u.UserType == models.UserFront {
 			frontUserID = int(u.ID)
+		} else if u.UserType == models.UserHR {
+			hrUserID = int(u.ID)
 		}
 	}
 }
@@ -110,7 +109,7 @@ func CreateEntryWorkflow(db *gorm.DB, eID, uID int, reqEmployee *oa.ReqEmployee)
 		WorkflowID: int(workflow.ID),
 		NodeSeq:    1,
 		OperatorID: uID,
-		Status:     FlowCompleted,
+		Status:     models.FlowCompleted,
 	}
 	err = db.Create(&nodeHr).Error
 	if err != nil {
@@ -121,7 +120,7 @@ func CreateEntryWorkflow(db *gorm.DB, eID, uID int, reqEmployee *oa.ReqEmployee)
 		WorkflowID: int(workflow.ID),
 		NodeSeq:    2,
 		OperatorID: reqEmployee.LeaderID,
-		Status:     FlowProcessing,
+		Status:     models.FlowProcessing,
 	}
 	err = db.Create(&nodeLeader).Error
 	if err != nil {
@@ -141,6 +140,7 @@ func CreateEntryWorkflow(db *gorm.DB, eID, uID int, reqEmployee *oa.ReqEmployee)
 	return nil
 }
 
+//离职工作流
 func CreateLeaveWorkflow(db *gorm.DB, eID, uID int) error {
 	//工作流
 	workflow := oa.Workflow{
@@ -158,7 +158,7 @@ func CreateLeaveWorkflow(db *gorm.DB, eID, uID int) error {
 		WorkflowID: int(workflow.ID),
 		NodeSeq:    1,
 		OperatorID: uID,
-		Status:     FlowCompleted,
+		Status:     models.FlowCompleted,
 	}
 	err = db.Create(&nodeHr).Error
 	if err != nil {
@@ -169,7 +169,7 @@ func CreateLeaveWorkflow(db *gorm.DB, eID, uID int) error {
 		WorkflowID: int(workflow.ID),
 		NodeSeq:    2,
 		OperatorID: itUserID,
-		Status:     FlowProcessing,
+		Status:     models.FlowProcessing,
 	}
 	err = db.Create(&nodeIT).Error
 	if err != nil {
@@ -185,7 +185,7 @@ func CreateLeaveWorkflow(db *gorm.DB, eID, uID int) error {
 	if err != nil {
 		return err
 	}
-	//节点3，财务填写
+	//节点4，前台填写
 	nodeFront := oa.WorkflowNode{
 		WorkflowID: int(workflow.ID),
 		NodeSeq:    4,
@@ -195,5 +195,81 @@ func CreateLeaveWorkflow(db *gorm.DB, eID, uID int) error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+//加班申请
+func ReqOvertime(db *gorm.DB, overTimeID, uID, leaderID int) error {
+	//工作流
+	workflow := oa.Workflow{
+		WorkflowDefinitionID: WorkFlowDef[Overtime],
+		Status:               oa.Processing,
+		EntityID:             overTimeID,
+	}
+	err := db.Create(&workflow).Error
+	if err != nil {
+		return err
+	}
+	//查询elements
+	eleDef := make([]*oa.WorkflowFormElementDef, 0)
+	db.Model(oa.WorkflowFormElementDef{}).Where("workflow_definition_id = ?", WorkFlowDef[EmployeeEntry]).Find(&eleDef)
+	if len(eleDef) != 3 {
+		return errors.New("wrong workflow elements")
+	}
+	//元素填写
+	ele1 := oa.WorkflowFormElement{
+		WfElementDefID: int(eleDef[0].ID),
+		Name:           eleDef[0].ElementName,
+		WorkflowID:     workflow.ID,
+	}
+	ele2 := oa.WorkflowFormElement{
+		WfElementDefID: int(eleDef[1].ID),
+		Name:           eleDef[1].ElementName,
+		WorkflowID:     workflow.ID,
+	}
+	ele3 := oa.WorkflowFormElement{
+		WfElementDefID: int(eleDef[2].ID),
+		Name:           eleDef[2].ElementName,
+		WorkflowID:     workflow.ID,
+	}
+	err = db.Create(&ele1).Error
+	err = db.Create(&ele2).Error
+	err = db.Create(&ele3).Error
+	if err != nil {
+		return err
+	}
+	//节点1，自己录入
+	nodeSelf := oa.WorkflowNode{
+		WorkflowID: int(workflow.ID),
+		NodeSeq:    1,
+		OperatorID: uID,
+		Status:     models.FlowCompleted,
+	}
+	err = db.Create(&nodeSelf).Error
+	if err != nil {
+		return err
+	}
+	//节点2，负责人审批
+	nodeLeader := oa.WorkflowNode{
+		WorkflowID: int(workflow.ID),
+		NodeSeq:    2,
+		OperatorID: leaderID,
+		Status:     models.FlowProcessing,
+	}
+	err = db.Create(&nodeLeader).Error
+	if err != nil {
+		return err
+	}
+	//节点3，hr填写
+	nodeIT := oa.WorkflowNode{
+		WorkflowID: int(workflow.ID),
+		NodeSeq:    3,
+		OperatorID: hrUserID,
+	}
+	err = db.Create(&nodeIT).Error
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
