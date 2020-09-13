@@ -24,10 +24,7 @@ const (
 )
 
 var WorkFlowDef map[string]int
-var itUserID int
-var financeUserID int
-var frontUserID int
-var hrUserID int
+var mUsers map[int]*models.User
 
 func init() {
 	WorkFlowDef = make(map[string]int)
@@ -38,18 +35,11 @@ func init() {
 		WorkFlowDef[def.WorkflowPurpose] = int(def.ID)
 	}
 	//查询hr6  it7  caiwu8
+	mUsers = make(map[int]*models.User)
 	users := make([]*models.User, 0)
 	Slave().Model(models.User{}).Where("user_type in (?)", []int{6, 7, 8, 9, 10}).Find(&users)
 	for _, u := range users {
-		if u.UserType == models.UserIT {
-			itUserID = int(u.ID)
-		} else if u.UserType == models.UserFinance {
-			financeUserID = int(u.ID)
-		} else if u.UserType == models.UserFront {
-			frontUserID = int(u.ID)
-		} else if u.UserType == models.UserHR {
-			hrUserID = int(u.ID)
-		}
+		mUsers[u.UserType] = u
 	}
 }
 
@@ -59,6 +49,14 @@ func GetEntryDef() int {
 
 func GetLeaveDef() int {
 	return WorkFlowDef[EmployeeLeave]
+}
+
+func GetFlowDefID(purpose string) int {
+	return WorkFlowDef[purpose]
+}
+
+func GetWorkUser(userType int) *models.User {
+	return mUsers[userType]
 }
 
 //入职流程工作流
@@ -130,7 +128,7 @@ func CreateEntryWorkflow(db *gorm.DB, eID, uID int, reqEmployee *oa.ReqEmployee)
 	nodeIT := oa.WorkflowNode{
 		WorkflowID: int(workflow.ID),
 		NodeSeq:    3,
-		OperatorID: itUserID,
+		OperatorID: int(mUsers[models.UserIT].ID),
 	}
 	err = db.Create(&nodeIT).Error
 	if err != nil {
@@ -168,7 +166,7 @@ func CreateLeaveWorkflow(db *gorm.DB, eID, uID int) error {
 	nodeIT := oa.WorkflowNode{
 		WorkflowID: int(workflow.ID),
 		NodeSeq:    2,
-		OperatorID: itUserID,
+		OperatorID: int(mUsers[models.UserIT].ID),
 		Status:     models.FlowProcessing,
 	}
 	err = db.Create(&nodeIT).Error
@@ -179,7 +177,7 @@ func CreateLeaveWorkflow(db *gorm.DB, eID, uID int) error {
 	nodeFinance := oa.WorkflowNode{
 		WorkflowID: int(workflow.ID),
 		NodeSeq:    3,
-		OperatorID: financeUserID,
+		OperatorID: int(mUsers[models.UserFinance].ID),
 	}
 	err = db.Create(&nodeFinance).Error
 	if err != nil {
@@ -189,7 +187,7 @@ func CreateLeaveWorkflow(db *gorm.DB, eID, uID int) error {
 	nodeFront := oa.WorkflowNode{
 		WorkflowID: int(workflow.ID),
 		NodeSeq:    4,
-		OperatorID: frontUserID,
+		OperatorID: int(mUsers[models.UserFront].ID),
 	}
 	err = db.Create(&nodeFront).Error
 	if err != nil {
@@ -212,7 +210,7 @@ func ReqOvertime(db *gorm.DB, overTimeID, uID, leaderID int) error {
 	}
 	//查询elements
 	eleDef := make([]*oa.WorkflowFormElementDef, 0)
-	db.Model(oa.WorkflowFormElementDef{}).Where("workflow_definition_id = ?", WorkFlowDef[EmployeeEntry]).Find(&eleDef)
+	db.Model(oa.WorkflowFormElementDef{}).Where("workflow_definition_id = ?", WorkFlowDef[Overtime]).Find(&eleDef)
 	if len(eleDef) != 3 {
 		return errors.New("wrong workflow elements")
 	}
@@ -264,7 +262,7 @@ func ReqOvertime(db *gorm.DB, overTimeID, uID, leaderID int) error {
 	nodeIT := oa.WorkflowNode{
 		WorkflowID: int(workflow.ID),
 		NodeSeq:    3,
-		OperatorID: hrUserID,
+		OperatorID: int(mUsers[models.UserHR].ID),
 	}
 	err = db.Create(&nodeIT).Error
 	if err != nil {
