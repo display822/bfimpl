@@ -1,11 +1,12 @@
 package controllers
 
 import (
-	"bfimpl/models"
-	"bfimpl/services"
 	"bfimpl/services/log"
 	"net/http"
 	"strconv"
+
+	"bfimpl/models"
+	"bfimpl/services"
 	"strings"
 	"time"
 
@@ -96,4 +97,8 @@ func (b *BaseController) Prepare() {
 	b.Input().Set("userID", userID)
 	b.Input().Set("userName", user.Name)
 	b.Input().Set("userType", strconv.Itoa(user.UserType))
+	b.Input().Set("userEmail", user.Email)
+	//b.Input().Set("userID", strconv.Itoa(3))
+	//b.Input().Set("userType", strconv.Itoa(7))
+	//b.Input().Set("userEmail", "lie.chen@broadfun.cn")
 }
