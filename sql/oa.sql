@@ -10,6 +10,8 @@ insert into workflow_definitions(created_at,updated_at,workflow_type,workflow_pu
 values (now(),now(),'Business','EmployeeLeave','Employee');
 insert into workflow_definitions(created_at,updated_at,workflow_type,workflow_purpose,workflow_entity)
 values (now(),now(),'Approval','Overtime','Overtime');
+insert into workflow_definitions(created_at,updated_at,workflow_type,workflow_purpose,workflow_entity)
+values (now(),now(),'Approval','Leave','Leave');
 
 -- type: TextField, TextArea
 insert into workflow_form_element_defs(created_at,updated_at,workflow_definition_id,element_seq,element_type, element_name) values
@@ -17,6 +19,9 @@ insert into workflow_form_element_defs(created_at,updated_at,workflow_definition
 
 insert into workflow_form_element_defs(created_at,updated_at,workflow_definition_id,element_seq,element_type, element_name) values
 (now(),now(),3,1,'TextField','NULL'),(now(),now(),3,2,'TextArea','leader_comment'),(now(),now(),3,3,'TextArea','hr_comment');
+
+insert into workflow_form_element_defs(created_at,updated_at,workflow_definition_id,element_seq,element_type, element_name) values
+(now(),now(),4,1,'TextField','NULL'),(now(),now(),4,2,'TextArea','leader_comment'),(now(),now(),4,3,'TextArea','hr_comment');
 
 
 -- 新增部门
