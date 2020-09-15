@@ -121,9 +121,16 @@ func (e *EmployeeController) GetEmpEntryList() {
 // @router /workflow/:id [get]
 func (e *EmployeeController) GetWorkflowNode() {
 	eID, _ := e.GetInt(":id", 0)
+	flowType := e.GetString("type", "entry")
+	var flowDefId int
+	if flowType == "entry" {
+		flowDefId = services.GetEntryDef()
+	} else if flowType == "leave" {
+		flowDefId = services.GetLeaveDef()
+	}
 	workflow := new(oa.Workflow)
 	services.Slave().Model(oa.Workflow{}).Where("workflow_definition_id = ? and entity_id = ?",
-		services.GetEntryDef(), eID).Preload("Nodes").Preload("Nodes.User").
+		flowDefId, eID).Preload("Nodes").Preload("Nodes.User").
 		Preload("Elements").Preload("Elements.WorkflowFormElementDef").First(&workflow)
 
 	e.Correct(workflow)
