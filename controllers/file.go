@@ -13,7 +13,6 @@ import (
 	"io"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/minio/minio-go"
@@ -48,11 +47,7 @@ func (m *FileController) Upload() {
 		}
 	}
 	f.Close()
-	index := strings.Index(header.Filename, ".")
-	fileName := strconv.FormatInt(time.Now().Unix(), 10)
-	if index != -1 {
-		fileName += header.Filename[index:]
-	}
+	fileName := strconv.FormatInt(time.Now().Unix(), 10) + "_" + header.Filename
 	tmpFile, err := os.Create(dir + "/" + fileName)
 	if err != nil {
 		log.GLogger.Error("upload err:%s", err.Error())
