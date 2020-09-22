@@ -14,7 +14,9 @@ import (
 
 type Department struct {
 	gorm.Model
-	DepartmentName     string       `gorm:"size:50;not null;comment:'部门名称'" json:"department_name"`
-	DepartmentLeaderID int          `gorm:"not null;comment:'领导id'" json:"department_leader_id"`
-	Leader             *models.User `gorm:"ForeignKey:DepartmentLeaderID" json:"leader"`
+	DepartmentName     string        `gorm:"size:50;not null;comment:'部门名称'" json:"department_name"`
+	DepartmentLeaderID int           `gorm:"not null;comment:'领导id'" json:"department_leader_id"`
+	PID                int           `gorm:"default:0;comment:'父部门id'" json:"-"`
+	Leader             *models.User  `gorm:"ForeignKey:DepartmentLeaderID" json:"leader"`
+	Children           []*Department `json:"children"`
 }
