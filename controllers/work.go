@@ -219,6 +219,7 @@ func (w *WorkController) ApprovalOvertime() {
 					"status": status,
 				})
 			}
+			break
 		}
 	}
 	if !isCheck {
@@ -440,6 +441,7 @@ func (w *WorkController) ApprovalLeave() {
 					"status": status,
 				})
 			}
+			break
 		}
 	}
 	if !isCheck {
