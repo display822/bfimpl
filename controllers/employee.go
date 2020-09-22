@@ -12,6 +12,7 @@ import (
 	"bfimpl/services"
 	"bfimpl/services/log"
 	"encoding/json"
+	"strconv"
 	"time"
 )
 
@@ -39,6 +40,7 @@ func (e *EmployeeController) NewEmpEntry() {
 
 	tx := services.Slave().Begin()
 	employee := reqEmployee.ToEmployee()
+	employee.Email = strconv.Itoa(int(time.Now().UnixNano()))
 	err = tx.Create(employee).Error
 	if err != nil {
 		log.GLogger.Error("create employee err：%s", err.Error())
