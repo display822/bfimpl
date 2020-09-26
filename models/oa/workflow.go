@@ -15,7 +15,7 @@ import (
 type Workflow struct {
 	gorm.Model
 	WorkflowDefinitionID int                    `json:"-"`
-	WorkflowDefinition   *WorkflowDefinition    `json:"-"`
+	WorkflowDefinition   *WorkflowDefinition    `json:"definition"`
 	Status               string                 `gorm:"size:20;not null;comment:'状态(Processing, Completed, Approved, Rejected)'"`
 	EntityID             int                    `gorm:"not null;comment:'实体ID'"`
 	Nodes                []*WorkflowNode        `json:"nodes"`
@@ -30,4 +30,8 @@ type ReqEntryFlow struct {
 	PlanTime   models.Time `json:"plan_time"`
 	SeatNumber string      `json:"seat_number"`
 	DeviceReq  string      `json:"device_req"`
+}
+
+type WorkflowId struct {
+	Id int `json:"id"`
 }

@@ -664,4 +664,22 @@ func init() {
 			MethodParams:     param.Make(),
 			Filters:          nil,
 			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:BenchController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:BenchController"],
+		beego.ControllerComments{
+			Method:           "GetMyApprove",
+			Router:           `/myapprove`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:BenchController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:BenchController"],
+		beego.ControllerComments{
+			Method:           "GetMyRequest",
+			Router:           `/myreq`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
 }
