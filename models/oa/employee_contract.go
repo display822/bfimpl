@@ -26,3 +26,9 @@ type EmployeeContract struct {
 	SoftCopy          string      `gorm:"size:200;comment:'合同电子档'" json:"soft_copy"`
 	ScannedCopy       string      `gorm:"size:200;comment:'合同扫描件'" json:"scanned_copy"`
 }
+
+type ContractSimple struct {
+	EndDate       models.Time `json:"enddate"`
+	EmployeeID    int         `json:"employee_id"`
+	ContractParty string      `json:"contract_party"`
+}

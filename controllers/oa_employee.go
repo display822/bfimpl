@@ -344,6 +344,25 @@ func (e *EmployeeController) SaveEmpInfo() {
 	e.Correct("")
 }
 
+// @Title employee入职状态
+// @Description employee入职状态
+// @Param	status	path	int	true	"入职状态"
+// @Success 200 {string} "success"
+// @Failure 500 server err
+// @router /status/:id [put]
+func (e *EmployeeController) UpdateEmpStatus() {
+	eID, _ := e.GetInt(":id", 0)
+	status, _ := e.GetInt("status", 0)
+	err := services.Slave().Model(oa.Employee{}).Where("id = ?", eID).Updates(map[string]interface{}{
+		"status": status,
+	}).Error
+	if err != nil {
+		log.GLogger.Error("update entry status:%s", err.Error())
+		e.ErrorOK(MsgServerErr)
+	}
+	e.Correct("")
+}
+
 // @Title employee详情
 // @Description employee详情
 // @Param	id	path	int	true	"员工id"
@@ -476,4 +495,26 @@ func (e *EmployeeController) DelContract() {
 	cID, _ := e.GetInt(":id", 0)
 	services.Slave().Delete(oa.EmployeeContract{}, "id = ?", cID)
 	e.Correct("")
+}
+
+// @Title 合同即将到期
+// @Description 合同即将到期
+// @Param	pagesize	query	int	true	"页大小"
+// @Param	pagenum	query	int	true	"页数"
+// @Success 200 {string} "success"
+// @Failure 500 server err
+// @router /contract/continue [get]
+func (e *EmployeeController) MoreContract() {
+	pageSize, _ := e.GetInt("pagesize", 10)
+	pageNum, _ := e.GetInt("pagenum", 1)
+	deadLine := time.Now().AddDate(0, 0, 45)
+
+	var resp struct {
+		Total int                  `json:"total"`
+		List  []*oa.ContractSimple `json:"list"`
+	}
+	services.Slave().Table("employee_contracts").Select("contract_party,max(e.contract_end_date) enddate, employee_id").
+		Group("employee_id").Having("enddate < ?", deadLine.Format(models.DateFormat)).Count(&resp.Total).
+		Limit(pageSize).Offset((pageNum - 1) * pageSize).Scan(&resp.List)
+	e.Correct(resp)
 }
