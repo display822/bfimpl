@@ -55,11 +55,11 @@ func (w *WorkController) ReqOvertime() {
 		tx.Rollback()
 		w.ErrorOK(MsgServerErr)
 	}
-	leaderID := 0
-	if employee.Department != nil {
-		leaderID = employee.Department.DepartmentLeaderID
-	}
-	err = services.ReqOvertime(tx, int(param.ID), uID, leaderID)
+	//leaderID := 0
+	//if employee.Department != nil {
+	//	leaderID = employee.Department.DepartmentLeaderID
+	//}
+	err = services.ReqOvertime(tx, int(param.ID), uID, param.LeaderId)
 	if err != nil {
 		log.GLogger.Error("req overtime err:%s", err.Error())
 		tx.Rollback()
@@ -69,28 +69,52 @@ func (w *WorkController) ReqOvertime() {
 	w.Correct(param)
 }
 
+// @Title engagement_list
+// @Description 项目code
+// @Success 200 {string} "success"
+// @Failure 500 server err
+// @router /overtime/projects [get]
+func (w *WorkController) GetProjects() {
+	desc := w.GetString("desc")
+	uEmail := w.GetString("userEmail")
+	//获取emp_info
+	employee := new(oa.Employee)
+	services.Slave().Preload("Department").Take(employee, "email = ?", uEmail)
+	if employee.ID == 0 {
+		w.ErrorOK("未找到员工信息")
+	}
+	//查询部门下项目list
+	projects := make([]*oa.EngagementCode, 0)
+	query := services.Slave().Model(oa.EngagementCode{}).Where("department_id = ?", employee.Department.ID)
+	if desc != "" {
+		query = query.Where("engagement_code_desc like ?", "%"+desc+"%")
+	}
+	query.Find(&projects)
+	w.Correct(projects)
+}
+
 // @Title 加班审批人
 // @Description 加班审批人
 // @Success 200 {string} "success"
 // @Failure 500 server err
 // @router /approvals [get]
 func (w *WorkController) ApprovalUsers() {
-	uEmail := w.GetString("userEmail")
+	//uEmail := w.GetString("userEmail")
 	//获取emp_info
-	employee := new(oa.Employee)
-	services.Slave().Preload("Department").Preload("Department.Leader").Take(employee, "email = ?", uEmail)
-	if employee.ID == 0 {
-		w.ErrorOK("未找到员工信息")
-	}
-	approvalUsers := make([]string, 0)
-	if employee.Department != nil && employee.Department.Leader != nil {
-		approvalUsers = append(approvalUsers, employee.Department.Leader.Name)
-	}
+	//employee := new(oa.Employee)
+	//services.Slave().Preload("Department").Preload("Department.Leader").Take(employee, "email = ?", uEmail)
+	//if employee.ID == 0 {
+	//	w.ErrorOK("未找到员工信息")
+	//}
+	//approvalUsers := make([]string, 0)
+	//if employee.Department != nil && employee.Department.Leader != nil {
+	//	approvalUsers = append(approvalUsers, employee.Department.Leader.Name)
+	//}
 	u := services.GetWorkUser(models.UserHR)
-	if u != nil {
-		approvalUsers = append(approvalUsers, u.Name)
-	}
-	w.Correct(strings.Join(approvalUsers, ";"))
+	//if u != nil {
+	//	approvalUsers = append(approvalUsers, u.Name)
+	//}
+	w.Correct(u.Name)
 }
 
 // @Title 单条申请加班

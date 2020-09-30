@@ -27,5 +27,6 @@ type Overtime struct {
 	StartTime    models.Time `gorm:"type:datetime;comment:'开始时间'" json:"start_time"`
 	EndTime      models.Time `gorm:"type:datetime;comment:'结束时间'" json:"end_time"`
 	ReqTime      models.Time `gorm:"type:datetime;comment:'申请时间'" json:"req_time"`
+	LeaderId     int         `gorm:"-" json:"leader_id"`
 	Status       string      `gorm:"size:20;comment:'申请状态'" json:"status"`
 }

@@ -41,17 +41,11 @@ insert into departments(created_at,updated_at,department_name,department_leader_
 (now(),now(),'APM',0),
 (now(),now(),'B站外派',0),
 (now(),now(),'职能部门',0);
-insert into departments(created_at,updated_at,department_name,department_leader_id,p_id) values
-(now(),now(),'WeTest商务',87,4),
-(now(),now(),'WeTest客户成功',87,4),
-(now(),now(),'先游Gamer',88,6),
-(now(),now(),'韩语游戏测试',87,8),
-(now(),now(),'日语游戏测试',87,8),
-(now(),now(),'繁体游戏测试',87,8),
-(now(),now(),'游戏测试',87,8),
-(now(),now(),'自动化测试(接口)',87,8),
-(now(),now(),'自动化测试(游戏)',87,8),
-(now(),now(),'服务端测试',87,8);
+-- 新增财务统计engagement_code
+insert into engagement_codes(created_at,updated_at,engagement_code,engagement_code_desc,department_id,code_owner_id) values
+(now(),now(),'10001', 'Wetest私有化',5, 2),
+(now(),now(),'10002', 'Wetest风讯',5, 3),
+(now(),now(),'10003', 'Wetest先游',5, 4);
 
 -- 新增级别
 insert into levels(created_at,updated_at,department_id,level_name,cc_rate,oc_rate) values

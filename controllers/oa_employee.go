@@ -359,10 +359,12 @@ func (e *EmployeeController) UpdateEmpStatus() {
 	eID, _ := e.GetInt(":id", 0)
 	status, _ := e.GetInt("status", 0)
 	entryDate := e.GetString("entry_date")
-	err := services.Slave().Model(oa.Employee{}).Where("id = ?", eID).Updates(map[string]interface{}{
-		"status":     status,
-		"entry_date": entryDate,
-	}).Error
+	m := make(map[string]interface{})
+	m["status"] = status
+	if entryDate != "" {
+		m["entry_date"] = entryDate
+	}
+	err := services.Slave().Model(oa.Employee{}).Where("id = ?", eID).Updates(m).Error
 	if err != nil {
 		log.GLogger.Error("update entry status:%s", err.Error())
 		e.ErrorOK(MsgServerErr)

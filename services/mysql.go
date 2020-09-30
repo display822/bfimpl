@@ -66,5 +66,6 @@ func DBInit() {
 		&oa.EmployeeContract{},
 		&oa.Overtime{},
 		&oa.Leave{},
+		&oa.EngagementCode{},
 	)
 }
