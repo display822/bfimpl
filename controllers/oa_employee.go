@@ -358,8 +358,10 @@ func (e *EmployeeController) SaveEmpInfo() {
 func (e *EmployeeController) UpdateEmpStatus() {
 	eID, _ := e.GetInt(":id", 0)
 	status, _ := e.GetInt("status", 0)
+	entryDate := e.GetString("entry_date")
 	err := services.Slave().Model(oa.Employee{}).Where("id = ?", eID).Updates(map[string]interface{}{
-		"status": status,
+		"status":     status,
+		"entry_date": entryDate,
 	}).Error
 	if err != nil {
 		log.GLogger.Error("update entry status:%s", err.Error())
