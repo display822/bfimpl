@@ -687,7 +687,7 @@ func init() {
 		beego.ControllerComments{
 			Method:           "GetProjects",
 			Router:           `/overtime/projects`,
-			AllowHTTPMethods: []string{"put"},
+			AllowHTTPMethods: []string{"get"},
 			MethodParams:     param.Make(),
 			Filters:          nil,
 			Params:           nil})
