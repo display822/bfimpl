@@ -15,7 +15,7 @@ values (now(),now(),'Approval','Leave','Leave');
 
 -- type: TextField, TextArea
 insert into workflow_form_element_defs(created_at,updated_at,workflow_definition_id,element_seq,element_type, element_name) values
-(now(),now(),1,1,'TextField','plan_time'),(now(),now(),1,2,'TextField','seat_number'),(now(),now(),1,3,'TextArea','device_req');
+(now(),now(),1,1,'TextField','plan_date'),(now(),now(),1,2,'TextField','seat_number'),(now(),now(),1,3,'TextArea','device_req');
 
 insert into workflow_form_element_defs(created_at,updated_at,workflow_definition_id,element_seq,element_type, element_name) values
 (now(),now(),3,1,'TextField','NULL'),(now(),now(),3,2,'TextArea','leader_comment'),(now(),now(),3,3,'TextArea','hr_comment');

@@ -27,7 +27,7 @@ type ReqEntryFlow struct {
 	Email      string      `json:"email"`
 	WxWork     string      `json:"wx_work"`
 	Tapd       string      `json:"tapd"`
-	PlanTime   models.Time `json:"plan_time"`
+	PlanTime   models.Time `json:"plan_date"`
 	SeatNumber string      `json:"seat_number"`
 	DeviceReq  string      `json:"device_req"`
 }
