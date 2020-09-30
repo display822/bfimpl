@@ -41,6 +41,7 @@ func (e *EmployeeController) NewEmpEntry() {
 	tx := services.Slave().Begin()
 	employee := reqEmployee.ToEmployee()
 	employee.Email = strconv.Itoa(int(time.Now().UnixNano()))
+	employee.CreatorId, _ = e.GetInt("userID")
 	err = tx.Create(employee).Error
 	if err != nil {
 		log.GLogger.Error("create employee err：%s", err.Error())
@@ -88,6 +89,7 @@ func (e *EmployeeController) GetEmpEntryList() {
 	number := e.GetString("emp_no")
 	dID, _ := e.GetInt("departmentid", 0)
 	status, _ := e.GetInt("status", -1)
+	createID, _ := e.GetInt("creator", -1)
 	employees := make([]*oa.Employee, 0)
 	//未入职和拟入职
 	var resp struct {
@@ -101,7 +103,10 @@ func (e *EmployeeController) GetEmpEntryList() {
 	if status != -1 {
 		query = query.Where("status = ?", status)
 	} else {
-		query = query.Where("status in (?)", []int{0, 1})
+		query = query.Where("status in (?)", []int{0, 1, 2, 3, 4})
+	}
+	if createID != -1 {
+		query = query.Where("creator_id = ?", createID)
 	}
 	if name != "" {
 		query = query.Where("name like ?", "%"+name+"%")
