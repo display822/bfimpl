@@ -25,7 +25,9 @@ func init() {
 		beego.NSNamespace("/employee", beego.NSInclude(&controllers.EmployeeController{})),
 		beego.NSNamespace("/department", beego.NSInclude(&controllers.DepartmentController{})),
 		beego.NSNamespace("/file", beego.NSInclude(&controllers.FileController{})),
-		beego.NSNamespace("/work", beego.NSInclude(&controllers.WorkController{})),
+		beego.NSNamespace("/work", beego.NSInclude(
+			&controllers.WorkController{},
+			&controllers.AttendanceController{})),
 		beego.NSNamespace("/bench", beego.NSInclude(&controllers.BenchController{})),
 	)
 

@@ -21,6 +21,7 @@ replace golang.org/x/arch => github.com/golang/arch v0.0.0-20190312162104-788fe5
 replace github.com/derekparker/delve/terminal => github.com/go-delve/delve/terminal v1.2.0
 
 require (
+	github.com/360EntSecGroup-Skylar/excelize/v2 v2.3.1
 	github.com/astaxie/beego v1.11.1
 	github.com/go-ini/ini v1.61.0 // indirect
 	github.com/go-ldap/ldap v0.0.0-20200627001853-45321a6717b4

@@ -122,3 +122,5 @@ insert into users(created_at,updated_at, name, email,wx,phone,user_type) values
 
 -- workflow  流程定义id和entityID唯一索引
 alter table workflows add unique `uid_workflows_wfd_e`(`workflow_definition_id`,`entity_id`);
+
+alter table attendances add UNIQUE uix_attendance_name_date(`name`,`attendance_date`);
