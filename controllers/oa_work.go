@@ -412,6 +412,26 @@ func (w *WorkController) LeaveList() {
 	w.Correct(resp)
 }
 
+// @Title 申请请假列表
+// @Description 按日期查询
+// @Param	name	query	string	true	"姓名"
+// @Param	status	query	string	false	"状态"
+// @Param	date	query	string	true	"日期"
+// @Success 200 {string} "success"
+// @Failure 500 server err
+// @router /leavebydate [get]
+func (w *WorkController) LeaveListByDate() {
+	name := w.GetString("name")
+	date := w.GetString("date")
+	if name == "" || date == "" {
+		w.ErrorOK(MsgInvalidParam)
+	}
+	leaves := make([]*oa.Leave, 0)
+	services.Slave().Model(oa.Leave{}).Where("e_name = ? and start_date <= ? and end_date >= ?",
+		name, date, date).Find(&leaves)
+	w.Correct(leaves)
+}
+
 // @Title 审批请假
 // @Description 审批请假
 // @Param	id	body	int	true	"请假id"
