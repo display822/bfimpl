@@ -43,6 +43,8 @@ const (
 	FlowRejected   = "Rejected"
 )
 
+var Months = []int{31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}
+
 var AmountChange = map[string]int{
 	Amount_Use:        -1,
 	Amount_Cancel:     1,

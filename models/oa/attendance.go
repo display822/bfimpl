@@ -10,12 +10,14 @@ import (
 	"bfimpl/models"
 
 	"fmt"
-
-	"github.com/jinzhu/gorm"
+	"time"
 )
 
 type Attendance struct {
-	gorm.Model
+	ID             uint        `gorm:"primary_key"`
+	CreatedAt      time.Time   `json:"-"`
+	UpdatedAt      time.Time   `json:"-"`
+	DeletedAt      *time.Time  `sql:"index" json:"-"`
 	EmployeeID     int         `gorm:"default:0;not null;comment:'员工ID'" json:"employee_id"`
 	Dept           string      `gorm:"index;size:20;comment:'部门'" json:"dept"`
 	Name           string      `gorm:"size:20;comment:'姓名'" json:"name"`
@@ -47,4 +49,15 @@ func (v AttendanceSimple) String(now string) string {
 	return fmt.Sprintf("('%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')", now, v.Dept, v.Name,
 		v.AttendanceDate.String(), v.CheckIn.String(), v.CheckOut.String(), v.InStatus, v.OutStatus,
 		v.InResult, v.OutResult)
+}
+
+type DeptUser struct {
+	Dept  string            `json:"dept"`
+	Users []*UserAttendance `json:"users"`
+}
+
+type UserAttendance struct {
+	Dept        string        `json:"-"`
+	Name        string        `json:"name"`
+	Attendances []*Attendance `json:"attendances"`
 }

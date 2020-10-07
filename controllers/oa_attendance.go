@@ -15,6 +15,12 @@ import (
 
 	"bfimpl/services"
 
+	"strconv"
+
+	"fmt"
+
+	"encoding/json"
+
 	"github.com/360EntSecGroup-Skylar/excelize/v2"
 )
 
@@ -117,5 +123,98 @@ func (a *AttendanceController) UploadAttendance() {
 		log.GLogger.Error("考勤sql：%s", err.Error())
 		a.ErrorOK(MsgServerErr)
 	}
+	a.Correct("")
+}
+
+// @Title 查询考勤
+// @Description 查询考勤
+// @Param	name	query	string	true	"姓名"
+// @Param	year	query	string	false	"年"
+// @Param	month	query	string	false	"月"
+// @Success 200 {string} "success"
+// @Failure 500 server err
+// @router /attendance [get]
+func (a *AttendanceController) GetAttendances() {
+	name := a.GetString("name")
+	year := a.GetString("year")
+	month := a.GetString("month")
+	imonth, _ := a.GetInt("month", -1)
+	if year == "" || month == "" {
+		now := time.Now()
+		year = strconv.Itoa(now.Year())
+		imonth = int(now.Month())
+		month = strconv.Itoa(imonth)
+		if len(month) == 1 {
+			month = "0" + month
+		}
+	}
+	startDate := strings.Join([]string{year, month, "01"}, "-")
+	endDate := fmt.Sprintf("%s-%s-%d", year, month, models.Months[imonth])
+	query := services.Slave().Model(oa.Attendance{}).Where("attendance_date >= ? and attendance_date <= ?",
+		startDate, endDate)
+	if name != "" {
+		query = query.Where("name like ?", "%"+name+"%")
+	}
+	data := make([]*oa.Attendance, 0)
+	query.Order("attendance_date").Find(&data)
+
+	order := make(map[string]int)
+	userAttendances := make([]*oa.UserAttendance, 0)
+	userNum := 0
+	for i, attendance := range data {
+		uaIndex, ok := order[attendance.Name]
+		if !ok {
+			order[attendance.Name] = userNum
+			userNum++
+			tmp := &oa.UserAttendance{
+				Dept:        attendance.Dept,
+				Name:        attendance.Name,
+				Attendances: []*oa.Attendance{data[i]},
+			}
+			userAttendances = append(userAttendances, tmp)
+		} else {
+			userAttendances[uaIndex].Attendances = append(userAttendances[uaIndex].Attendances, data[i])
+		}
+	}
+	deptUser := make([]*oa.DeptUser, 0)
+	deptNum := 0
+	for i, u := range userAttendances {
+		duIndex, ok := order[u.Dept]
+		if !ok {
+			order[u.Dept] = deptNum
+			deptNum++
+			tmp := &oa.DeptUser{
+				Dept:  u.Dept,
+				Users: []*oa.UserAttendance{userAttendances[i]},
+			}
+			deptUser = append(deptUser, tmp)
+		} else {
+			deptUser[duIndex].Users = append(deptUser[duIndex].Users, userAttendances[i])
+		}
+	}
+	a.Correct(deptUser)
+}
+
+// @Title 修改考勤
+// @Description 修改考勤
+// @Param	json	body	json	true	"考勤数据"
+// @Success 200 {string} "success"
+// @Failure 500 server err
+// @router /attendance [put]
+func (a *AttendanceController) UpdateAttendance() {
+	attendance := new(oa.Attendance)
+	err := json.Unmarshal(a.Ctx.Input.RequestBody, attendance)
+	if err != nil {
+		log.GLogger.Error("update attendance:%s", err.Error())
+		a.ErrorOK(MsgInvalidParam)
+	}
+	tmp := new(oa.Attendance)
+	err = services.Slave().Take(tmp, "id = ?", attendance.ID).Error
+	if err != nil {
+		a.ErrorOK(MsgInvalidParam)
+	}
+	attendance.CreatedAt = tmp.CreatedAt
+	attendance.UpdatedAt = tmp.UpdatedAt
+	services.Slave().Save(attendance)
 	a.Correct("")
 }
