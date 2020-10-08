@@ -160,6 +160,7 @@ func (w *WorkController) OvertimeList() {
 	name := w.GetString("name")
 	workType := w.GetString("type")
 	status := w.GetString("status")
+	myreq, _ := w.GetBool("myreq", false)
 
 	userType, _ := w.GetInt("userType", 0)
 	userEmail := w.GetString("userEmail")
@@ -171,14 +172,19 @@ func (w *WorkController) OvertimeList() {
 	if workType != "" {
 		query = query.Where("type = ?", workType)
 	}
+	employee := new(oa.Employee)
+	services.Slave().Where("email = ?", userEmail).First(employee)
 	if userType != models.UserHR && userType != models.UserLeader {
 		//不是hr和部门负责人，只能查自己
-		employee := new(oa.Employee)
-		services.Slave().Where("email = ?", userEmail).First(employee)
 		query = query.Where("emp_id = ?", employee.ID)
-	}
-	if name != "" {
-		query = query.Where("e_name like ?", "%"+name+"%")
+	} else {
+		if name != "" {
+			query = query.Where("e_name like ?", "%"+name+"%")
+		}
+		if myreq {
+			//查自己
+			query = query.Where("emp_id = ?", employee.ID)
+		}
 	}
 	var resp struct {
 		Total int            `json:"total"`
@@ -383,6 +389,7 @@ func (w *WorkController) LeaveList() {
 	name := w.GetString("name")
 	workType := w.GetString("type")
 	status := w.GetString("status")
+	myreq, _ := w.GetBool("myreq", false)
 
 	userType, _ := w.GetInt("userType", 0)
 	userEmail := w.GetString("userEmail")
@@ -394,14 +401,20 @@ func (w *WorkController) LeaveList() {
 	if workType != "" {
 		query = query.Where("type = ?", workType)
 	}
+
+	employee := new(oa.Employee)
+	services.Slave().Where("email = ?", userEmail).First(employee)
 	if userType != models.UserHR && userType != models.UserLeader {
 		//不是hr和部门负责人，只能查自己
-		employee := new(oa.Employee)
-		services.Slave().Where("email = ?", userEmail).First(employee)
 		query = query.Where("emp_id = ?", employee.ID)
-	}
-	if name != "" {
-		query = query.Where("e_name like ?", "%"+name+"%")
+	} else {
+		if name != "" {
+			query = query.Where("e_name like ?", "%"+name+"%")
+		}
+		if myreq {
+			//查自己
+			query = query.Where("emp_id = ?", employee.ID)
+		}
 	}
 	var resp struct {
 		Total int         `json:"total"`
