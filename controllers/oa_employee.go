@@ -60,6 +60,21 @@ func (e *EmployeeController) NewEmpEntry() {
 	e.Correct(employee)
 }
 
+// @Title employee删除
+// @Description employee删除
+// @Success 200 {string} "success"
+// @Failure 500 server err
+// @router /:id [delete]
+func (e *EmployeeController) DeleteEmp() {
+	eID, _ := e.GetInt(":id", 0)
+	userType, _ := e.GetInt("userType", 0)
+	if userType != models.UserHR {
+		e.ErrorOK("您不是HR")
+	}
+	services.Slave().Delete(oa.Employee{}, "id = ?", eID)
+	e.Correct("")
+}
+
 // @Title employee详情
 // @Description employee详情
 // @Param	id	path	int	true	"入职员工id"
