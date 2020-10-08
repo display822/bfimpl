@@ -161,6 +161,7 @@ func (w *WorkController) OvertimeList() {
 	workType := w.GetString("type")
 	status := w.GetString("status")
 	myreq, _ := w.GetBool("myreq", false)
+	mytodo, _ := w.GetBool("mytodo", false)
 
 	userType, _ := w.GetInt("userType", 0)
 	userEmail := w.GetString("userEmail")
@@ -190,7 +191,23 @@ func (w *WorkController) OvertimeList() {
 		Total int            `json:"total"`
 		List  []*oa.Overtime `json:"list"`
 	}
-	query.Limit(pageSize).Offset((pageNum - 1) * pageSize).Find(&overtimes).Limit(-1).Offset(-1).Count(&resp.Total)
+	if mytodo {
+		//待我审核，查询结点待我审核的id
+		userID, _ := w.GetInt("userID", 0)
+		ids := make([]*oa.EntityID, 0)
+		services.Slave().Raw("select w.entity_id from workflows w,workflow_nodes wn where w.id = "+
+			"wn.workflow_id and w.workflow_definition_id = ? and operator_id = ? and wn.status = "+
+			"'Processing' and wn.node_seq != 1", services.GetFlowDefID(services.Overtime), userID).Scan(&ids)
+		resp.Total = len(ids)
+		start, end := getPage(resp.Total, pageSize, pageNum)
+		eIDs := make([]int, 0)
+		for _, eID := range ids[start:end] {
+			eIDs = append(eIDs, eID.EntityID)
+		}
+		services.Slave().Model(oa.Leave{}).Where(eIDs).Find(&overtimes)
+	} else {
+		query.Limit(pageSize).Offset((pageNum - 1) * pageSize).Find(&overtimes).Limit(-1).Offset(-1).Count(&resp.Total)
+	}
 	resp.List = overtimes
 	w.Correct(resp)
 }
@@ -390,6 +407,7 @@ func (w *WorkController) LeaveList() {
 	workType := w.GetString("type")
 	status := w.GetString("status")
 	myreq, _ := w.GetBool("myreq", false)
+	mytodo, _ := w.GetBool("mytodo", false)
 
 	userType, _ := w.GetInt("userType", 0)
 	userEmail := w.GetString("userEmail")
@@ -420,9 +438,42 @@ func (w *WorkController) LeaveList() {
 		Total int         `json:"total"`
 		List  []*oa.Leave `json:"list"`
 	}
-	query.Limit(pageSize).Offset((pageNum - 1) * pageSize).Find(&leaves).Limit(-1).Offset(-1).Count(&resp.Total)
+	if mytodo {
+		//待我审核，查询结点待我审核的id
+		userID, _ := w.GetInt("userID", 0)
+		ids := make([]*oa.EntityID, 0)
+		services.Slave().Raw("select w.entity_id from workflows w,workflow_nodes wn where w.id = "+
+			"wn.workflow_id and w.workflow_definition_id = ? and operator_id = ? and wn.status = "+
+			"'Processing' and wn.node_seq != 1", services.GetFlowDefID(services.Leave), userID).Scan(&ids)
+		resp.Total = len(ids)
+		start, end := getPage(resp.Total, pageSize, pageNum)
+		eIDs := make([]int, 0)
+		for _, eID := range ids[start:end] {
+			eIDs = append(eIDs, eID.EntityID)
+		}
+		services.Slave().Model(oa.Leave{}).Where(eIDs).Find(&leaves)
+	} else {
+		query.Limit(pageSize).Offset((pageNum - 1) * pageSize).Find(&leaves).Limit(-1).Offset(-1).Count(&resp.Total)
+	}
 	resp.List = leaves
 	w.Correct(resp)
+}
+
+func getPage(total, pageSize, pageNum int) (int, int) {
+	start, end := 0, total
+	if total > pageSize {
+		start := (pageNum - 1) * pageSize
+		end := start + pageSize
+		if start > total {
+			start = 0
+			end = 0
+		} else {
+			if end > total {
+				end = total
+			}
+		}
+	}
+	return start, end
 }
 
 // @Title 申请请假列表

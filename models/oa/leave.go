@@ -39,3 +39,7 @@ type Leave struct {
 	ReqTime      models.Time `gorm:"type:datetime;comment:'申请时间'" json:"req_time"`
 	Status       string      `gorm:"size:20;comment:'申请状态'" json:"status"`
 }
+
+type EntityID struct {
+	EntityID int `gorm:"column:entity_id"`
+}
