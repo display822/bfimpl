@@ -382,8 +382,23 @@ func (a *AttendanceController) ConfirmUserAttendance() {
 	sql += "on duplicate key update updated_at=values(created_at),dept=values(dept),name=values(name),attendance_date=values(attendance_date)" +
 		",check_in=values(check_in),check_out=values(check_out),in_status=values(in_status)," +
 		"out_status=values(out_status),in_result=values(in_result),out_result=values(out_result);"
-	err = services.Slave().Exec(sql).Error
+	tx := services.Slave().Begin()
+	err = tx.Exec(sql).Error
 	if err != nil {
+		tx.Rollback()
+		log.GLogger.Error("考勤sql：%s", err.Error())
+		a.ErrorOK(MsgServerErr)
+	}
+	err = tx.Exec("update attendance_tmp set is_confirm = 1 where attendance_date >= ? and attendance_date <= ?"+
+		" and name in (?)", startDate, endDate, names).Error
+	if err != nil {
+		tx.Rollback()
+		log.GLogger.Error("确认考勤sql：%s", err.Error())
+		a.ErrorOK(MsgServerErr)
+	}
+	err = tx.Commit().Error
+	if err != nil {
+		tx.Rollback()
 		log.GLogger.Error("考勤sql：%s", err.Error())
 		a.ErrorOK(MsgServerErr)
 	}
