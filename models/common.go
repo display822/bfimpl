@@ -80,6 +80,14 @@ func (t Time) String() string {
 	return time.Time(t).Format(TimeFormat)
 }
 
+func (t Time) IsZero() bool {
+	return time.Time(t).IsZero()
+}
+
+func (t Time) SubToHour(t1 Time) int {
+	return int(time.Time(t).Sub(time.Time(t1)) / time.Hour)
+}
+
 // Value insert timestamp into mysql need this function.
 func (t Time) Value() (driver.Value, error) {
 	var zeroTime time.Time

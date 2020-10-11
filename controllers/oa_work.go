@@ -85,7 +85,7 @@ func (w *WorkController) GetProjects() {
 	}
 	//查询部门下项目list
 	projects := make([]*oa.EngagementCode, 0)
-	query := services.Slave().Model(oa.EngagementCode{}).Where("department_id = ?", employee.Department.ID)
+	query := services.Slave().Model(oa.EngagementCode{}).Preload("Owner").Where("department_id = ?", employee.Department.ID)
 	if desc != "" {
 		query = query.Where("engagement_code_desc like ?", "%"+desc+"%")
 	}
@@ -196,8 +196,8 @@ func (w *WorkController) OvertimeList() {
 		userID, _ := w.GetInt("userID", 0)
 		ids := make([]*oa.EntityID, 0)
 		services.Slave().Raw("select w.entity_id from workflows w,workflow_nodes wn where w.id = "+
-			"wn.workflow_id and w.workflow_definition_id = ? and operator_id = ? and wn.status = "+
-			"'Processing' and wn.node_seq != 1", services.GetFlowDefID(services.Overtime), userID).Scan(&ids)
+			"wn.workflow_id and w.workflow_definition_id = ? and operator_id = ?"+
+			" and wn.node_seq != 1", services.GetFlowDefID(services.Overtime), userID).Scan(&ids)
 		resp.Total = len(ids)
 		start, end := getPage(resp.Total, pageSize, pageNum)
 		eIDs := make([]int, 0)
@@ -443,8 +443,8 @@ func (w *WorkController) LeaveList() {
 		userID, _ := w.GetInt("userID", 0)
 		ids := make([]*oa.EntityID, 0)
 		services.Slave().Raw("select w.entity_id from workflows w,workflow_nodes wn where w.id = "+
-			"wn.workflow_id and w.workflow_definition_id = ? and operator_id = ? and wn.status = "+
-			"'Processing' and wn.node_seq != 1", services.GetFlowDefID(services.Leave), userID).Scan(&ids)
+			"wn.workflow_id and w.workflow_definition_id = ? and operator_id = ? "+
+			"and wn.node_seq != 1", services.GetFlowDefID(services.Leave), userID).Scan(&ids)
 		resp.Total = len(ids)
 		start, end := getPage(resp.Total, pageSize, pageNum)
 		eIDs := make([]int, 0)

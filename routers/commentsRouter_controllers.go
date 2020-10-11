@@ -791,6 +791,15 @@ func init() {
 			Filters:          nil,
 			Params:           nil})
 
+	beego.GlobalControllerRouter["bfimpl/controllers:AttendanceController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:AttendanceController"],
+		beego.ControllerComments{
+			Method:           "ExportData",
+			Router:           `/attendance/data`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
 	beego.GlobalControllerRouter["bfimpl/controllers:BenchController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:BenchController"],
 		beego.ControllerComments{
 			Method:           "GetMyApprove",
