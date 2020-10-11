@@ -536,7 +536,7 @@ func (a *AttendanceController) ExportData() {
 			data[i].Forget += 1
 		}
 	}
-	for _, leave := range leaves {
+	//for _, leave := range leaves {
 		//统计请假数据
 		//if leave
 		//i, ok := userIndex[leave.EName]
@@ -545,7 +545,7 @@ func (a *AttendanceController) ExportData() {
 		//		data[i].Annual += leave.Duration
 		//	}
 		//}
-	}
+	//}
 	for _, at := range attendances {
 		tapd := "nameTapd[at.Name]"
 		_ = f.SetSheetRow("Sheet1", "A"+strconv.Itoa(num), &[]interface{}{
