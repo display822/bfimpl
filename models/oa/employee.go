@@ -48,6 +48,11 @@ type Employee struct {
 	//Contracts        []*EmployeeContract `json:"contracts"`
 }
 
+type EmpPos struct {
+	Name string `gorm:"column:name"`
+	Tapd string `gorm:"column:tapd"`
+}
+
 type ReqEmployee struct {
 	Name             string      `json:"name"`
 	Gender           string      `json:"gender"`

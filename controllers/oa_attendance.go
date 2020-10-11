@@ -10,6 +10,7 @@ import (
 	"bfimpl/models"
 	"bfimpl/models/oa"
 	"bfimpl/services/log"
+	"os"
 	"strings"
 	"time"
 
@@ -403,4 +404,72 @@ func (a *AttendanceController) ConfirmUserAttendance() {
 		a.ErrorOK(MsgServerErr)
 	}
 	a.Correct("")
+}
+
+// @Title 导出POS考勤
+// @Description 导出POS考勤
+// @Param	year	query	string	true	"年"
+// @Param	month	query	string	true	"月"
+// @Success 200 {string} "success"
+// @Failure 500 server err
+// @router /attendance/pos [get]
+func (a *AttendanceController) ExportPos() {
+	year := a.GetString("year")
+	month := a.GetString("month")
+	imonth, _ := a.GetInt("month", -1)
+	if year == "" || month == "" {
+		now := time.Now()
+		year = strconv.Itoa(now.Year())
+		imonth = int(now.Month())
+		month = strconv.Itoa(imonth)
+		if len(month) == 1 {
+			month = "0" + month
+		}
+	}
+	startDate := strings.Join([]string{year, month, "01"}, "-")
+	endDate := fmt.Sprintf("%s-%s-%d", year, month, models.Months[imonth])
+	//查询月份数据
+	attendances := make([]*oa.Attendance, 0)
+	services.Slave().Model(oa.Attendance{}).Where("attendance_date >= ? and attendance_date <= ?",
+		startDate, endDate).Find(&attendances)
+	//查询 tapd 账号
+	emps := make([]*oa.EmpPos, 0)
+	services.Slave().Table("employees").Select("name,tapd").Scan(&emps)
+	nameTapd := make(map[string]string)
+	for _, emp := range emps {
+		nameTapd[emp.Name] = emp.Tapd
+	}
+	f := excelize.NewFile()
+	_ = f.SetSheetRow("Sheet1", "A1", &[]interface{}{"日期时间", "人员编号", "姓名", "姓名"})
+	num := 2
+	for _, at := range attendances {
+		tapd := nameTapd[at.Name]
+		_ = f.SetSheetRow("Sheet1", "A"+strconv.Itoa(num), &[]interface{}{
+			at.CheckIn.String(), 0, tapd, at.Name})
+		num++
+		inTime, outTime := strings.Split(at.CheckIn.String(), " "), strings.Split(at.CheckOut.String(), " ")
+		if outTime[0] > inTime[0] {
+			//下班时间是第二天
+			_ = f.SetSheetRow("Sheet1", "A"+strconv.Itoa(num), &[]interface{}{
+				inTime[0] + " 23:59:00", 0, tapd, at.Name})
+			num++
+			//下班时间是07:00
+			if outTime[1] == "07:00:00" {
+				_ = f.SetSheetRow("Sheet1", "A"+strconv.Itoa(num), &[]interface{}{
+					outTime[0] + " 06:59:59", 0, tapd, at.Name})
+				num++
+			} else if outTime[1] > "07:00:00" {
+				_ = f.SetSheetRow("Sheet1", "A"+strconv.Itoa(num), &[]interface{}{
+					outTime[0] + " 07:00:00", 0, tapd, at.Name})
+				num++
+			}
+		}
+		_ = f.SetSheetRow("Sheet1", "A"+strconv.Itoa(num), &[]interface{}{
+			at.CheckOut.String(), 0, tapd, at.Name})
+		num++
+	}
+	fileName := year + "-" + month + ".xlsx"
+	f.SaveAs(fileName)
+	a.Ctx.Output.Download(fileName, fileName)
+	os.Remove(fileName)
 }
