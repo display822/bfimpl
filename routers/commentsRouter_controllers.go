@@ -712,7 +712,7 @@ func init() {
 
 	beego.GlobalControllerRouter["bfimpl/controllers:AttendanceController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:AttendanceController"],
 		beego.ControllerComments{
-			Method:           "UploadAttendance",
+			Method:           "ConfirmUserAttendance",
 			Router:           `/attendance`,
 			AllowHTTPMethods: []string{"post"},
 			MethodParams:     param.Make(),
@@ -766,7 +766,7 @@ func init() {
 
 	beego.GlobalControllerRouter["bfimpl/controllers:AttendanceController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:AttendanceController"],
 		beego.ControllerComments{
-			Method:           "GetAttendances",
+			Method:           "GetUserAttendanceByMonth",
 			Router:           `/attendance`,
 			AllowHTTPMethods: []string{"get"},
 			MethodParams:     param.Make(),

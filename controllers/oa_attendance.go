@@ -34,167 +34,6 @@ type AttendanceController struct {
 	BaseController
 }
 
-// @Title 上传考勤
-// @Description 上传考勤
-// @Param	file	body	binary	true	"excel文件"
-// @Success 200 {string} "success"
-// @Failure 500 server err
-// @router /attendance [post]
-func (a *AttendanceController) UploadAttendance() {
-	f, _, err := a.GetFile("file")
-	if err != nil {
-		log.GLogger.Error("上传考勤：%s", err.Error())
-		a.ErrorOK(MsgInvalidParam)
-	}
-	//解析 xlsx
-	defer f.Close()
-	file, err := excelize.OpenReader(f)
-	if err != nil {
-		log.GLogger.Error("读取考勤：%s", err.Error())
-		a.ErrorOK(MsgServerErr)
-	}
-	rows, err := file.GetRows("Sheet1")
-	if err != nil {
-		log.GLogger.Error("读取Sheet1：%s", err.Error())
-		a.ErrorOK(MsgServerErr)
-	}
-	users := make([]string, 0)
-	userDatas := make(map[string]map[string]*oa.AttendanceSimple)
-	for _, row := range rows[1:] {
-		if len(row) < 3 {
-			continue
-		}
-		//部门，姓名，时间
-		ud, uOK := userDatas[row[1]]
-		if !uOK {
-			users = append(users, row[1])
-			ud = make(map[string]*oa.AttendanceSimple)
-		}
-		checkTime, err := time.Parse(excelTime, row[2])
-		if err != nil {
-			log.GLogger.Error(err.Error())
-			continue
-		}
-		date := models.Date(checkTime)
-		attendance, dOK := ud[date.String()]
-		if !dOK {
-			//新增一条今天的记录,该行数据为签入
-			attendance = &oa.AttendanceSimple{
-				Dept:           row[0],
-				Name:           row[1],
-				AttendanceDate: date,
-				CheckIn:        models.Time(checkTime),
-				InStatus:       Normal,
-			}
-			if strings.Split(checkTime.String(), " ")[1] > "09:45" {
-				//迟到
-				attendance.InStatus = Exception
-				attendance.InResult = "迟到"
-			}
-		} else {
-			// 修改签出时间
-			attendance.CheckOut = models.Time(checkTime)
-			attendance.OutStatus = Normal
-			if strings.Split(checkTime.String(), " ")[1] < "18:30" {
-				//迟到
-				attendance.OutStatus = Exception
-				attendance.OutResult = "早退"
-			}
-		}
-		ud[date.String()] = attendance
-		userDatas[row[1]] = ud
-	}
-	//拼接sql
-	sql := "insert into attendances(created_at,dept,name,attendance_date,check_in,check_out,in_status,out_status," +
-		"in_result,out_result) values"
-	realData := make([]string, 0)
-	now := time.Now().Format(models.TimeFormat)
-	for _, u := range users {
-		for _, v := range userDatas[u] {
-			realData = append(realData, v.String(now))
-		}
-	}
-	sql += strings.Join(realData, ",")
-	sql += "on duplicate key update updated_at=values(created_at),dept=values(dept),name=values(name),attendance_date=values(attendance_date)" +
-		",check_in=values(check_in),check_out=values(check_out),in_status=values(in_status)," +
-		"out_status=values(out_status),in_result=values(in_result),out_result=values(out_result);"
-	err = services.Slave().Exec(sql).Error
-	if err != nil {
-		log.GLogger.Error("考勤sql：%s", err.Error())
-		a.ErrorOK(MsgServerErr)
-	}
-	a.Correct("")
-}
-
-// @Title 查询考勤
-// @Description 查询考勤
-// @Param	name	query	string	true	"姓名"
-// @Param	year	query	string	false	"年"
-// @Param	month	query	string	false	"月"
-// @Success 200 {string} "success"
-// @Failure 500 server err
-// @router /attendance [get]
-func (a *AttendanceController) GetAttendances() {
-	name := a.GetString("name")
-	year := a.GetString("year")
-	month := a.GetString("month")
-	imonth, _ := a.GetInt("month", -1)
-	if year == "" || month == "" {
-		now := time.Now()
-		year = strconv.Itoa(now.Year())
-		imonth = int(now.Month())
-		month = strconv.Itoa(imonth)
-		if len(month) == 1 {
-			month = "0" + month
-		}
-	}
-	startDate := strings.Join([]string{year, month, "01"}, "-")
-	endDate := fmt.Sprintf("%s-%s-%d", year, month, models.Months[imonth])
-	query := services.Slave().Model(oa.Attendance{}).Where("attendance_date >= ? and attendance_date <= ?",
-		startDate, endDate)
-	if name != "" {
-		query = query.Where("name like ?", "%"+name+"%")
-	}
-	data := make([]*oa.Attendance, 0)
-	query.Order("attendance_date").Find(&data)
-
-	order := make(map[string]int)
-	userAttendances := make([]*oa.UserAttendance, 0)
-	userNum := 0
-	for i, attendance := range data {
-		uaIndex, ok := order[attendance.Name]
-		if !ok {
-			order[attendance.Name] = userNum
-			userNum++
-			tmp := &oa.UserAttendance{
-				Dept:        attendance.Dept,
-				Name:        attendance.Name,
-				Attendances: []*oa.Attendance{data[i]},
-			}
-			userAttendances = append(userAttendances, tmp)
-		} else {
-			userAttendances[uaIndex].Attendances = append(userAttendances[uaIndex].Attendances, data[i])
-		}
-	}
-	deptUser := make([]*oa.DeptUser, 0)
-	deptNum := 0
-	for i, u := range userAttendances {
-		duIndex, ok := order[u.Dept]
-		if !ok {
-			order[u.Dept] = deptNum
-			deptNum++
-			tmp := &oa.DeptUser{
-				Dept:  u.Dept,
-				Users: []*oa.UserAttendance{userAttendances[i]},
-			}
-			deptUser = append(deptUser, tmp)
-		} else {
-			deptUser[duIndex].Users = append(deptUser[duIndex].Users, userAttendances[i])
-		}
-	}
-	a.Correct(deptUser)
-}
-
 // @Title 修改考勤
 // @Description 修改考勤
 // @Param	json	body	json	true	"考勤数据"
@@ -381,7 +220,7 @@ func (a *AttendanceController) UpdateAttendanceTmp() {
 	a.Correct(param)
 }
 
-// @Title 查询考勤
+// @Title 查询考勤临时数据
 // @Description 查询考勤
 // @Param	name	query	string	true	"姓名"
 // @Param	year	query	string	false	"年"
@@ -431,4 +270,122 @@ func (a *AttendanceController) GetUserAttendanceTmps() {
 		}
 	}
 	a.Correct(result)
+}
+
+// @Title 查询已确认考勤数据
+// @Description 查询考勤
+// @Param	name	query	string	true	"姓名"
+// @Param	year	query	string	false	"年"
+// @Param	month	query	string	false	"月"
+// @Success 200 {string} "success"
+// @Failure 500 server err
+// @router /attendance [get]
+func (a *AttendanceController) GetUserAttendanceByMonth() {
+	name := a.GetString("name")
+	if name == "" {
+		a.ErrorOK("请选择员工姓名")
+	}
+	year := a.GetString("year")
+	month := a.GetString("month")
+	imonth, _ := a.GetInt("month", -1)
+	if year == "" || month == "" {
+		now := time.Now()
+		year = strconv.Itoa(now.Year())
+		imonth = int(now.Month())
+		month = strconv.Itoa(imonth)
+		if len(month) == 1 {
+			month = "0" + month
+		}
+	}
+	startDate := strings.Join([]string{year, month, "01"}, "-")
+	endDate := fmt.Sprintf("%s-%s-%d", year, month, models.Months[imonth])
+	data := make([]*oa.Attendance, 0)
+	services.Slave().Model(oa.Attendance{}).Where("name = ? and attendance_date >= ? and attendance_date <= ?",
+		name, startDate, endDate).Find(&data)
+	a.Correct(data)
+}
+
+// @Title 批量确认考勤
+// @Description 查询考勤
+// @Param	name	body	string	true	"姓名数组"
+// @Success 200 {string} "success"
+// @Failure 500 server err
+// @router /attendance [post]
+func (a *AttendanceController) ConfirmUserAttendance() {
+	names := make([]string, 0)
+	err := json.Unmarshal(a.Ctx.Input.RequestBody, &names)
+	if err != nil {
+		log.GLogger.Error("parse names err:%s", err.Error())
+		a.ErrorOK(MsgInvalidParam)
+	}
+	year := a.GetString("year")
+	month := a.GetString("month")
+	imonth, _ := a.GetInt("month", -1)
+	if year == "" || month == "" {
+		now := time.Now()
+		year = strconv.Itoa(now.Year())
+		imonth = int(now.Month())
+		month = strconv.Itoa(imonth)
+		if len(month) == 1 {
+			month = "0" + month
+		}
+	}
+	startDate := strings.Join([]string{year, month, "01"}, "-")
+	endDate := fmt.Sprintf("%s-%s-%d", year, month, models.Months[imonth])
+	tmps := make([]*oa.AttendanceTmp, 0)
+	services.Slave().Model(oa.AttendanceTmp{}).Where("attendance_date >= ? and attendance_date <= ? and name in (?)",
+		startDate, endDate, names).Find(&tmps)
+	data := make([]*oa.AttendanceSimple, 0)
+	num := 0
+	userDatas := make(map[string]map[string]int)
+	for _, row := range tmps {
+		//部门，姓名，时间
+		ud, uOK := userDatas[row.Name]
+		if !uOK {
+			ud = make(map[string]int)
+		}
+		date := row.AttendanceDate
+		attendanceIndex, dOK := ud[date.String()]
+		if !dOK {
+			//新增一条今天的记录,该行数据为签入
+			attendance := &oa.AttendanceSimple{
+				Dept:           row.Dept,
+				Name:           row.Name,
+				AttendanceDate: date,
+				CheckIn:        row.CheckTime,
+				InStatus:       row.Status,
+				InResult:       row.Result,
+			}
+			data = append(data, attendance)
+			ud[date.String()] = num
+			num++
+		} else {
+			// 修改签出时间
+			data[attendanceIndex].CheckOut = row.CheckTime
+			data[attendanceIndex].OutStatus = row.Status
+			data[attendanceIndex].OutResult = row.Result
+		}
+		userDatas[row.Name] = ud
+	}
+	if len(data) == 0 {
+		a.ErrorOK("未找到考勤数据")
+	}
+	//拼接sql
+	sql := "insert into attendances(created_at,dept,name,attendance_date,check_in,check_out,in_status,out_status," +
+		"in_result,out_result) values"
+	realData := make([]string, 0)
+	now := time.Now().Format(models.TimeFormat)
+	for _, d := range data {
+		realData = append(realData, d.String(now))
+	}
+	sql += strings.Join(realData, ",")
+	sql += "on duplicate key update updated_at=values(created_at),dept=values(dept),name=values(name),attendance_date=values(attendance_date)" +
+		",check_in=values(check_in),check_out=values(check_out),in_status=values(in_status)," +
+		"out_status=values(out_status),in_result=values(in_result),out_result=values(out_result);"
+	err = services.Slave().Exec(sql).Error
+	if err != nil {
+		log.GLogger.Error("考勤sql：%s", err.Error())
+		a.ErrorOK(MsgServerErr)
+	}
+	a.Correct("")
 }
