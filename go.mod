@@ -14,6 +14,8 @@ replace golang.org/x/sync => github.com/golang/sync v0.0.0-20190423024810-112230
 
 replace golang.org/x/tools => github.com/golang/tools v0.0.0-20190614205625-5aca471b1d59
 
+replace golang.org/x/image => github.com/golang/image v0.0.0-20200927104501-e162460cd6b5
+
 replace github.com/derekparker/delve => github.com/go-delve/delve v1.2.0
 
 replace golang.org/x/arch => github.com/golang/arch v0.0.0-20190312162104-788fe5ffcd8c

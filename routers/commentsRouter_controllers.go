@@ -721,6 +721,51 @@ func init() {
 
 	beego.GlobalControllerRouter["bfimpl/controllers:AttendanceController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:AttendanceController"],
 		beego.ControllerComments{
+			Method:           "UploadAttendanceTmp",
+			Router:           `/attendance/tmp`,
+			AllowHTTPMethods: []string{"post"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:AttendanceController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:AttendanceController"],
+		beego.ControllerComments{
+			Method:           "GetAttendanceUserByDept",
+			Router:           `/attendance/deptuser`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:AttendanceController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:AttendanceController"],
+		beego.ControllerComments{
+			Method:           "DeleteAttendanceTmp",
+			Router:           `/attendance/tmp/:id`,
+			AllowHTTPMethods: []string{"delete"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:AttendanceController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:AttendanceController"],
+		beego.ControllerComments{
+			Method:           "UpdateAttendanceTmp",
+			Router:           `/attendance/tmp`,
+			AllowHTTPMethods: []string{"put"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:AttendanceController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:AttendanceController"],
+		beego.ControllerComments{
+			Method:           "GetUserAttendanceTmps",
+			Router:           `/attendance/tmp`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:AttendanceController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:AttendanceController"],
+		beego.ControllerComments{
 			Method:           "GetAttendances",
 			Router:           `/attendance`,
 			AllowHTTPMethods: []string{"get"},
