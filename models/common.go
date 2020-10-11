@@ -41,6 +41,10 @@ const (
 	FlowCompleted  = "Completed"
 	FlowApproved   = "Approved"
 	FlowRejected   = "Rejected"
+
+	LeaveSick   = "Sick"
+	LeaveShift  = "Shift"
+	LeaveAnnual = "Annual"
 )
 
 var Months = []int{31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}

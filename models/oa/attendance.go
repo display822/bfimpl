@@ -100,3 +100,17 @@ type UserAttendance struct {
 	Name        string        `json:"name"`
 	Attendances []*Attendance `json:"attendances"`
 }
+
+//请假数据统计
+type AttendanceExcel struct {
+	Dept   string
+	Name   string
+	Total  int
+	Leave  int
+	Annual int
+	Sick   int
+	Late   int
+	Early  int
+	None   int
+	Forget int
+}
