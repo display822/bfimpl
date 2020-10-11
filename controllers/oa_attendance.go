@@ -504,10 +504,7 @@ func (a *AttendanceController) ExportData() {
 	leaves := make([]*oa.Leave, 0)
 	services.Slave().Model(oa.Leave{}).Where("start_date >= ? and start_date <= ? and status = ?",
 		startDate, endDate, models.FlowApproved).Find(&leaves)
-	f := excelize.NewFile()
-	_ = f.SetSheetRow("Sheet1", "A1", &[]interface{}{"部门", "姓名", "上班总工时", "总调休时长",
-		"年假", "病假", "迟到", "早退", "旷工", "忘记打卡"})
-	num := 2
+
 	userIndex := make(map[string]int)
 	index := 0
 	data := make([]*oa.AttendanceExcel, 0)
@@ -536,40 +533,30 @@ func (a *AttendanceController) ExportData() {
 			data[i].Forget += 1
 		}
 	}
-	//for _, leave := range leaves {
+	for _, leave := range leaves {
 		//统计请假数据
-		//if leave
-		//i, ok := userIndex[leave.EName]
-		//if ok {
-		//	if leave.Type == models.LeaveAnnual{
-		//		data[i].Annual += leave.Duration
-		//	}
-		//}
-	//}
-	for _, at := range attendances {
-		tapd := "nameTapd[at.Name]"
-		_ = f.SetSheetRow("Sheet1", "A"+strconv.Itoa(num), &[]interface{}{
-			at.CheckIn.String(), 0, tapd, at.Name})
-		num++
-		inTime, outTime := strings.Split(at.CheckIn.String(), " "), strings.Split(at.CheckOut.String(), " ")
-		if outTime[0] > inTime[0] {
-			//下班时间是第二天
-			_ = f.SetSheetRow("Sheet1", "A"+strconv.Itoa(num), &[]interface{}{
-				inTime[0] + " 23:59:00", 0, tapd, at.Name})
-			num++
-			//下班时间是07:00
-			if outTime[1] == "07:00:00" {
-				_ = f.SetSheetRow("Sheet1", "A"+strconv.Itoa(num), &[]interface{}{
-					outTime[0] + " 06:59:59", 0, tapd, at.Name})
-				num++
-			} else if outTime[1] > "07:00:00" {
-				_ = f.SetSheetRow("Sheet1", "A"+strconv.Itoa(num), &[]interface{}{
-					outTime[0] + " 07:00:00", 0, tapd, at.Name})
-				num++
+		if leave.RealDuration != 0 {
+			leave.Duration = leave.RealDuration
+		}
+		i, ok := userIndex[leave.EName]
+		if ok {
+			if leave.Type == models.LeaveAnnual {
+				data[i].Annual += leave.Duration
+			} else if leave.Type == models.LeaveShift {
+				data[i].Leave += leave.Duration
+			} else if leave.Type == models.LeaveSick {
+				data[i].Sick += leave.Duration
 			}
 		}
-		_ = f.SetSheetRow("Sheet1", "A"+strconv.Itoa(num), &[]interface{}{
-			at.CheckOut.String(), 0, tapd, at.Name})
+	}
+	//生成excel
+	f := excelize.NewFile()
+	_ = f.SetSheetRow("Sheet1", "A1", &[]interface{}{"部门", "姓名", "上班总工时", "总调休时长",
+		"年假", "病假", "迟到", "早退", "旷工", "忘记打卡"})
+	num := 2
+	for _, at := range data {
+		_ = f.SetSheetRow("Sheet1", "A"+strconv.Itoa(num), &[]interface{}{at.Dept, at.Name, at.Total, at.Leave,
+			at.Annual, at.Sick, at.Late, at.Early, at.None, at.Forget})
 		num++
 	}
 	fileName := year + "-" + month + ".xlsx"

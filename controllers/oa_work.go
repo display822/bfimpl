@@ -463,7 +463,7 @@ func getPage(total, pageSize, pageNum int) (int, int) {
 	start, end := 0, total
 	if total > pageSize {
 		start := (pageNum - 1) * pageSize
-		end := start + pageSize
+		end = start + pageSize
 		if start > total {
 			start = 0
 			end = 0
