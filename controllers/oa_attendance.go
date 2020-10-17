@@ -221,6 +221,23 @@ func (a *AttendanceController) UpdateAttendanceTmp() {
 	a.Correct(param)
 }
 
+// @Title 修改临时数据
+// @Description 修改临时数据
+// @Param	id	query	string	true	"数据id"
+// @Success 200 {string} "success"
+// @Failure 500 server err
+// @router /attendance/create/tmp [post]
+func (a *AttendanceController) CreateAttendanceTmp() {
+	param := new(oa.AttendanceTmp)
+	err := json.Unmarshal(a.Ctx.Input.RequestBody, param)
+	if err != nil {
+		log.GLogger.Error("parse attendance tmp:%s", err.Error())
+		a.ErrorOK(MsgInvalidParam)
+	}
+	services.Slave().Create(param)
+	a.Correct(param)
+}
+
 // @Title 查询考勤临时数据
 // @Description 查询考勤
 // @Param	name	query	string	true	"姓名"
