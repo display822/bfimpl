@@ -357,6 +357,9 @@ func (a *AttendanceController) ConfirmUserAttendance() {
 				InStatus:       row.Status,
 				InResult:       row.Result,
 			}
+			if row.LeaveID > 0 {
+				attendance.LeaveId = row.LeaveID
+			}
 			data = append(data, attendance)
 			ud[date.String()] = num
 			num++
@@ -365,6 +368,9 @@ func (a *AttendanceController) ConfirmUserAttendance() {
 			data[attendanceIndex].CheckOut = row.CheckTime
 			data[attendanceIndex].OutStatus = row.Status
 			data[attendanceIndex].OutResult = row.Result
+			if row.LeaveID > 0 {
+				data[attendanceIndex].LeaveId = row.LeaveID
+			}
 		}
 		userDatas[row.Name] = ud
 	}
@@ -373,7 +379,7 @@ func (a *AttendanceController) ConfirmUserAttendance() {
 	}
 	//拼接sql
 	sql := "insert into attendances(created_at,dept,name,attendance_date,check_in,check_out,in_status,out_status," +
-		"in_result,out_result) values"
+		"in_result,out_result,leave_id) values"
 	realData := make([]string, 0)
 	now := time.Now().Format(models.TimeFormat)
 	for _, d := range data {
@@ -382,7 +388,7 @@ func (a *AttendanceController) ConfirmUserAttendance() {
 	sql += strings.Join(realData, ",")
 	sql += "on duplicate key update updated_at=values(created_at),dept=values(dept),name=values(name),attendance_date=values(attendance_date)" +
 		",check_in=values(check_in),check_out=values(check_out),in_status=values(in_status)," +
-		"out_status=values(out_status),in_result=values(in_result),out_result=values(out_result);"
+		"out_status=values(out_status),in_result=values(in_result),out_result=values(out_result),leave_id=values(leave_id);"
 	tx := services.Slave().Begin()
 	err = tx.Exec(sql).Error
 	if err != nil {
