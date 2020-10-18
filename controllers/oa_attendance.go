@@ -323,6 +323,7 @@ func (a *AttendanceController) GetUserAttendanceByMonth() {
 	result := make([]*oa.UserAttendanceTmp, 0)
 	for _, at := range data {
 		tmpData := []*oa.AttendanceTmp{{
+			ID:             at.ID,
 			EmployeeID:     at.EmployeeID,
 			Dept:           at.Dept,
 			Name:           at.Name,
@@ -332,6 +333,7 @@ func (a *AttendanceController) GetUserAttendanceByMonth() {
 			Result:         at.InResult,
 			LeaveID:        at.LeaveID,
 		}, {
+			ID:             at.ID,
 			EmployeeID:     at.EmployeeID,
 			Dept:           at.Dept,
 			Name:           at.Name,
