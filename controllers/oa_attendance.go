@@ -84,6 +84,7 @@ func (a *AttendanceController) UploadAttendanceTmp() {
 		a.ErrorOK(MsgServerErr)
 	}
 	users := make([]string, 0)
+	userToday := make(map[string]bool)
 	userDatas := make(map[string][]*oa.AttendanceTmp)
 	for _, row := range rows[1:] {
 		if len(row) < 3 {
@@ -110,6 +111,13 @@ func (a *AttendanceController) UploadAttendanceTmp() {
 		t := strings.Split(attendanceTmp.CheckTime.String(), " ")
 		if len(t) == 2 && t[1] > "09:45" && t[1] < "18:30" {
 			attendanceTmp.Status = Exception
+			key := row[1] + attendanceTmp.AttendanceDate.String()
+			if userToday[key] {
+				attendanceTmp.Result = "早退"
+			} else {
+				attendanceTmp.Result = "迟到"
+				userToday[key] = true
+			}
 		}
 		userDatas[row[1]] = append(ud, attendanceTmp)
 	}
