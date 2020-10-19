@@ -196,7 +196,7 @@ func (w *WorkController) OvertimeList() {
 		userID, _ := w.GetInt("userID", 0)
 		ids := make([]*oa.EntityID, 0)
 		services.Slave().Raw("select w.entity_id from workflows w,workflow_nodes wn where w.id = "+
-			"wn.workflow_id and w.workflow_definition_id = ? and operator_id = ? and wn.status = 'Processing'"+
+			"wn.workflow_id and w.workflow_definition_id = ? and operator_id = ? and wn.status != 'NA'"+
 			" and wn.node_seq != 1", services.GetFlowDefID(services.Overtime), userID).Scan(&ids)
 		resp.Total = len(ids)
 		start, end := getPage(resp.Total, pageSize, pageNum)
@@ -443,7 +443,7 @@ func (w *WorkController) LeaveList() {
 		userID, _ := w.GetInt("userID", 0)
 		ids := make([]*oa.EntityID, 0)
 		services.Slave().Raw("select w.entity_id from workflows w,workflow_nodes wn where w.id = "+
-			"wn.workflow_id and w.workflow_definition_id = ? and operator_id = ? and wn.status = 'Processing'"+
+			"wn.workflow_id and w.workflow_definition_id = ? and operator_id = ? and wn.status != 'NA'"+
 			" and wn.node_seq != 1", services.GetFlowDefID(services.Leave), userID).Scan(&ids)
 		resp.Total = len(ids)
 		start, end := getPage(resp.Total, pageSize, pageNum)
