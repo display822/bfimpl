@@ -109,16 +109,16 @@ func (a *AttendanceController) UploadAttendanceTmp() {
 			Status:         Normal,
 		}
 		t := strings.Split(attendanceTmp.CheckTime.String(), " ")
+		key := row[1] + attendanceTmp.AttendanceDate.String()
 		if len(t) == 2 && t[1] > "09:45" && t[1] < "18:30" {
 			attendanceTmp.Status = Exception
-			key := row[1] + attendanceTmp.AttendanceDate.String()
 			if userToday[key] {
 				attendanceTmp.Result = "早退"
 			} else {
 				attendanceTmp.Result = "迟到"
-				userToday[key] = true
 			}
 		}
+		userToday[key] = true
 		userDatas[row[1]] = append(ud, attendanceTmp)
 	}
 	//拼接sql
