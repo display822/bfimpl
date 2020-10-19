@@ -88,8 +88,8 @@ func (v AttendanceSimple) String(now string) string {
 }
 
 func (v AttendanceTmp) String(now string) string {
-	return fmt.Sprintf("('%s','%s','%s','%s','%s','%s')", now, v.Dept, v.Name, v.AttendanceDate.String(),
-		v.CheckTime.String(), v.Status)
+	return fmt.Sprintf("('%s','%s','%s','%s','%s','%s','%s')", now, v.Dept, v.Name, v.AttendanceDate.String(),
+		v.CheckTime.String(), v.Status, v.Result)
 }
 
 type DeptUser struct {

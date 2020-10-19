@@ -122,7 +122,7 @@ func (a *AttendanceController) UploadAttendanceTmp() {
 		userDatas[row[1]] = append(ud, attendanceTmp)
 	}
 	//拼接sql
-	sql := "insert into attendance_tmp(created_at,dept,name,attendance_date,check_time,status) values"
+	sql := "insert into attendance_tmp(created_at,dept,name,attendance_date,check_time,status,result) values"
 	realData := make([]string, 0)
 	now := time.Now().Format(models.TimeFormat)
 	for _, u := range users {
