@@ -239,17 +239,15 @@ func (e *EmployeeController) NewEmpLeave() {
 		e.ErrorOK(MsgInvalidParam)
 	}
 
-	tx := services.Slave().Begin()
 	quitInfo := reqLeave.ToEntity()
 	quitInfo.EmployeeID = eID
-	err = tx.Create(quitInfo).Error
+	err = services.Slave().Create(quitInfo).Error
 	if err != nil {
 		log.GLogger.Error("employee leave err：%s", err.Error())
-		tx.Rollback()
 		e.ErrorOK(MsgServerErr)
 	}
 	//更新employee信息
-	err = tx.Model(oa.Employee{}).Where("id = ?", eID).Updates(map[string]interface{}{
+	err = services.Slave().Model(oa.Employee{}).Where("id = ?", eID).Updates(map[string]interface{}{
 		"req_user":         operator,
 		"reason":           reqLeave.Reason,
 		"status":           3,
@@ -257,18 +255,15 @@ func (e *EmployeeController) NewEmpLeave() {
 	}).Error
 	if err != nil {
 		log.GLogger.Error("employee leave err：%s", err.Error())
-		tx.Rollback()
 		e.ErrorOK(MsgServerErr)
 	}
 	//创建流程信息
 	uID, _ := e.GetInt("userID", 0)
-	err = services.CreateLeaveWorkflow(tx, eID, uID)
+	err = services.CreateLeaveWorkflow(services.Slave(), eID, uID)
 	if err != nil {
 		log.GLogger.Error("create leave workflow err：%s", err.Error())
-		tx.Rollback()
 		e.ErrorOK(MsgServerErr)
 	}
-	tx.Commit()
 	e.Correct("")
 }
 
