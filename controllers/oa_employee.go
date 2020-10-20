@@ -210,7 +210,7 @@ func (e *EmployeeController) CommitWorkflowNode() {
 			"wx_work":   flowInfo.WxWork,
 			"tapd":      flowInfo.Tapd,
 			"plan_date": workflow.Elements[0].Value,
-			"status":    2,
+			//"status":    2,
 		})
 		workflow.Nodes[2].Status = models.FlowCompleted
 		workflow.Status = models.FlowCompleted
