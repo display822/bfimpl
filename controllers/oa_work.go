@@ -44,8 +44,6 @@ func (w *WorkController) ReqOvertime() {
 	}
 	param.EmpID = int(employee.ID)
 	param.EName = employee.Name
-	param.StartTime = models.Time(time.Now())
-	param.EndTime = models.Time(time.Now())
 	param.ReqTime = models.Time(time.Now())
 	param.Status = models.FlowNA
 	tx := services.Slave().Begin()
