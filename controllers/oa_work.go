@@ -202,9 +202,9 @@ func (w *WorkController) OvertimeList() {
 		for _, eID := range ids[start:end] {
 			eIDs = append(eIDs, eID.EntityID)
 		}
-		services.Slave().Model(oa.Leave{}).Where(eIDs).Find(&overtimes)
+		services.Slave().Model(oa.Overtime{}).Where(eIDs).Order("created_at desc").Find(&overtimes)
 	} else {
-		query.Limit(pageSize).Offset((pageNum - 1) * pageSize).Find(&overtimes).Limit(-1).Offset(-1).Count(&resp.Total)
+		query.Limit(pageSize).Offset((pageNum - 1) * pageSize).Order("created_at desc").Find(&overtimes).Limit(-1).Offset(-1).Count(&resp.Total)
 	}
 	resp.List = overtimes
 	w.Correct(resp)
@@ -449,9 +449,9 @@ func (w *WorkController) LeaveList() {
 		for _, eID := range ids[start:end] {
 			eIDs = append(eIDs, eID.EntityID)
 		}
-		services.Slave().Model(oa.Leave{}).Where(eIDs).Find(&leaves)
+		services.Slave().Model(oa.Leave{}).Order("created_at desc").Where(eIDs).Find(&leaves)
 	} else {
-		query.Limit(pageSize).Offset((pageNum - 1) * pageSize).Find(&leaves).Limit(-1).Offset(-1).Count(&resp.Total)
+		query.Limit(pageSize).Offset((pageNum - 1) * pageSize).Order("created_at desc").Find(&leaves).Limit(-1).Offset(-1).Count(&resp.Total)
 	}
 	resp.List = leaves
 	w.Correct(resp)
