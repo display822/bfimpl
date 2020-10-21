@@ -116,12 +116,12 @@ func (e *EmployeeController) GetEmpEntryList() {
 	query := services.Slave().Model(oa.Employee{})
 
 	//查流程表，得到员工id列表
-	ids := make([]*oa.EIDStatus, 0)
 	if userType != models.UserHR {
+		ids := make([]*oa.EntityID, 0)
 		//如果是IT,只显示流程在自己这入职
-		services.Slave().Raw("select w.entity_id,wn.status from workflows w, workflow_nodes wn where w.id = wn.workflow_id"+
+		services.Slave().Raw("select w.entity_id from workflows w, workflow_nodes wn where w.id = wn.workflow_id"+
 			" and w.workflow_definition_id = 1 and wn.operator_id = ? and wn.status = ? limit ?,?",
-			models.FlowProcessing, userID, (pageNum-1)*pageSize, pageSize).Scan(&ids)
+			userID, models.FlowProcessing, (pageNum-1)*pageSize, pageSize).Scan(&ids)
 		resp.Total = len(ids)
 		start, end := getPage(resp.Total, pageSize, pageNum)
 		eIDs := make([]int, 0)
