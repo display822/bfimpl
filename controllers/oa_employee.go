@@ -105,6 +105,8 @@ func (e *EmployeeController) GetEmpEntryList() {
 	dID, _ := e.GetInt("departmentid", 0)
 	status, _ := e.GetInt("status", -1)
 	createID, _ := e.GetInt("creator", -1)
+	userType, _ := e.GetInt("userType", 0)
+	userID, _ := e.GetInt("userID", 0)
 	employees := make([]*oa.Employee, 0)
 	//未入职和拟入职
 	var resp struct {
@@ -112,6 +114,24 @@ func (e *EmployeeController) GetEmpEntryList() {
 		List  []*oa.Employee `json:"list"`
 	}
 	query := services.Slave().Model(oa.Employee{})
+
+	//查流程表，得到员工id列表
+	ids := make([]*oa.EIDStatus, 0)
+	if userType != models.UserHR {
+		//如果是IT,只显示流程在自己这入职
+		services.Slave().Raw("select w.entity_id,wn.status from workflows w, workflow_nodes wn where w.id = wn.workflow_id"+
+			" and w.workflow_definition_id = 1 and wn.operator_id = ? and wn.status = ? limit ?,?",
+			models.FlowProcessing, userID, (pageNum-1)*pageSize, pageSize).Scan(&ids)
+		resp.Total = len(ids)
+		start, end := getPage(resp.Total, pageSize, pageNum)
+		eIDs := make([]int, 0)
+		for _, eID := range ids[start:end] {
+			eIDs = append(eIDs, eID.EntityID)
+		}
+		query.Where(eIDs).Order("updated_at desc").Find(&employees)
+		resp.List = employees
+		e.Correct(resp)
+	}
 	if dID != 0 {
 		query = query.Where("department_id = ?", dID)
 	}

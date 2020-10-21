@@ -48,6 +48,11 @@ type Employee struct {
 	//Contracts        []*EmployeeContract `json:"contracts"`
 }
 
+type EIDStatus struct {
+	EntityID int    `gorm:"column:entity_id"`
+	Status   string `gorm:"column:status"`
+}
+
 type EmpPos struct {
 	Name string `gorm:"column:name"`
 	Tapd string `gorm:"column:tapd"`
