@@ -123,7 +123,17 @@ func (a *AttendanceController) UploadAttendanceTmp() {
 	}
 	//查询本月补班
 	holidays := make([]*oa.PublicHoliday, 0)
-	services.Slave().Model(oa.PublicHoliday{}).Where("holiday_type = workday").Find(&holidays)
+	if len(rows) > 2 {
+		checkTime, err := time.Parse(excelTime, rows[1][2])
+		if err == nil {
+			year, month := checkTime.Year(), int(checkTime.Month())
+			start, end := fmt.Sprintf("%d-%02d-01", year, month), fmt.Sprintf("%d-%02d-%d", year, month, models.Months[month])
+			services.Slave().Model(oa.PublicHoliday{}).Where("holiday_type = workday and public_holiday_date >= ?"+
+				" and public_holiday_date <= ?", start, end).Find(&holidays)
+		}
+	}
+	services.Slave().Model(oa.PublicHoliday{}).Where("holiday_type = workday and public_holiday_date >= ?" +
+		" and public_holiday_date <= ?", ).Find(&holidays)
 	//拼接sql
 	sql := "insert into attendance_tmp(created_at,dept,name,attendance_date,check_time,status,result) values"
 	realData := make([]string, 0)
