@@ -31,6 +31,13 @@ func main() {
 		logs.Error("start delay amount:%s", err.Error())
 		return
 	}
+	_, err = c.AddFunc("0 2 16 * *", func() {
+		controllers.GeneraSheBao()
+	})
+	if err != nil {
+		logs.Error("genera shebao info:%s", err.Error())
+		return
+	}
 	c.Start()
 	defer c.Stop()
 	rand.Seed(time.Now().Unix())

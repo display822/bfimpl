@@ -7,6 +7,8 @@
 package controllers
 
 import (
+	"bfimpl/models"
+	"bfimpl/models/oa"
 	"bfimpl/services"
 	"bfimpl/services/log"
 	"fmt"
@@ -15,6 +17,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/360EntSecGroup-Skylar/excelize/v2"
 	"github.com/minio/minio-go"
 )
 
@@ -74,4 +77,135 @@ func upload(filename, bucket string) {
 		log.GLogger.Info("Successfully uploaded %s of size %d\n", filename, n)
 	}
 	os.Remove(filePath)
+}
+
+// @Title 社保文件列表
+// @Description 社保文件列表
+// @Success 200 {string} "success"
+// @Failure 500 server internal err
+// @router /sslist [post]
+func (m *FileController) SocialSecurityList() {
+	ss := make([]*oa.SocialSecurity, 0)
+	services.Slave().Model(oa.SocialSecurity{}).Find(&ss)
+	m.Correct(ss)
+}
+
+//生成社保信息
+func GeneraSheBao() {
+	//生成excel
+	f := excelize.NewFile()
+	row := 1
+	_ = f.SetCellStr("Sheet1", "A"+strconv.Itoa(row), "在职")
+	row++
+	_ = f.SetSheetRow("Sheet1", "A"+strconv.Itoa(row), &[]interface{}{"主体", "员工姓名", "状态", "入职日期",
+		"离职日期", "身份证号", "户籍性质", "公积金号"})
+	row++
+	//查询在职员工
+	existEmp := make([]*oa.Employee, 0)
+	services.Slave().Where("status = 2").Preload("EmployeeBasic").Find(&existEmp)
+	existIds := make([]uint, 0)
+	for _, emp := range existEmp {
+		existIds = append(existIds, emp.ID)
+	}
+	//查询本月入职和离职流程
+	workFlows := make([]*oa.Workflow, 0)
+	now := time.Now()
+	end := fmt.Sprintf("%d-%2d-15", now.Year(), now.Month())
+	pre := now.AddDate(0, -1, 0)
+	start := fmt.Sprintf("%d-%02d-16", pre.Year(), pre.Month())
+	services.Slave().Where("workflow_definition_id in (?) and created_at >= ? and created_at <= ?",
+		[]int{1, 2}, start, end).Find(&workFlows)
+	userInIds := make([]int, 0)
+	userOutIds := make([]int, 0)
+	except := make(map[int]bool)
+	for _, wf := range workFlows {
+		except[wf.EntityID] = true
+		if wf.WorkflowDefinitionID == 1 {
+			//入职
+			userInIds = append(userInIds, wf.EntityID)
+		} else {
+			//离职
+			userOutIds = append(userOutIds, wf.EntityID)
+		}
+	}
+	//在职信息=============================
+	//查询合同
+	existMain := make([]*oa.ContractSimple, 0)
+	services.Slave().Table("employee_contracts").Select("contract_party,max(contract_end_date) as enddate, employee_id").
+		Where("employee_id in (?)", existIds).Group("employee_id").Scan(&existMain)
+	empContract := make(map[int]*oa.ContractSimple)
+	for i := range existMain {
+		// eid -> 合同
+		empContract[existMain[i].EmployeeID] = existMain[i]
+	}
+	userIn := make(map[int]*oa.Employee)
+	for i, emp := range existEmp {
+		if except[int(emp.ID)] {
+			userIn[int(emp.ID)] = existEmp[i]
+			continue
+		}
+		var contractMain, huji, fund string
+		if emp.EmployeeBasic != nil {
+			huji = emp.EmployeeBasic.HujiType
+			fund = emp.EmployeeBasic.PublicFund
+		}
+		if m, ok := empContract[int(emp.ID)]; ok {
+			contractMain = m.ContractParty
+		}
+		_ = f.SetSheetRow("Sheet1", "A"+strconv.Itoa(row), &[]interface{}{contractMain, emp.Name, models.EmpStatus[emp.Status],
+			emp.EntryDate, "-", emp.IDCard, huji, fund})
+		row++
+	}
+	//新入职信息=============================
+	_ = f.SetCellStr("Sheet1", "A"+strconv.Itoa(row), "新入职")
+	row++
+	for _, emp := range userIn {
+		var contractMain, huji, fund string
+		if emp.EmployeeBasic != nil {
+			huji = emp.EmployeeBasic.HujiType
+			fund = emp.EmployeeBasic.PublicFund
+		}
+		if m, ok := empContract[int(emp.ID)]; ok {
+			contractMain = m.ContractParty
+		}
+		_ = f.SetSheetRow("Sheet1", "A"+strconv.Itoa(row), &[]interface{}{contractMain, emp.Name, models.EmpStatus[emp.Status],
+			emp.EntryDate, "-", emp.IDCard, huji, fund})
+		row++
+	}
+	_ = f.SetCellStr("Sheet1", "A"+strconv.Itoa(row), "已离职")
+	row++
+	//离职信息=============================
+	//离职员工
+	leaveEmp := make([]*oa.Employee, 0)
+	services.Slave().Where(userOutIds).Preload("EmployeeBasic").Find(&leaveEmp)
+	leaveMain := make([]*oa.ContractSimple, 0)
+	services.Slave().Table("employee_contracts").Select("contract_party,max(contract_end_date) as enddate, employee_id").
+		Where("employee_id in (?)", userOutIds).Group("employee_id").Scan(&leaveMain)
+	leaveContract := make(map[int]*oa.ContractSimple)
+	for i := range leaveMain {
+		// eid -> 合同
+		leaveContract[leaveMain[i].EmployeeID] = leaveMain[i]
+	}
+	for _, emp := range leaveEmp {
+		var contractMain, huji, fund string
+		if emp.EmployeeBasic != nil {
+			huji = emp.EmployeeBasic.HujiType
+			fund = emp.EmployeeBasic.PublicFund
+		}
+		if m, ok := leaveContract[int(emp.ID)]; ok {
+			contractMain = m.ContractParty
+		}
+		_ = f.SetSheetRow("Sheet1", "A"+strconv.Itoa(row), &[]interface{}{contractMain, emp.Name, models.EmpStatus[emp.Status],
+			emp.EntryDate, emp.ResignationDate, emp.IDCard, huji, fund})
+		row++
+	}
+	saveFile := new(oa.SocialSecurity)
+	fileName := fmt.Sprintf("%s至%s信息表.xlsx", start, end)
+	saveFile.Name = fileName
+	saveFile.DownloadUrl = "/socialsecurity/" + fileName
+	f.SaveAs("static/" + saveFile.DownloadUrl)
+	//保存数据库信息
+	upload(fileName, "socialsecurity")
+	services.Slave().Create(saveFile)
+	os.Remove("static/" + saveFile.DownloadUrl)
 }

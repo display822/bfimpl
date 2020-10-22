@@ -69,5 +69,6 @@ func DBInit() {
 		&oa.EngagementCode{},
 		&oa.Attendance{},
 		&oa.AttendanceTmp{},
+		&oa.SocialSecurity{},
 	)
 }

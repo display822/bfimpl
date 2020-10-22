@@ -18,7 +18,7 @@ type Employee struct {
 	gorm.Model
 	Name             string         `gorm:"size:60;not null;default:'';comment:'姓名'" json:"name"`
 	Gender           string         `gorm:"size:10;not null;default:'';comment:'性别'" json:"gender"`
-	Status           int            `gorm:"default:0;comment:'拟入职，已入职，未入职，已离职, 已解约'" json:"status"`
+	Status           int            `gorm:"default:0;comment:'未入职，拟入职，已入职，已离职, 已解约'" json:"status"`
 	Mobile           string         `gorm:"size:20;not null;default:'';comment:'手机'" json:"mobile"`
 	EmpNo            string         `gorm:"size:20;not null;default:'';comment:'员工编号'" json:"emp_no"`
 	IDCard           string         `gorm:"size:20;not null;default:'';comment:'身份证'" json:"id_card"`
@@ -99,4 +99,10 @@ func (r *ReqEmployee) ToEmployee() *Employee {
 		PlanDate:         r.PlanDate,
 		CreateTime:       models.Time(time.Now()),
 	}
+}
+
+type SocialSecurity struct {
+	gorm.Model
+	Name        string `gorm:"size:60;not null;default:'-';comment:'文件名'" json:"name"`
+	DownloadUrl string `gorm:"size:200;not null;default:'';comment:'下载地址'" json:"download_url"`
 }

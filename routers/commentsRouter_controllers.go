@@ -584,6 +584,15 @@ func init() {
 			Filters:          nil,
 			Params:           nil})
 
+	beego.GlobalControllerRouter["bfimpl/controllers:FileController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:FileController"],
+		beego.ControllerComments{
+			Method:           "SocialSecurityList",
+			Router:           `/sslist`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
 	beego.GlobalControllerRouter["bfimpl/controllers:WorkController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:WorkController"],
 		beego.ControllerComments{
 			Method:           "ReqOvertime",

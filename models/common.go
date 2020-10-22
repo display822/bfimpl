@@ -49,6 +49,14 @@ const (
 
 var Months = []int{31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}
 
+var EmpStatus = map[int]string{
+	0: "未入职",
+	1: "拟入职",
+	2: "在职",
+	3: "离职",
+	4: "已解约",
+}
+
 var AmountChange = map[string]int{
 	Amount_Use:        -1,
 	Amount_Cancel:     1,
