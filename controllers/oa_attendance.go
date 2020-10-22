@@ -121,13 +121,32 @@ func (a *AttendanceController) UploadAttendanceTmp() {
 		userToday[key] = true
 		userDatas[row[1]] = append(ud, attendanceTmp)
 	}
+	//查询本月补班
+	holidays := make([]*oa.PublicHoliday, 0)
+	services.Slave().Model(oa.PublicHoliday{}).Where("holiday_type = workday").Find(&holidays)
 	//拼接sql
 	sql := "insert into attendance_tmp(created_at,dept,name,attendance_date,check_time,status,result) values"
 	realData := make([]string, 0)
 	now := time.Now().Format(models.TimeFormat)
 	for _, u := range users {
+		var dept string
 		for _, v := range userDatas[u] {
+			dept = v.Dept
 			realData = append(realData, v.String(now))
+		}
+		for _, holiday := range holidays {
+			if !userToday[u+holiday.PublicHolidayDate.String()] {
+				//补班未上班
+				tmpWork := oa.AttendanceTmp{
+					Dept:           dept,
+					Name:           u,
+					AttendanceDate: holiday.PublicHolidayDate,
+					CheckTime:      models.Time(holiday.PublicHolidayDate),
+					Status:         Exception,
+					Result:         "旷工",
+				}
+				realData = append(realData, tmpWork.String(now))
+			}
 		}
 	}
 	sql += strings.Join(realData, ",")

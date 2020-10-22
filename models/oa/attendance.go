@@ -11,8 +11,11 @@ import (
 
 	"fmt"
 	"time"
+
+	"github.com/jinzhu/gorm"
 )
 
+//考勤确认数据
 type Attendance struct {
 	ID             uint        `gorm:"primary_key"`
 	CreatedAt      time.Time   `json:"-"`
@@ -33,6 +36,7 @@ type Attendance struct {
 	//ImportFile     string      `gorm:"comment:'导入文件名'" json:"import_file"`
 }
 
+//考勤临时数据
 type AttendanceTmp struct {
 	ID             uint        `gorm:"primary_key"`
 	CreatedAt      time.Time   `json:"-"`
@@ -46,6 +50,15 @@ type AttendanceTmp struct {
 	Status         string      `gorm:"size:20;comment:'Normal, Exception'" json:"status"`
 	Result         string      `gorm:"size:20;comment:'异常判断'" json:"result"`
 	LeaveID        int         `gorm:"size:60;comment:'休假申请记录号'" json:"leave_id"`
+}
+
+//节假日补班
+type PublicHoliday struct {
+	gorm.Model
+	HolidayName       string      `gorm:"size:20;comment:'节假日名称'" json:"holiday_name"`
+	PublicHolidayDate models.Date `gorm:"type:date;not null;comment:'补班日期'" json:"public_holiday_date"`
+	HolidayType       string      `gorm:"comment:'节假日类型'" json:"holiday_type"`
+	// workday weekend statutory
 }
 
 type DeptUsers struct {
