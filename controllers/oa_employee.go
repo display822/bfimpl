@@ -454,6 +454,7 @@ func (e *EmployeeController) GetContracts() {
 	pageSize, _ := e.GetInt("pagesize", 10)
 	pageNum, _ := e.GetInt("pagenum", 1)
 	name := e.GetString("name")
+	mainObj := e.GetString("main")
 	status := e.GetString("status")
 	number := e.GetString("number")
 	contracts := make([]*oa.EmployeeContract, 0)
@@ -473,6 +474,9 @@ func (e *EmployeeController) GetContracts() {
 	}
 	if name != "" {
 		query = query.Where("contract_party like ?", "%"+name+"%")
+	}
+	if mainObj != "" {
+		query = query.Where("contract_main like ?", "%"+mainObj+"%")
 	}
 	query.Limit(pageSize).Offset((pageNum - 1) * pageSize).Order("created_at desc").Find(&contracts).
 		Limit(-1).Offset(-1).Count(&resp.Total)
