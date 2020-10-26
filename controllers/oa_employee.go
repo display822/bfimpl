@@ -141,7 +141,7 @@ func (e *EmployeeController) GetEmpEntryList() {
 	} else {
 		if flow == 1 {
 			//入职
-			query = query.Where("status in (?)", []int{0, 1, 2, 3, 4})
+			query = query.Where("status in (?)", []int{0, 1, 2, 4})
 		} else {
 			query = query.Where("status in (?)", []int{3})
 		}
