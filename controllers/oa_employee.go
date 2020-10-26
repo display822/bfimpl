@@ -139,7 +139,12 @@ func (e *EmployeeController) GetEmpEntryList() {
 	if status != -1 {
 		query = query.Where("status = ?", status)
 	} else {
-		query = query.Where("status in (?)", []int{0, 1, 2, 3, 4})
+		if flow == 1 {
+			//入职
+			query = query.Where("status in (?)", []int{0, 1, 2, 3, 4})
+		} else {
+			query = query.Where("status in (?)", []int{3})
+		}
 	}
 	if createID != -1 {
 		query = query.Where("creator_id = ?", createID)
