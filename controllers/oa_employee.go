@@ -107,6 +107,7 @@ func (e *EmployeeController) GetEmpEntryList() {
 	createID, _ := e.GetInt("creator", -1)
 	userType, _ := e.GetInt("userType", 0)
 	userID, _ := e.GetInt("userID", 0)
+	flow, _ := e.GetInt("flow", 1)
 	employees := make([]*oa.Employee, 0)
 	//未入职和拟入职
 	var resp struct {
@@ -120,8 +121,8 @@ func (e *EmployeeController) GetEmpEntryList() {
 		ids := make([]*oa.EntityID, 0)
 		//如果是IT,只显示流程在自己这入职
 		services.Slave().Raw("select w.entity_id from workflows w, workflow_nodes wn where w.id = wn.workflow_id"+
-			" and w.workflow_definition_id = 1 and wn.operator_id = ? and wn.status = ? limit ?,?",
-			userID, models.FlowProcessing, (pageNum-1)*pageSize, pageSize).Scan(&ids)
+			" and w.workflow_definition_id = ? and wn.operator_id = ? and wn.status = ? limit ?,?",
+			flow, userID, models.FlowProcessing, (pageNum-1)*pageSize, pageSize).Scan(&ids)
 		resp.Total = len(ids)
 		start, end := getPage(resp.Total, pageSize, pageNum)
 		eIDs := make([]int, 0)
