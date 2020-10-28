@@ -25,22 +25,31 @@ insert into workflow_form_element_defs(created_at,updated_at,workflow_definition
 
 
 -- 新增部门
-insert into users(created_at,updated_at, name, email,wx,phone,user_type) values
-(now(),now(),'孟繁秋','fanqiu.meng@broadfun.cn', '','',1),
-(now(),now(),'李欣','lane.li@broadfun.cn', '','',1),
-(now(),now(),'王立卿','Stanley.wang@broadfun.cn', '','',1),
-(now(),now(),'罗超','chao.luo@broadfun.cn', '','',10),
-(now(),now(),'范硕瑀','barry.fan@broadfun.cn', '','',10);
+insert into users(id,created_at,updated_at, name, email,wx,phone,user_type) values
+(66,now(),now(),'马俊杰','ralph.ma@broadfun.cn', '','',10),
+(84,now(),now(),'孟繁秋','fanqiu.meng@broadfun.cn', '','',10),
+(85,now(),now(),'李欣','lane.li@broadfun.cn', '','',10),
+(86,now(),now(),'王立卿','Stanley.wang@broadfun.cn', '','',10),
+(87,now(),now(),'罗超','chao.luo@broadfun.cn', '','',10),
+(88,now(),now(),'姚诚诚','chengcheng.yao@broadfun.cn', '','',10),
+(89,now(),now(),'何勤勤','Theresa.he@broadfun.cn', '','',10),
+(90,now(),now(),'孙丹峰','danfeng.sun@broadfun.cn', '','',10),
+(91,now(),now(),'陈一菲','yifei.chen@broadfun.cn', '','',10);
 insert into departments(created_at,updated_at,department_name,department_leader_id) values
-(now(),now(),'游戏测试部',84),
+(now(),now(),'游戏测试一组',84),
+(now(),now(),'游戏测试二组',84),
 (now(),now(),'专家实施',85),
-(now(),now(),'WeTest深度',86),
-(now(),now(),'WeTest商务',0),
-(now(),now(),'合研部门',2),
-(now(),now(),'先游Gamer',0),
-(now(),now(),'APM',0),
-(now(),now(),'B站外派',0),
-(now(),now(),'职能部门',0);
+(now(),now(),'WeTest外部服务',86),
+(now(),now(),'WeTest客户成功',89),
+(now(),now(),'WeTest商务1',87),
+(now(),now(),'WeTest商务2',88),
+(now(),now(),'WeTest私有化',2),
+(now(),now(),'WeTest海外先游',2),
+(now(),now(),'WeTest企鹅风讯',2),
+(now(),now(),'人力资源部',91),
+(now(),now(),'财务部',89),
+(now(),now(),'IT部',66),
+(now(),now(),'QA部',66);
 -- 新增财务统计engagement_code
 insert into engagement_codes(created_at,updated_at,engagement_code,engagement_code_desc,department_id,code_owner_id) values
 (now(),now(),'10001', 'Wetest私有化',5, 2),
@@ -124,3 +133,5 @@ insert into users(created_at,updated_at, name, email,wx,phone,user_type) values
 alter table workflows add unique `uid_workflows_wfd_e`(`workflow_definition_id`,`entity_id`);
 
 alter table attendances add UNIQUE uix_attendance_name_date(`name`,`attendance_date`);
+
+alter table attendance_tmp add UNIQUE uix_attendance_name_date(`name`,`check_time`);

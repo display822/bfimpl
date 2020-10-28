@@ -137,7 +137,11 @@ func (e *EmployeeController) GetEmpEntryList() {
 		query = query.Where("department_id = ?", dID)
 	}
 	if status != -1 {
-		query = query.Where("status = ?", status)
+		if status == 0 {
+			query = query.Where("status in (?)", []int{0, 1})
+		} else {
+			query = query.Where("status = ?", status)
+		}
 	} else {
 		if flow == 1 {
 			//入职

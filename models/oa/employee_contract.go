@@ -28,7 +28,7 @@ type EmployeeContract struct {
 }
 
 type ContractSimple struct {
-	EndDate       models.Time `gorm:"column:enddate" json:"enddate"`
-	EmployeeID    int         `json:"employee_id"`
-	ContractParty string      `json:"contract_party"`
+	EndDate      models.Time `gorm:"column:enddate" json:"enddate"`
+	EmployeeID   int         `json:"employee_id"`
+	ContractMain string      `json:"contract_main"`
 }

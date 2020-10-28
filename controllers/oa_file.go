@@ -108,30 +108,30 @@ func GeneraSheBao() {
 		existIds = append(existIds, emp.ID)
 	}
 	//查询本月入职和离职流程
-	workFlows := make([]*oa.Workflow, 0)
+	inAndOutEmp := make([]*oa.Employee, 0)
 	now := time.Now()
 	end := fmt.Sprintf("%d-%2d-15", now.Year(), now.Month())
 	pre := now.AddDate(0, -1, 0)
 	start := fmt.Sprintf("%d-%02d-16", pre.Year(), pre.Month())
-	services.Slave().Where("workflow_definition_id in (?) and created_at >= ? and created_at <= ?",
-		[]int{1, 2}, start, end).Find(&workFlows)
+	services.Slave().Where("(entry_date >= ? and entry_date <= ?) or (resignation_date >= ? and resignation_date <= ?)",
+		start, end, start, end).Find(&inAndOutEmp)
 	userInIds := make([]int, 0)
 	userOutIds := make([]int, 0)
-	except := make(map[int]bool)
-	for _, wf := range workFlows {
-		except[wf.EntityID] = true
-		if wf.WorkflowDefinitionID == 1 {
+	except := make(map[uint]bool)
+	for _, emp := range inAndOutEmp {
+		if emp.ResignationDate.IsZero() {
 			//入职
-			userInIds = append(userInIds, wf.EntityID)
+			except[emp.ID] = true
+			userInIds = append(userInIds, int(emp.ID))
 		} else {
 			//离职
-			userOutIds = append(userOutIds, wf.EntityID)
+			userOutIds = append(userOutIds, int(emp.ID))
 		}
 	}
 	//在职信息=============================
 	//查询合同
 	existMain := make([]*oa.ContractSimple, 0)
-	services.Slave().Table("employee_contracts").Select("contract_party,max(contract_end_date) as enddate, employee_id").
+	services.Slave().Table("employee_contracts").Select("contract_main,max(contract_end_date) as enddate, employee_id").
 		Where("employee_id in (?)", existIds).Group("employee_id").Scan(&existMain)
 	empContract := make(map[int]*oa.ContractSimple)
 	for i := range existMain {
@@ -140,7 +140,7 @@ func GeneraSheBao() {
 	}
 	userIn := make(map[int]*oa.Employee)
 	for i, emp := range existEmp {
-		if except[int(emp.ID)] {
+		if except[emp.ID] {
 			userIn[int(emp.ID)] = existEmp[i]
 			continue
 		}
@@ -150,7 +150,7 @@ func GeneraSheBao() {
 			fund = emp.EmployeeBasic.PublicFund
 		}
 		if m, ok := empContract[int(emp.ID)]; ok {
-			contractMain = m.ContractParty
+			contractMain = m.ContractMain
 		}
 		_ = f.SetSheetRow("Sheet1", "A"+strconv.Itoa(row), &[]interface{}{contractMain, emp.Name, models.EmpStatus[emp.Status],
 			emp.EntryDate, "-", emp.IDCard, huji, fund})
@@ -166,7 +166,7 @@ func GeneraSheBao() {
 			fund = emp.EmployeeBasic.PublicFund
 		}
 		if m, ok := empContract[int(emp.ID)]; ok {
-			contractMain = m.ContractParty
+			contractMain = m.ContractMain
 		}
 		_ = f.SetSheetRow("Sheet1", "A"+strconv.Itoa(row), &[]interface{}{contractMain, emp.Name, models.EmpStatus[emp.Status],
 			emp.EntryDate, "-", emp.IDCard, huji, fund})
@@ -179,7 +179,7 @@ func GeneraSheBao() {
 	leaveEmp := make([]*oa.Employee, 0)
 	services.Slave().Where(userOutIds).Preload("EmployeeBasic").Find(&leaveEmp)
 	leaveMain := make([]*oa.ContractSimple, 0)
-	services.Slave().Table("employee_contracts").Select("contract_party,max(contract_end_date) as enddate, employee_id").
+	services.Slave().Table("employee_contracts").Select("contract_main,max(contract_end_date) as enddate, employee_id").
 		Where("employee_id in (?)", userOutIds).Group("employee_id").Scan(&leaveMain)
 	leaveContract := make(map[int]*oa.ContractSimple)
 	for i := range leaveMain {
@@ -193,7 +193,7 @@ func GeneraSheBao() {
 			fund = emp.EmployeeBasic.PublicFund
 		}
 		if m, ok := leaveContract[int(emp.ID)]; ok {
-			contractMain = m.ContractParty
+			contractMain = m.ContractMain
 		}
 		_ = f.SetSheetRow("Sheet1", "A"+strconv.Itoa(row), &[]interface{}{contractMain, emp.Name, models.EmpStatus[emp.Status],
 			emp.EntryDate, emp.ResignationDate, emp.IDCard, huji, fund})
