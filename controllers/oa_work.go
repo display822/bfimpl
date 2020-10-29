@@ -192,10 +192,13 @@ func (w *WorkController) OvertimeList() {
 	if mytodo {
 		//待我审核，查询结点待我审核的id
 		qs := make([]string, 0)
+		if status == models.FlowNA {
+			status = models.FlowProcessing
+		}
 		if status != "" {
 			qs = append(qs, status)
 		} else {
-			qs = append(qs, models.FlowApproved, models.FlowRejected, models.FlowProcessing, models.FlowNA)
+			qs = append(qs, models.FlowApproved, models.FlowRejected, models.FlowProcessing)
 		}
 		userID, _ := w.GetInt("userID", 0)
 		ids := make([]*oa.EntityID, 0)
@@ -444,11 +447,20 @@ func (w *WorkController) LeaveList() {
 	}
 	if mytodo {
 		//待我审核，查询结点待我审核的id
+		qs := make([]string, 0)
+		if status == models.FlowNA {
+			status = models.FlowProcessing
+		}
+		if status != "" {
+			qs = append(qs, status)
+		} else {
+			qs = append(qs, models.FlowApproved, models.FlowRejected, models.FlowProcessing)
+		}
 		userID, _ := w.GetInt("userID", 0)
 		ids := make([]*oa.EntityID, 0)
 		services.Slave().Raw("select w.entity_id from workflows w,workflow_nodes wn where w.id = "+
-			"wn.workflow_id and w.workflow_definition_id = ? and operator_id = ? and wn.status != 'NA'"+
-			" and wn.node_seq != 1", services.GetFlowDefID(services.Leave), userID).Scan(&ids)
+			"wn.workflow_id and w.workflow_definition_id = ? and operator_id = ? and wn.status in (?)"+
+			" and wn.node_seq != 1", services.GetFlowDefID(services.Leave), userID, qs).Scan(&ids)
 		resp.Total = len(ids)
 		start, end := getPage(resp.Total, pageSize, pageNum)
 		eIDs := make([]int, 0)
@@ -466,7 +478,7 @@ func (w *WorkController) LeaveList() {
 func getPage(total, pageSize, pageNum int) (int, int) {
 	start, end := 0, total
 	if total > pageSize {
-		start := (pageNum - 1) * pageSize
+		start = (pageNum - 1) * pageSize
 		end = start + pageSize
 		if start > total {
 			start = 0
