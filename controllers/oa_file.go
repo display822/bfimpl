@@ -92,6 +92,10 @@ func (m *FileController) SocialSecurityList() {
 
 //生成社保信息
 func GeneraSheBao() {
+	now := time.Now()
+	end := fmt.Sprintf("%d-%2d-15", now.Year(), now.Month())
+	pre := now.AddDate(0, -1, 0)
+	start := fmt.Sprintf("%d-%02d-16", pre.Year(), pre.Month())
 	//生成excel
 	f := excelize.NewFile()
 	row := 1
@@ -102,17 +106,13 @@ func GeneraSheBao() {
 	row++
 	//查询在职员工
 	existEmp := make([]*oa.Employee, 0)
-	services.Slave().Where("status = 2").Preload("EmployeeBasic").Find(&existEmp)
+	services.Slave().Where("status = 2 and entry_date <= ?", end).Preload("EmployeeBasic").Find(&existEmp)
 	existIds := make([]uint, 0)
 	for _, emp := range existEmp {
 		existIds = append(existIds, emp.ID)
 	}
 	//查询本月入职和离职流程
 	inAndOutEmp := make([]*oa.Employee, 0)
-	now := time.Now()
-	end := fmt.Sprintf("%d-%2d-15", now.Year(), now.Month())
-	pre := now.AddDate(0, -1, 0)
-	start := fmt.Sprintf("%d-%02d-16", pre.Year(), pre.Month())
 	services.Slave().Where("(entry_date >= ? and entry_date <= ?) or (resignation_date >= ? and resignation_date <= ?)",
 		start, end, start, end).Find(&inAndOutEmp)
 	userInIds := make([]int, 0)
