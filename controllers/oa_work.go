@@ -195,7 +195,7 @@ func (w *WorkController) OvertimeList() {
 		if status != "" {
 			qs = append(qs, status)
 		} else {
-			qs = append(qs, models.FlowApproved, models.FlowRejected, models.FlowProcessing)
+			qs = append(qs, models.FlowApproved, models.FlowRejected, models.FlowProcessing, models.FlowNA)
 		}
 		userID, _ := w.GetInt("userID", 0)
 		ids := make([]*oa.EntityID, 0)
