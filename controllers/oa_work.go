@@ -191,11 +191,17 @@ func (w *WorkController) OvertimeList() {
 	}
 	if mytodo {
 		//待我审核，查询结点待我审核的id
+		qs := make([]string, 0)
+		if status != "" {
+			qs = append(qs, status)
+		} else {
+			qs = append(qs, models.FlowApproved, models.FlowRejected)
+		}
 		userID, _ := w.GetInt("userID", 0)
 		ids := make([]*oa.EntityID, 0)
 		services.Slave().Raw("select w.entity_id from workflows w,workflow_nodes wn where w.id = "+
-			"wn.workflow_id and w.workflow_definition_id = ? and operator_id = ? and wn.status != 'NA'"+
-			" and wn.node_seq != 1", services.GetFlowDefID(services.Overtime), userID).Scan(&ids)
+			"wn.workflow_id and w.workflow_definition_id = ? and operator_id = ? and wn.status in (?)"+
+			" and wn.node_seq != 1", services.GetFlowDefID(services.Overtime), userID, qs).Scan(&ids)
 		resp.Total = len(ids)
 		start, end := getPage(resp.Total, pageSize, pageNum)
 		eIDs := make([]int, 0)
