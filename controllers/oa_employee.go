@@ -304,9 +304,13 @@ func (e *EmployeeController) NewEmpLeave() {
 // @router /leave/:id [get]
 func (e *EmployeeController) GetLeaveInfo() {
 	eID, _ := e.GetInt(":id", 0)
-	flowInfo := new(oa.QuitFlowInfo)
-	services.Slave().Model(oa.QuitFlowInfo{}).Where("employee_id = ?", eID).First(flowInfo)
-	e.Correct(flowInfo)
+	var res struct {
+		Emp      oa.Employee
+		FlowInfo oa.QuitFlowInfo
+	}
+	services.Slave().Model(oa.QuitFlowInfo{}).Where("employee_id = ?", eID).First(&res.FlowInfo)
+	services.Slave().Model(oa.Employee{}).Where("id = ?", eID).First(&res.Emp)
+	e.Correct(res)
 }
 
 // @Title 提交离职流程信息
