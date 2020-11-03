@@ -127,7 +127,7 @@ func (a *AttendanceController) UploadAttendanceTmp() {
 		checkTime, err := time.Parse(excelTime, rows[1][2])
 		if err == nil {
 			year, month := checkTime.Year(), int(checkTime.Month())
-			start, end := fmt.Sprintf("%d-%02d-01", year, month), fmt.Sprintf("%d-%02d-%d", year, month, models.Months[month])
+			start, end := fmt.Sprintf("%d-%02d-01", year, month), fmt.Sprintf("%d-%02d-%d", year, month, models.Months[month-1])
 			fmt.Println(start, end)
 			services.Slave().Model(oa.PublicHoliday{}).Where("holiday_type = 'workday' and public_holiday_date >= ?"+
 				" and public_holiday_date <= ?", start, end).Find(&holidays)
@@ -160,7 +160,7 @@ func (a *AttendanceController) UploadAttendanceTmp() {
 	}
 	sql += strings.Join(realData, ",")
 	sql += "on duplicate key update dept=values(dept),name=values(name),attendance_date=values(attendance_date)" +
-		",check_time=values(check_time),status=values(status);"
+		",check_time=values(check_time),status=values(status),result=values(result);"
 	err = services.Slave().Exec(sql).Error
 	if err != nil {
 		log.GLogger.Error("考勤sql：%s", err.Error())
@@ -192,7 +192,7 @@ func (a *AttendanceController) GetAttendanceUserByDept() {
 		}
 	}
 	startDate := strings.Join([]string{year, month, "01"}, "-")
-	endDate := fmt.Sprintf("%s-%s-%d", year, month, models.Months[imonth])
+	endDate := fmt.Sprintf("%s-%s-%d", year, month, models.Months[imonth-1])
 	data := make([]*oa.AttendanceUser, 0)
 	services.Slave().Raw("select dept,name,min(is_confirm) is_confirm from attendance_tmp where "+
 		"attendance_date >= ? and attendance_date <= ? and name like ? group by dept,name", startDate, endDate,
@@ -300,7 +300,7 @@ func (a *AttendanceController) GetUserAttendanceTmps() {
 		}
 	}
 	startDate := strings.Join([]string{year, month, "01"}, "-")
-	endDate := fmt.Sprintf("%s-%s-%d", year, month, models.Months[imonth])
+	endDate := fmt.Sprintf("%s-%s-%d", year, month, models.Months[imonth-1])
 	tmpData := make([]*oa.AttendanceTmp, 0)
 	services.Slave().Model(oa.AttendanceTmp{}).Where("name = ? and attendance_date >= ? and attendance_date <= ?",
 		name, startDate, endDate).Find(&tmpData)
@@ -352,7 +352,7 @@ func (a *AttendanceController) GetUserAttendanceByMonth() {
 		}
 	}
 	startDate := strings.Join([]string{year, month, "01"}, "-")
-	endDate := fmt.Sprintf("%s-%s-%d", year, month, models.Months[imonth])
+	endDate := fmt.Sprintf("%s-%s-%d", year, month, models.Months[imonth-1])
 	data := make([]*oa.Attendance, 0)
 	services.Slave().Model(oa.Attendance{}).Where("name = ? and attendance_date >= ? and attendance_date <= ?",
 		name, startDate, endDate).Find(&data)
@@ -413,7 +413,7 @@ func (a *AttendanceController) ConfirmUserAttendance() {
 		}
 	}
 	startDate := strings.Join([]string{year, month, "01"}, "-")
-	endDate := fmt.Sprintf("%s-%s-%d", year, month, models.Months[imonth])
+	endDate := fmt.Sprintf("%s-%s-%d", year, month, models.Months[imonth-1])
 	tmps := make([]*oa.AttendanceTmp, 0)
 	services.Slave().Model(oa.AttendanceTmp{}).Where("attendance_date >= ? and attendance_date <= ? and name in (?)",
 		startDate, endDate, names).Find(&tmps)
@@ -514,7 +514,7 @@ func (a *AttendanceController) ExportPos() {
 		}
 	}
 	startDate := strings.Join([]string{year, month, "01"}, "-")
-	endDate := fmt.Sprintf("%s-%s-%d", year, month, models.Months[imonth])
+	endDate := fmt.Sprintf("%s-%s-%d", year, month, models.Months[imonth-1])
 	//查询月份数据
 	attendances := make([]*oa.Attendance, 0)
 	services.Slave().Model(oa.Attendance{}).Where("attendance_date >= ? and attendance_date <= ?",
@@ -582,7 +582,7 @@ func (a *AttendanceController) ExportData() {
 		}
 	}
 	startDate := strings.Join([]string{year, month, "01"}, "-")
-	endDate := fmt.Sprintf("%s-%s-%d", year, month, models.Months[imonth])
+	endDate := fmt.Sprintf("%s-%s-%d", year, month, models.Months[imonth-1])
 	//查询月份数据
 	attendances := make([]*oa.Attendance, 0)
 	services.Slave().Model(oa.Attendance{}).Where("attendance_date >= ? and attendance_date <= ?",

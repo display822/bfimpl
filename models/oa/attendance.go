@@ -46,7 +46,7 @@ type AttendanceTmp struct {
 	Dept           string      `gorm:"index;size:20;comment:'部门'" json:"dept"`
 	Name           string      `gorm:"index;size:20;comment:'姓名'" json:"name"`
 	AttendanceDate models.Date `gorm:"type:date;not null;comment:'考勤日期'" json:"attendance_date"`
-	CheckTime      models.Time `gorm:"type:datetime;comment:'打卡时间'" json:"check_time"`
+	CheckTime      models.Time `gorm:"type:timestamp;comment:'打卡时间'" json:"check_time"`
 	Status         string      `gorm:"size:20;comment:'Normal, Exception'" json:"status"`
 	Result         string      `gorm:"size:20;comment:'异常判断'" json:"result"`
 	LeaveID        int         `gorm:"size:60;comment:'休假申请记录号'" json:"leave_id"`
