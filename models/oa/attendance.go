@@ -33,6 +33,8 @@ type Attendance struct {
 	OutResult      string      `gorm:"size:20;comment:'异常判断'" json:"out_result"`
 	OvertimeID     int         `gorm:"size:60;comment:'加班申请记录号'" json:"overtime_id"`
 	LeaveID        int         `gorm:"size:60;comment:'休假申请记录号'" json:"leave_id"`
+	Shift          float32     `gorm:"comment:'弹性'" json:"-"`
+	Overtime       float32     `gorm:"comment:'加班'" json:"-"`
 	//ImportFile     string      `gorm:"comment:'导入文件名'" json:"import_file"`
 }
 
@@ -92,6 +94,8 @@ type AttendanceSimple struct {
 	InResult       string
 	OutResult      string
 	LeaveId        int
+	Shift          float32
+	Overtime       float32
 }
 
 func (v AttendanceSimple) String(now string) string {
@@ -118,14 +122,16 @@ type UserAttendance struct {
 
 //请假数据统计
 type AttendanceExcel struct {
-	Dept   string
-	Name   string
-	Total  int
-	Leave  int
-	Annual int
-	Sick   int
-	Late   int
-	Early  int
-	None   int
-	Forget int
+	Dept     string
+	Name     string
+	Total    int
+	Leave    int
+	Annual   int
+	Sick     int
+	Late     int
+	Early    int
+	Overtime float32
+	Shift    float32
+	None     int
+	Forget   int
 }

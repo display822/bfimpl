@@ -447,6 +447,13 @@ func (a *AttendanceController) ConfirmUserAttendance() {
 		} else {
 			// 修改签出时间
 			data[attendanceIndex].CheckOut = row.CheckTime
+			rt := (time.Time(row.AttendanceDate)).Add(18 * time.Hour).Add(30 * time.Minute)
+			duration := int((time.Time(row.CheckTime)).Sub(rt) / time.Minute)
+			if duration == 60 {
+				data[attendanceIndex].Overtime = 1
+			} else if duration > 60 {
+				data[attendanceIndex].Overtime = (float32(duration / 30)) / 2
+			}
 			data[attendanceIndex].OutStatus = row.Status
 			data[attendanceIndex].OutResult = row.Result
 			if row.LeaveID > 0 {
@@ -460,7 +467,7 @@ func (a *AttendanceController) ConfirmUserAttendance() {
 	}
 	//拼接sql
 	sql := "insert into attendances(created_at,dept,name,attendance_date,check_in,check_out,in_status,out_status," +
-		"in_result,out_result,leave_id) values"
+		"in_result,out_result,leave_id,overtime) values"
 	realData := make([]string, 0)
 	now := time.Now().Format(models.TimeFormat)
 	for _, d := range data {
@@ -468,7 +475,7 @@ func (a *AttendanceController) ConfirmUserAttendance() {
 	}
 	sql += strings.Join(realData, ",")
 	sql += "on duplicate key update updated_at=values(created_at),dept=values(dept),name=values(name),attendance_date=values(attendance_date)" +
-		",check_in=values(check_in),check_out=values(check_out),in_status=values(in_status)," +
+		",check_in=values(check_in),check_out=values(check_out),in_status=values(in_status),overtime=values(overtime)," +
 		"out_status=values(out_status),in_result=values(in_result),out_result=values(out_result),leave_id=values(leave_id);"
 	tx := services.Slave().Begin()
 	err = tx.Exec(sql).Error
@@ -610,6 +617,7 @@ func (a *AttendanceController) ExportData() {
 		//今天工时
 		if !at.CheckIn.IsZero() && !at.CheckOut.IsZero() {
 			data[i].Total += at.CheckOut.SubToHour(at.CheckIn)
+			data[i].Overtime += at.Overtime
 			if at.InResult == "迟到" {
 				data[i].Late++
 			}
@@ -638,12 +646,12 @@ func (a *AttendanceController) ExportData() {
 	}
 	//生成excel
 	f := excelize.NewFile()
-	_ = f.SetSheetRow("Sheet1", "A1", &[]interface{}{"部门", "姓名", "上班总工时", "总调休时长",
+	_ = f.SetSheetRow("Sheet1", "A1", &[]interface{}{"部门", "姓名", "上班总工时", "总调休时长", "工作日加班时长",
 		"年假", "病假", "迟到", "早退", "旷工", "忘记打卡"})
 	num := 2
 	for _, at := range data {
 		_ = f.SetSheetRow("Sheet1", "A"+strconv.Itoa(num), &[]interface{}{at.Dept, at.Name, at.Total, at.Leave,
-			at.Annual, at.Sick, at.Late, at.Early, at.None, at.Forget})
+			at.Overtime, at.Annual, at.Sick, at.Late, at.Early, at.None, at.Forget})
 		num++
 	}
 	fileName := year + "-" + month + ".xlsx"
