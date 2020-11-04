@@ -23,6 +23,7 @@ const (
 
 	TimeFormat = "2006-01-02 15:04:05"
 	DateFormat = "2006-01-02"
+	PosFormat = "2006/01/02 15:04:05"
 
 	Amount_Use        = "use"
 	Amount_Cancel     = "cancel"
@@ -90,6 +91,10 @@ func (t Time) MarshalJSON() ([]byte, error) {
 }
 func (t Time) String() string {
 	return time.Time(t).Format(TimeFormat)
+}
+
+func (t Time) PosFormat() string {
+	return time.Time(t).Format(PosFormat)
 }
 
 func (t Time) IsZero() bool {

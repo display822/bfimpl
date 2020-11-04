@@ -110,7 +110,7 @@ func (a *AttendanceController) UploadAttendanceTmp() {
 		}
 		t := strings.Split(attendanceTmp.CheckTime.String(), " ")
 		key := row[1] + attendanceTmp.AttendanceDate.String()
-		if len(t) == 2 && t[1] > "09:45" && t[1] < "18:30" {
+		if len(t) == 2 && t[1] > "09:45:00" && t[1] < "18:30:00" {
 			attendanceTmp.Status = Exception
 			if userToday[key] {
 				attendanceTmp.Result = "早退"
@@ -532,9 +532,9 @@ func (a *AttendanceController) ExportPos() {
 	for _, at := range attendances {
 		tapd := nameTapd[at.Name]
 		_ = f.SetSheetRow("Sheet1", "A"+strconv.Itoa(num), &[]interface{}{
-			at.CheckIn.String(), 0, tapd, at.Name})
+			at.CheckIn.PosFormat(), 0, tapd, at.Name})
 		num++
-		inTime, outTime := strings.Split(at.CheckIn.String(), " "), strings.Split(at.CheckOut.String(), " ")
+		inTime, outTime := strings.Split(at.CheckIn.PosFormat(), " "), strings.Split(at.CheckOut.PosFormat(), " ")
 		if outTime[0] > inTime[0] {
 			//下班时间是第二天
 			_ = f.SetSheetRow("Sheet1", "A"+strconv.Itoa(num), &[]interface{}{
@@ -552,7 +552,7 @@ func (a *AttendanceController) ExportPos() {
 			}
 		}
 		_ = f.SetSheetRow("Sheet1", "A"+strconv.Itoa(num), &[]interface{}{
-			at.CheckOut.String(), 0, tapd, at.Name})
+			at.CheckOut.PosFormat(), 0, tapd, at.Name})
 		num++
 	}
 	fileName := year + "-" + month + "-pos.xlsx"
