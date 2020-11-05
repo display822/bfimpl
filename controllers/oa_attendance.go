@@ -563,6 +563,9 @@ func (a *AttendanceController) ExportPos() {
 				num++
 			} else if outTime[1] > "07:00:00" {
 				_ = f.SetSheetRow("Sheet1", "A"+strconv.Itoa(num), &[]interface{}{
+					outTime[0] + " 06:59:59", 0, tapd, at.Name})
+				num++
+				_ = f.SetSheetRow("Sheet1", "A"+strconv.Itoa(num), &[]interface{}{
 					outTime[0] + " 07:00:00", 0, tapd, at.Name})
 				num++
 			}
