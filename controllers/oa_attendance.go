@@ -444,7 +444,7 @@ func (a *AttendanceController) ConfirmUserAttendance() {
 			am := (time.Time(row.AttendanceDate)).Add(9 * time.Hour).Add(45 * time.Minute)
 			duration := int((time.Time(row.CheckTime)).Sub(am) / time.Minute)
 			if duration > 30 {
-				data[attendanceIndex].Shift = (float32(duration / 30)) / 2
+				attendance.Shift = (float32(duration / 30)) / 2
 			}
 			data = append(data, attendance)
 			ud[date.String()] = num
