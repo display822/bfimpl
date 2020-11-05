@@ -225,7 +225,7 @@ func (a *AttendanceController) GetAttendanceUserByDept() {
 // @router /attendance/tmp/:id [delete]
 func (a *AttendanceController) DeleteAttendanceTmp() {
 	id, _ := a.GetInt(":id", -1)
-	err := services.Slave().Delete(oa.AttendanceTmp{}, "id = ?", id).Error
+	err := services.Slave().Unscoped().Delete(oa.AttendanceTmp{}, "id = ?", id).Error
 	if err != nil {
 		log.GLogger.Error("delete attendance tmp:%s", err.Error())
 		a.ErrorOK(MsgServerErr)
