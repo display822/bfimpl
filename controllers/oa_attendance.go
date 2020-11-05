@@ -441,14 +441,19 @@ func (a *AttendanceController) ConfirmUserAttendance() {
 			if row.LeaveID > 0 {
 				attendance.LeaveId = row.LeaveID
 			}
+			am := (time.Time(row.AttendanceDate)).Add(9 * time.Hour).Add(45 * time.Minute)
+			duration := int((time.Time(row.CheckTime)).Sub(am) / time.Minute)
+			if duration > 30 {
+				data[attendanceIndex].Shift = (float32(duration / 30)) / 2
+			}
 			data = append(data, attendance)
 			ud[date.String()] = num
 			num++
 		} else {
 			// 修改签出时间
 			data[attendanceIndex].CheckOut = row.CheckTime
-			rt := (time.Time(row.AttendanceDate)).Add(18 * time.Hour).Add(30 * time.Minute)
-			duration := int((time.Time(row.CheckTime)).Sub(rt) / time.Minute)
+			pm := (time.Time(row.AttendanceDate)).Add(18 * time.Hour).Add(30 * time.Minute)
+			duration := int((time.Time(row.CheckTime)).Sub(pm) / time.Minute)
 			if duration == 60 {
 				data[attendanceIndex].Overtime = 1
 			} else if duration > 60 {
@@ -618,6 +623,7 @@ func (a *AttendanceController) ExportData() {
 		if !at.CheckIn.IsZero() && !at.CheckOut.IsZero() {
 			data[i].Total += at.CheckOut.SubToHour(at.CheckIn)
 			data[i].Overtime += at.Overtime
+			data[i].Shift += at.Shift
 			if at.InResult == "迟到" {
 				data[i].Late++
 			}
@@ -647,11 +653,11 @@ func (a *AttendanceController) ExportData() {
 	//生成excel
 	f := excelize.NewFile()
 	_ = f.SetSheetRow("Sheet1", "A1", &[]interface{}{"部门", "姓名", "上班总工时", "总调休时长", "工作日加班时长",
-		"年假", "病假", "迟到", "早退", "旷工", "忘记打卡"})
+		"弹性", "年假", "病假", "迟到", "早退", "旷工", "忘记打卡"})
 	num := 2
 	for _, at := range data {
 		_ = f.SetSheetRow("Sheet1", "A"+strconv.Itoa(num), &[]interface{}{at.Dept, at.Name, at.Total, at.Leave,
-			at.Overtime, at.Annual, at.Sick, at.Late, at.Early, at.None, at.Forget})
+			at.Overtime, at.Shift, at.Annual, at.Sick, at.Late, at.Early, at.None, at.Forget})
 		num++
 	}
 	fileName := year + "-" + month + ".xlsx"
