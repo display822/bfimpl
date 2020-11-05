@@ -472,7 +472,7 @@ func (a *AttendanceController) ConfirmUserAttendance() {
 	}
 	//拼接sql
 	sql := "insert into attendances(created_at,dept,name,attendance_date,check_in,check_out,in_status,out_status," +
-		"in_result,out_result,leave_id,overtime) values"
+		"in_result,out_result,leave_id,overtime,shift) values"
 	realData := make([]string, 0)
 	now := time.Now().Format(models.TimeFormat)
 	for _, d := range data {
@@ -480,7 +480,7 @@ func (a *AttendanceController) ConfirmUserAttendance() {
 	}
 	sql += strings.Join(realData, ",")
 	sql += "on duplicate key update updated_at=values(created_at),dept=values(dept),name=values(name),attendance_date=values(attendance_date)" +
-		",check_in=values(check_in),check_out=values(check_out),in_status=values(in_status),overtime=values(overtime)," +
+		",check_in=values(check_in),check_out=values(check_out),in_status=values(in_status),overtime=values(overtime),shift=values(shift)," +
 		"out_status=values(out_status),in_result=values(in_result),out_result=values(out_result),leave_id=values(leave_id);"
 	tx := services.Slave().Begin()
 	err = tx.Exec(sql).Error
