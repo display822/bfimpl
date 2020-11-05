@@ -99,9 +99,9 @@ type AttendanceSimple struct {
 }
 
 func (v AttendanceSimple) String(now string) string {
-	return fmt.Sprintf("('%s','%s','%s','%s','%s','%s','%s','%s','%s','%s',%d,%f)", now, v.Dept, v.Name,
+	return fmt.Sprintf("('%s','%s','%s','%s','%s','%s','%s','%s','%s','%s',%d,%f,%f)", now, v.Dept, v.Name,
 		v.AttendanceDate.String(), v.CheckIn.String(), v.CheckOut.String(), v.InStatus, v.OutStatus,
-		v.InResult, v.OutResult, v.LeaveId, v.Overtime)
+		v.InResult, v.OutResult, v.LeaveId, v.Overtime, v.Shift)
 }
 
 func (v AttendanceTmp) String(now string) string {
