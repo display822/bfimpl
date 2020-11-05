@@ -459,7 +459,7 @@ func (a *AttendanceController) ConfirmUserAttendance() {
 			} else if duration > 60 {
 				data[attendanceIndex].Overtime = (float32(duration / 30)) / 2
 			} else if duration < 0 {
-				data[attendanceIndex].Shift += (float32(duration / 30)) / 2
+				data[attendanceIndex].Shift -= (float32(duration / 30)) / 2
 			}
 			data[attendanceIndex].OutStatus = row.Status
 			data[attendanceIndex].OutResult = row.Result
