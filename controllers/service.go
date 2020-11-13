@@ -111,7 +111,15 @@ func (s *ServiceController) SwitchService() {
 // @Failure 500 server err
 // @router /list [get]
 func (s *ServiceController) GetServices() {
+	clientId, _ := s.GetInt("clientId", 0)
 	srvs := make([]models.Service, 0)
-	services.Slave().Model(models.Service{}).Order("sort").Find(&srvs)
+	query := services.Slave().Model(models.Service{})
+
+	serviceIds := make([]int, 0)
+	if clientId != 0 {
+		services.Slave().Model(models.Amount{}).Where("client_id = ?", clientId).Pluck("service_id", &serviceIds)
+		query = query.Where(serviceIds)
+	}
+	query.Order("sort").Find(&srvs)
 	s.Correct(srvs)
 }
