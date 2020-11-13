@@ -51,6 +51,11 @@ func (c *ClientController) AddClient() {
 	if err != gorm.ErrRecordNotFound {
 		c.ErrorOK("客户编号已存在")
 	}
+	existName := new(models.Client)
+	err = services.Slave().Where("name =?", param.Name).First(existName).Error
+	if err != gorm.ErrRecordNotFound {
+		c.ErrorOK("客户名称已存在")
+	}
 	err = services.Slave().Create(param).Error
 	if err != nil {
 		c.ErrorOK(err.Error())
