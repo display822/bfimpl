@@ -36,6 +36,9 @@ func (w *WorkController) ReqOvertime() {
 	if employee.ID == 0 {
 		w.ErrorOK("未找到员工信息")
 	}
+	//查询HRBP id
+	engagementCode := new(oa.EngagementCode)
+	services.Slave().Model(oa.EngagementCode{}).Where("department_id = ?", employee.DepartmentID).First(engagementCode)
 	param := new(oa.Overtime)
 	err := json.Unmarshal(w.Ctx.Input.RequestBody, param)
 	if err != nil {
@@ -57,7 +60,7 @@ func (w *WorkController) ReqOvertime() {
 	//if employee.Department != nil {
 	//	leaderID = employee.Department.DepartmentLeaderID
 	//}
-	err = services.ReqOvertime(tx, int(param.ID), uID, param.LeaderId)
+	err = services.ReqOvertime(tx, int(param.ID), uID, param.LeaderId, engagementCode.HRID)
 	if err != nil {
 		log.GLogger.Error("req overtime err:%s", err.Error())
 		tx.Rollback()
@@ -97,21 +100,18 @@ func (w *WorkController) GetProjects() {
 // @Failure 500 server err
 // @router /approvals [get]
 func (w *WorkController) ApprovalUsers() {
-	//uEmail := w.GetString("userEmail")
+	uEmail := w.GetString("userEmail")
 	//获取emp_info
-	//employee := new(oa.Employee)
-	//services.Slave().Preload("Department").Preload("Department.Leader").Take(employee, "email = ?", uEmail)
-	//if employee.ID == 0 {
-	//	w.ErrorOK("未找到员工信息")
-	//}
-	//approvalUsers := make([]string, 0)
-	//if employee.Department != nil && employee.Department.Leader != nil {
-	//	approvalUsers = append(approvalUsers, employee.Department.Leader.Name)
-	//}
-	u := services.GetWorkUser(models.UserHR)
-	//if u != nil {
-	//	approvalUsers = append(approvalUsers, u.Name)
-	//}
+	employee := new(oa.Employee)
+	services.Slave().Preload("Department").Preload("Department.Leader").Take(employee, "email = ?", uEmail)
+	if employee.ID == 0 {
+		w.ErrorOK("未找到员工信息")
+	}
+	//查询HRBP id
+	engagementCode := new(oa.EngagementCode)
+	services.Slave().Model(oa.EngagementCode{}).Where("department_id = ?", employee.DepartmentID).First(engagementCode)
+	u := new(models.User)
+	services.Slave().Take(u, "id = ?", engagementCode.HRID)
 	w.Correct(u.Name)
 }
 
@@ -318,6 +318,9 @@ func (w *WorkController) ReqLeave() {
 	if employee.ID == 0 {
 		w.ErrorOK("未找到员工信息")
 	}
+	//查询HRBP id
+	engagementCode := new(oa.EngagementCode)
+	services.Slave().Model(oa.EngagementCode{}).Where("department_id = ?", employee.DepartmentID).First(engagementCode)
 	param := new(oa.Leave)
 	err := json.Unmarshal(w.Ctx.Input.RequestBody, param)
 	if err != nil {
@@ -339,7 +342,7 @@ func (w *WorkController) ReqLeave() {
 	if employee.Department != nil {
 		leaderID = employee.Department.DepartmentLeaderID
 	}
-	err = services.ReqLeave(tx, int(param.ID), uID, leaderID)
+	err = services.ReqLeave(tx, int(param.ID), uID, leaderID, engagementCode.HRID)
 	if err != nil {
 		log.GLogger.Error("req leave err:%s", err.Error())
 		tx.Rollback()
@@ -366,8 +369,12 @@ func (w *WorkController) LeaveApprovalUsers() {
 	if employee.Department != nil && employee.Department.Leader != nil {
 		approvalUsers = append(approvalUsers, employee.Department.Leader.Name)
 	}
-	u := services.GetWorkUser(models.UserHR)
-	if u != nil {
+	//查询HRBP id
+	engagementCode := new(oa.EngagementCode)
+	services.Slave().Model(oa.EngagementCode{}).Where("department_id = ?", employee.DepartmentID).First(engagementCode)
+	u := new(models.User)
+	services.Slave().Take(u, "id = ?", engagementCode.HRID)
+	if u.Name != "" {
 		approvalUsers = append(approvalUsers, u.Name)
 	}
 	w.Correct(strings.Join(approvalUsers, ";"))

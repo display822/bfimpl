@@ -7,10 +7,8 @@
 package services
 
 import (
-	"bfimpl/models/oa"
-
 	"bfimpl/models"
-
+	"bfimpl/models/oa"
 	"errors"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -198,7 +196,7 @@ func CreateLeaveWorkflow(db *gorm.DB, eID, uID int) error {
 }
 
 //加班申请
-func ReqOvertime(db *gorm.DB, overTimeID, uID, leaderID int) error {
+func ReqOvertime(db *gorm.DB, overTimeID, uID, leaderID, hrID int) error {
 	//工作流
 	workflow := oa.Workflow{
 		WorkflowDefinitionID: WorkFlowDef[Overtime],
@@ -255,17 +253,23 @@ func ReqOvertime(db *gorm.DB, overTimeID, uID, leaderID int) error {
 		OperatorID: leaderID,
 		Status:     models.FlowProcessing,
 	}
+	if leaderID == hrID {
+		nodeLeader.Status = models.FlowCompleted
+	}
 	err = db.Create(&nodeLeader).Error
 	if err != nil {
 		return err
 	}
 	//节点3，hr填写
-	nodeIT := oa.WorkflowNode{
+	nodeHR := oa.WorkflowNode{
 		WorkflowID: int(workflow.ID),
 		NodeSeq:    3,
-		OperatorID: int(mUsers[models.UserHR].ID),
+		OperatorID: hrID,
 	}
-	err = db.Create(&nodeIT).Error
+	if leaderID == hrID {
+		nodeLeader.Status = models.FlowProcessing
+	}
+	err = db.Create(&nodeHR).Error
 	if err != nil {
 		return err
 	}
@@ -274,7 +278,7 @@ func ReqOvertime(db *gorm.DB, overTimeID, uID, leaderID int) error {
 }
 
 //请假申请
-func ReqLeave(db *gorm.DB, leaveID, uID, leaderID int) error {
+func ReqLeave(db *gorm.DB, leaveID, uID, leaderID, hrID int) error {
 	//工作流
 	workflow := oa.Workflow{
 		WorkflowDefinitionID: WorkFlowDef[Leave],
@@ -335,6 +339,9 @@ func ReqLeave(db *gorm.DB, leaveID, uID, leaderID int) error {
 		Status:     models.FlowProcessing,
 	}
 	if leaderID != 0 {
+		if leaderID == hrID {
+			nodeLeader.Status = models.FlowCompleted
+		}
 		err = db.Create(&nodeLeader).Error
 		if err != nil {
 			return err
@@ -344,9 +351,9 @@ func ReqLeave(db *gorm.DB, leaveID, uID, leaderID int) error {
 	nodeHR := oa.WorkflowNode{
 		WorkflowID: int(workflow.ID),
 		NodeSeq:    3,
-		OperatorID: int(mUsers[models.UserHR].ID),
+		OperatorID: hrID,
 	}
-	if leaderID == 0 {
+	if leaderID == 0 || leaderID == hrID {
 		nodeHR.Status = models.FlowProcessing
 	}
 	err = db.Create(&nodeHR).Error
