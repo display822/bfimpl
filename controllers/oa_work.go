@@ -610,19 +610,19 @@ func (w *WorkController) ApprovalLeave() {
 							Amount:  -float32(leave.RealDuration) / 8,
 							LeaveID: int(leave.ID),
 						}
+						if balance.Amount == 0 {
+							balance.Amount = -float32(leave.Duration) / 8
+						}
 						if leave.Type == "Shift" {
-							if remain.Weekend < float32(leave.RealDuration)/8 {
+							if remain.Weekend < -(balance.Amount)/8 {
 								w.ErrorOK("剩余调休不足")
 							}
 						}
 						if leave.Type == "Annual" {
-							if remain.Annual < float32(leave.RealDuration)/8 {
+							if remain.Annual < -(balance.Amount)/8 {
 								w.ErrorOK("剩余年假不足")
 							}
 							balance.Type = oa.AnnualLeave
-						}
-						if balance.Amount == 0 {
-							balance.Amount = -float32(leave.Duration) / 8
 						}
 						services.Slave().Create(&balance)
 					}
