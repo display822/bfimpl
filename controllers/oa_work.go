@@ -681,3 +681,20 @@ func getRemain(empID int) oa.LeaveRemain {
 	}
 	return remain
 }
+
+//每月28号增加年假
+func AddAnnual() {
+	emps := make([]*oa.Employee, 0)
+	services.Slave().Model(oa.Employee{}).Where("status = 2").Find(&emps)
+	for _, emp := range emps {
+		annual := float32(emp.Annual) / 12
+		if annual > 0 {
+			balance := oa.LeaveBalance{
+				EmpID:  int(emp.ID),
+				Type:   oa.Annual,
+				Amount: annual,
+			}
+			services.Slave().Create(&balance)
+		}
+	}
+}

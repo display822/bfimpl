@@ -38,6 +38,7 @@ type Employee struct {
 	Level            *Level         `json:"level"`
 	CreateTime       models.Time    `gorm:"type:datetime" json:"create_time"`
 	CreatorId        int            `gorm:"comment:'创建人id'" json:"-"`
+	Annual           int            `gorm:"comment:'年假'" json:"annual"`
 	Position         string         `gorm:"size:30;default:'';comment:'岗位'" json:"position"`
 	PlanDate         models.Time    `gorm:"type:datetime;comment:'计划入职日期'" json:"plan_date"`
 	EntryDate        models.Time    `gorm:"type:datetime;comment:'入职日期'" json:"entry_date"`

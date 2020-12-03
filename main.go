@@ -24,6 +24,7 @@ func main() {
 		beego.AppConfig.String("httpport"))
 
 	c := cron.New()
+	//额度过期
 	_, err := c.AddFunc("0 2 * * *", func() {
 		controllers.AmountDelayOut()
 	})
@@ -31,11 +32,20 @@ func main() {
 		logs.Error("start delay amount:%s", err.Error())
 		return
 	}
+	//社保信息
 	_, err = c.AddFunc("0 2 16 * *", func() {
 		controllers.GeneraSheBao()
 	})
 	if err != nil {
 		logs.Error("genera shebao info:%s", err.Error())
+		return
+	}
+	//年假增加
+	_, err = c.AddFunc("0 4 28 * *", func() {
+		controllers.AddAnnual()
+	})
+	if err != nil {
+		logs.Error("add annual:%s", err.Error())
 		return
 	}
 	c.Start()
