@@ -280,11 +280,11 @@ func (w *WorkController) ApprovalOvertime() {
 						balance := oa.LeaveBalance{
 							EmpID:      overtime.EmpID,
 							Type:       oa.OverTime,
-							Amount:     float32(overtime.RealDuration) / 4,
+							Amount:     float32(overtime.RealDuration) / 8,
 							OvertimeID: int(overtime.ID),
 						}
 						if balance.Amount == 0 {
-							balance.Amount = float32(overtime.Duration) / 4
+							balance.Amount = float32(overtime.Duration) / 8
 						}
 						services.Slave().Create(&balance)
 					}
@@ -347,10 +347,10 @@ func (w *WorkController) ReqLeave() {
 	//请年假和周末调休，查询是否有剩余
 	if param.Type == oa.Annual || param.Type == oa.Shift {
 		data := getRemain(int(employee.ID))
-		if param.Type == oa.Annual && float32(param.Duration)/4 < data.Annual {
+		if param.Type == oa.Annual && float32(param.Duration)/8 > data.Annual {
 			w.Error("剩余年假不足")
 		}
-		if param.Type == oa.Shift && float32(param.Duration)/4 < data.Weekend {
+		if param.Type == oa.Shift && float32(param.Duration)/8 > data.Weekend {
 			w.Error("剩余调休不足")
 		}
 	}
@@ -606,14 +606,14 @@ func (w *WorkController) ApprovalLeave() {
 						balance := oa.LeaveBalance{
 							EmpID:   leave.EmpID,
 							Type:    oa.ShiftLeave,
-							Amount:  -float32(leave.RealDuration) / 4,
+							Amount:  -float32(leave.RealDuration) / 8,
 							LeaveID: int(leave.ID),
 						}
 						if leave.Type == "Annual" {
 							balance.Type = oa.AnnualLeave
 						}
 						if balance.Amount == 0 {
-							balance.Amount = -float32(leave.Duration) / 4
+							balance.Amount = -float32(leave.Duration) / 8
 						}
 						services.Slave().Create(&balance)
 					}
