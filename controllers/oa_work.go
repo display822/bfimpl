@@ -603,13 +603,22 @@ func (w *WorkController) ApprovalLeave() {
 					leave := new(oa.Leave)
 					services.Slave().Take(leave, "id = ?", param.Id)
 					if leave.Type == "Shift" || leave.Type == "Annual" {
+						remain := getRemain(leave.EmpID)
 						balance := oa.LeaveBalance{
 							EmpID:   leave.EmpID,
 							Type:    oa.ShiftLeave,
 							Amount:  -float32(leave.RealDuration) / 8,
 							LeaveID: int(leave.ID),
 						}
+						if leave.Type == "Shift" {
+							if remain.Weekend < float32(leave.RealDuration)/8 {
+								w.ErrorOK("剩余调休不足")
+							}
+						}
 						if leave.Type == "Annual" {
+							if remain.Annual < float32(leave.RealDuration)/8 {
+								w.ErrorOK("剩余年假不足")
+							}
 							balance.Type = oa.AnnualLeave
 						}
 						if balance.Amount == 0 {
