@@ -348,10 +348,10 @@ func (w *WorkController) ReqLeave() {
 	if param.Type == oa.Annual || param.Type == oa.Shift {
 		data := getRemain(int(employee.ID))
 		if param.Type == oa.Annual && float32(param.Duration)/8 > data.Annual {
-			w.Error("剩余年假不足")
+			w.ErrorOK("剩余年假不足")
 		}
 		if param.Type == oa.Shift && float32(param.Duration)/8 > data.Weekend {
-			w.Error("剩余调休不足")
+			w.ErrorOK("剩余调休不足")
 		}
 	}
 	param.EmpID = int(employee.ID)
