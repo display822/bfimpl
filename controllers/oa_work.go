@@ -616,12 +616,12 @@ func (w *WorkController) ApprovalLeave() {
 						log.GLogger.Info("%f,%f", remain.Weekend, remain.Annual)
 						log.GLogger.Info("%f", balance.Amount)
 						if leave.Type == "Shift" {
-							if remain.Weekend < -(balance.Amount)/8 {
+							if remain.Weekend < -balance.Amount {
 								w.ErrorOK("剩余调休不足")
 							}
 						}
 						if leave.Type == "Annual" {
-							if remain.Annual < -(balance.Amount)/8 {
+							if remain.Annual < -balance.Amount {
 								w.ErrorOK("剩余年假不足")
 							}
 							balance.Type = oa.AnnualLeave
