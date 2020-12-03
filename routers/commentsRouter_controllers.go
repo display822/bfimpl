@@ -719,6 +719,15 @@ func init() {
 			Filters:          nil,
 			Params:           nil})
 
+	beego.GlobalControllerRouter["bfimpl/controllers:WorkController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:WorkController"],
+		beego.ControllerComments{
+			Method:           "RemainHoliday",
+			Router:           `/remain/holiday`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
 	beego.GlobalControllerRouter["bfimpl/controllers:AttendanceController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:AttendanceController"],
 		beego.ControllerComments{
 			Method:           "ConfirmUserAttendance",

@@ -17,10 +17,14 @@ const (
 	Sick          = "Sick"
 	Shift         = "Shift"
 	Flexible      = "Flexible"
-	Annual        = "Annual"
 	Marital       = "Marital"
 	Maternity     = "Maternity"
 	Funeral       = "Funeral"
+
+	Annual      = "Annual"
+	OverTime    = "Overtime"
+	ShiftLeave  = "ShiftLeave"
+	AnnualLeave = "AnnualLeave"
 )
 
 type Leave struct {
@@ -38,6 +42,20 @@ type Leave struct {
 	End          string      `gorm:"size:10;comment:'am,pm'" json:"end"`
 	ReqTime      models.Time `gorm:"type:datetime;comment:'申请时间'" json:"req_time"`
 	Status       string      `gorm:"size:20;comment:'申请状态'" json:"status"`
+}
+
+type LeaveBalance struct {
+	gorm.Model
+	EmpID      int     `gorm:"comment:'加班申请人id'" json:"emp_id"`
+	Type       string  `gorm:"size:30;comment:'加班类型'" json:"type"`
+	Amount     float32 `gorm:"type:decimal(6,2);comment:'小时'" json:"-"`
+	OvertimeID int     `gorm:"comment:'加班记录id'" json:"-"`
+	LeaveID    int     `gorm:"comment:'请假记录id'" json:"-"`
+}
+
+type LeaveRemain struct {
+	Weekend float32 `json:"weekend"`
+	Annual  float32 `json:"annual"`
 }
 
 type EntityID struct {

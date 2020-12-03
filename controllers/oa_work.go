@@ -272,6 +272,23 @@ func (w *WorkController) ApprovalOvertime() {
 				services.Slave().Model(oa.Overtime{}).Where("id = ?", param.Id).Updates(map[string]interface{}{
 					"status": status,
 				})
+				//审批通过且类型为weekend,holiday，将加班时长放入leave balance
+				if status == models.FlowApproved {
+					overtime := new(oa.Overtime)
+					services.Slave().Take(overtime, "id = ?", param.Id)
+					if overtime.Type == "weekend" || overtime.Type == "holiday" {
+						balance := oa.LeaveBalance{
+							EmpID:      overtime.EmpID,
+							Type:       oa.OverTime,
+							Amount:     float32(overtime.RealDuration) / 4,
+							OvertimeID: int(overtime.ID),
+						}
+						if balance.Amount == 0 {
+							balance.Amount = float32(overtime.Duration) / 4
+						}
+						services.Slave().Create(&balance)
+					}
+				}
 			}
 			break
 		}
@@ -326,6 +343,16 @@ func (w *WorkController) ReqLeave() {
 	if err != nil {
 		log.GLogger.Error("parse leave info err:%s", err.Error())
 		w.ErrorOK(MsgInvalidParam)
+	}
+	//请年假和周末调休，查询是否有剩余
+	if param.Type == oa.Annual || param.Type == oa.Shift {
+		data := getRemain(int(employee.ID))
+		if param.Type == oa.Annual && float32(param.Duration)/4 < data.Annual {
+			w.Error("剩余年假不足")
+		}
+		if param.Type == oa.Shift && float32(param.Duration)/4 < data.Weekend {
+			w.Error("剩余调休不足")
+		}
 	}
 	param.EmpID = int(employee.ID)
 	param.EName = employee.Name
@@ -571,6 +598,26 @@ func (w *WorkController) ApprovalLeave() {
 				services.Slave().Model(oa.Leave{}).Where("id = ?", param.Id).Updates(map[string]interface{}{
 					"status": status,
 				})
+				//审批通过且类型为weekend,holiday，将加班时长放入leave balance
+				if status == models.FlowApproved {
+					leave := new(oa.Leave)
+					services.Slave().Take(leave, "id = ?", param.Id)
+					if leave.Type == "Shift" || leave.Type == "Annual" {
+						balance := oa.LeaveBalance{
+							EmpID:   leave.EmpID,
+							Type:    oa.ShiftLeave,
+							Amount:  -float32(leave.RealDuration) / 4,
+							LeaveID: int(leave.ID),
+						}
+						if leave.Type == "Annual" {
+							balance.Type = oa.AnnualLeave
+						}
+						if balance.Amount == 0 {
+							balance.Amount = -float32(leave.Duration) / 4
+						}
+						services.Slave().Create(&balance)
+					}
+				}
 			}
 			break
 		}
@@ -598,4 +645,39 @@ func (w *WorkController) ValidLeave() {
 		w.ErrorOK(MsgServerErr)
 	}
 	w.Correct("")
+}
+
+// @Title 获取剩余年假和周末调休
+// @Description 审批申请加班
+// @Success 200 {string} "success"
+// @Failure 500 server err
+// @router /remain/holiday [get]
+func (w *WorkController) RemainHoliday() {
+	uEmail := w.GetString("userEmail")
+	//获取emp_info
+	employee := new(oa.Employee)
+	services.Slave().Take(employee, "email = ?", uEmail)
+	if employee.ID == 0 {
+		w.ErrorOK("未找到员工信息")
+	}
+	w.Correct(getRemain(int(employee.ID)))
+}
+
+func getRemain(empID int) oa.LeaveRemain {
+	var remain oa.LeaveRemain
+	balances := make([]*oa.LeaveBalance, 0)
+	services.Slave().Model(oa.LeaveBalance{}).Where("emp_id = ?", empID).Find(&balances)
+	for _, b := range balances {
+		switch b.Type {
+		case oa.OverTime:
+			remain.Weekend += b.Amount
+		case oa.Annual:
+			remain.Annual += b.Amount
+		case oa.ShiftLeave:
+			remain.Weekend += b.Amount
+		case oa.AnnualLeave:
+			remain.Annual += b.Amount
+		}
+	}
+	return remain
 }
