@@ -13,7 +13,6 @@ import (
 	"bfimpl/services"
 	"bfimpl/services/log"
 	"encoding/json"
-	"fmt"
 	"strings"
 	"time"
 )
@@ -614,8 +613,8 @@ func (w *WorkController) ApprovalLeave() {
 						if balance.Amount == 0 {
 							balance.Amount = -float32(leave.Duration) / 8
 						}
-						fmt.Println(remain.Weekend, remain.Annual)
-						fmt.Println(balance.Amount)
+						log.GLogger.Info("%f,%f", remain.Weekend, remain.Annual)
+						log.GLogger.Info("%f", balance.Amount)
 						if leave.Type == "Shift" {
 							if remain.Weekend < -(balance.Amount)/8 {
 								w.ErrorOK("剩余调休不足")
