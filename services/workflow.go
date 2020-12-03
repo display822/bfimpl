@@ -267,7 +267,7 @@ func ReqOvertime(db *gorm.DB, overTimeID, uID, leaderID, hrID int) error {
 		OperatorID: hrID,
 	}
 	if leaderID == hrID {
-		nodeLeader.Status = models.FlowProcessing
+		nodeHR.Status = models.FlowProcessing
 	}
 	err = db.Create(&nodeHR).Error
 	if err != nil {
