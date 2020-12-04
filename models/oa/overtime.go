@@ -14,7 +14,7 @@ import (
 
 type Overtime struct {
 	gorm.Model
-	EngagementCode string `gorm:"size:64;comment:'任务指派编码'" json:"-"`
+	EngagementCode string `gorm:"size:64;comment:'任务指派编码'" json:"engagement_code"`
 	// workday weekend holiday
 	EmpID        int         `gorm:"comment:'加班申请人id'" json:"emp_id"`
 	EName        string      `gorm:"size:30;comment:'员工姓名'" json:"e_name"`
