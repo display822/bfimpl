@@ -33,8 +33,8 @@ type Leave struct {
 	EmpID        int         `gorm:"comment:'加班申请人id'" json:"emp_id"`
 	EName        string      `gorm:"size:30;comment:'员工姓名'" json:"e_name"`
 	Type         string      `gorm:"size:30;comment:'加班类型'" json:"type"`
-	Duration     int         `gorm:"comment:'请假时长'" json:"duration"`
-	RealDuration int         `gorm:"comment:'实际请假时长'" json:"real_duration"`
+	Duration     float32     `gorm:"type:decimal(6,1);comment:'请假时长'" json:"duration"`
+	RealDuration float32     `gorm:"type:decimal(6,1);comment:'实际请假时长'" json:"real_duration"`
 	Cause        string      `gorm:"comment:'加班原因'" json:"cause"`
 	StartDate    models.Date `gorm:"type:datetime;comment:'开始时间'" json:"start_date"`
 	EndDate      models.Date `gorm:"type:datetime;comment:'结束时间'" json:"end_date"`

@@ -125,9 +125,9 @@ type AttendanceExcel struct {
 	Dept     string
 	Name     string
 	Total    int
-	Leave    int
-	Annual   int
-	Sick     int
+	Leave    float32
+	Annual   float32
+	Sick     float32
 	Late     int
 	Early    int
 	Overtime float32

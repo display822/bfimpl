@@ -20,8 +20,8 @@ type Overtime struct {
 	EName        string      `gorm:"size:30;comment:'员工姓名'" json:"e_name"`
 	Type         string      `gorm:"size:30;comment:'加班类型'" json:"type"`
 	Project      string      `gorm:"size:64;comment:'项目'" json:"project"`
-	Duration     int         `gorm:"comment:'加班时长'" json:"duration"`
-	RealDuration int         `gorm:"comment:'实际加班时长'" json:"real_duration"`
+	Duration     float32     `gorm:"type:decimal(6,1);comment:'加班时长'" json:"duration"`
+	RealDuration float32     `gorm:"type:decimal(6,1);comment:'实际加班时长'" json:"real_duration"`
 	Cause        string      `gorm:"comment:'加班原因'" json:"cause"`
 	OvertimeDate models.Date `gorm:"type:date;comment:'加班日期'" json:"overtime_date"`
 	StartTime    models.Time `gorm:"type:datetime;comment:'开始时间'" json:"start_time"`
