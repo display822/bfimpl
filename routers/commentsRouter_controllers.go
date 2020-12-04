@@ -568,6 +568,15 @@ func init() {
 
 	beego.GlobalControllerRouter["bfimpl/controllers:EmployeeController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:EmployeeController"],
 		beego.ControllerComments{
+			Method:           "SearchEmp",
+			Router:           `/search`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:EmployeeController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:EmployeeController"],
+		beego.ControllerComments{
 			Method:           "MoreContract",
 			Router:           `/contract/continue`,
 			AllowHTTPMethods: []string{"get"},

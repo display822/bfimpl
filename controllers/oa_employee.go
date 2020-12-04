@@ -20,6 +20,18 @@ type EmployeeController struct {
 	BaseController
 }
 
+// @Title 按姓名搜索emp
+// @Description 按姓名搜索emp
+// @Success 200 {string} "success"
+// @Failure 500 server err
+// @router /search [get]
+func (e *EmployeeController) SearchEmp() {
+	name := e.GetString("name")
+	emps := make([]*oa.SimpleEmp, 0)
+	services.Slave().Raw("select id,name from users where name like ?", "%"+name+"%").Scan(&emps)
+	e.Correct(emps)
+}
+
 // @Title hr新建入职
 // @Description 新建入职
 // @Param	json	body	string	true	"入职员工信息"

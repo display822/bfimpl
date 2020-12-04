@@ -54,6 +54,11 @@ type EIDStatus struct {
 	Status   string `gorm:"column:status"`
 }
 
+type SimpleEmp struct {
+	ID   int
+	Name string
+}
+
 type EmpPos struct {
 	Name string `gorm:"column:name"`
 	Tapd string `gorm:"column:tapd"`
