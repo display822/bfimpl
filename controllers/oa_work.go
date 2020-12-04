@@ -369,7 +369,7 @@ func (w *WorkController) ReqLeave() {
 	if employee.Department != nil {
 		leaderID = employee.Department.DepartmentLeaderID
 	}
-	err = services.ReqLeave(tx, int(param.ID), uID, leaderID, engagementCode.HRID)
+	err = services.ReqLeave(tx, int(param.ID), uID, leaderID, engagementCode.HRID, param.Others...)
 	if err != nil {
 		log.GLogger.Error("req leave err:%s", err.Error())
 		tx.Rollback()

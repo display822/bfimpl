@@ -278,7 +278,7 @@ func ReqOvertime(db *gorm.DB, overTimeID, uID, leaderID, hrID int) error {
 }
 
 //请假申请
-func ReqLeave(db *gorm.DB, leaveID, uID, leaderID, hrID int) error {
+func ReqLeave(db *gorm.DB, leaveID, uID, leaderID, hrID int, others ...int) error {
 	//工作流
 	workflow := oa.Workflow{
 		WorkflowDefinitionID: WorkFlowDef[Leave],
@@ -320,10 +320,11 @@ func ReqLeave(db *gorm.DB, leaveID, uID, leaderID, hrID int) error {
 	if err != nil {
 		return err
 	}
+	nodeNum := 1
 	//节点1，自己录入
 	nodeSelf := oa.WorkflowNode{
 		WorkflowID: int(workflow.ID),
-		NodeSeq:    1,
+		NodeSeq:    nodeNum,
 		OperatorID: uID,
 		Status:     models.FlowCompleted,
 	}
@@ -331,30 +332,61 @@ func ReqLeave(db *gorm.DB, leaveID, uID, leaderID, hrID int) error {
 	if err != nil {
 		return err
 	}
-	//节点2，负责人审批
+	nodeNum++
+	for i, choseUserID := range others {
+		//创建element
+		tmpEle := oa.WorkflowFormElement{
+			WfElementDefID: int(eleDef[1].ID),
+			Name:           eleDef[1].ElementName,
+			WorkflowID:     workflow.ID,
+		}
+		err = db.Create(&tmpEle).Error
+		if err != nil {
+			return err
+		}
+		//创建node
+		tmpNode := oa.WorkflowNode{
+			WorkflowID: int(workflow.ID),
+			NodeSeq:    nodeNum,
+			OperatorID: choseUserID,
+		}
+		if i == 0 {
+			tmpNode.Status = models.FlowProcessing
+		}
+		err = db.Create(&tmpNode).Error
+		if err != nil {
+			return err
+		}
+		nodeNum++
+	}
+	//倒数第2节点，负责人审批
 	nodeLeader := oa.WorkflowNode{
 		WorkflowID: int(workflow.ID),
-		NodeSeq:    2,
+		NodeSeq:    nodeNum,
 		OperatorID: leaderID,
-		Status:     models.FlowProcessing,
 	}
 	if leaderID != 0 {
 		if leaderID == hrID {
 			nodeLeader.Status = models.FlowCompleted
+		} else if len(others) == 0 {
+			nodeLeader.Status = models.FlowProcessing
 		}
 		err = db.Create(&nodeLeader).Error
 		if err != nil {
 			return err
 		}
 	}
-	//节点3，hr填写
+	nodeNum++
+	//最后一个节点，hr填写
 	nodeHR := oa.WorkflowNode{
 		WorkflowID: int(workflow.ID),
-		NodeSeq:    3,
+		NodeSeq:    nodeNum,
 		OperatorID: hrID,
 	}
 	if leaderID == 0 || leaderID == hrID {
-		nodeHR.Status = models.FlowProcessing
+		if len(others) == 0 {
+			nodeHR.Status = models.FlowProcessing
+		}
 	}
 	err = db.Create(&nodeHR).Error
 	if err != nil {

@@ -42,6 +42,7 @@ type Leave struct {
 	End          string      `gorm:"size:10;comment:'am,pm'" json:"end"`
 	ReqTime      models.Time `gorm:"type:datetime;comment:'申请时间'" json:"req_time"`
 	Status       string      `gorm:"size:20;comment:'申请状态'" json:"status"`
+	Others       []int       `gorm:"-" json:"others"`
 }
 
 type LeaveBalance struct {
