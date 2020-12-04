@@ -366,10 +366,12 @@ func ReqLeave(db *gorm.DB, leaveID, uID, leaderID, hrID int, others ...int) erro
 		OperatorID: leaderID,
 	}
 	if leaderID != 0 {
-		if leaderID == hrID {
-			nodeLeader.Status = models.FlowCompleted
-		} else if len(others) == 0 {
-			nodeLeader.Status = models.FlowProcessing
+		if len(others) == 0 {
+			if leaderID == hrID {
+				nodeLeader.Status = models.FlowCompleted
+			} else {
+				nodeLeader.Status = models.FlowProcessing
+			}
 		}
 		err = db.Create(&nodeLeader).Error
 		if err != nil {
@@ -383,10 +385,8 @@ func ReqLeave(db *gorm.DB, leaveID, uID, leaderID, hrID int, others ...int) erro
 		NodeSeq:    nodeNum,
 		OperatorID: hrID,
 	}
-	if leaderID == 0 || leaderID == hrID {
-		if len(others) == 0 {
-			nodeHR.Status = models.FlowProcessing
-		}
+	if len(others) == 0 && leaderID == hrID {
+		nodeHR.Status = models.FlowProcessing
 	}
 	err = db.Create(&nodeHR).Error
 	if err != nil {
