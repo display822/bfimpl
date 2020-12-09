@@ -56,10 +56,10 @@ func (w *WorkController) ReqOvertime() {
 		tx.Rollback()
 		w.ErrorOK(MsgServerErr)
 	}
-	//leaderID := 0
-	//if employee.Department != nil {
-	//	leaderID = employee.Department.DepartmentLeaderID
-	//}
+	// leaderID := param.LeaderId
+	// if employee.Department != nil {
+	// 	leaderID = employee.Department.DepartmentLeaderID
+	// }
 	err = services.ReqOvertime(tx, int(param.ID), uID, param.LeaderId, engagementCode.HRID)
 	if err != nil {
 		log.GLogger.Error("req overtime err:%s", err.Error())
@@ -80,7 +80,7 @@ func (w *WorkController) GetProjects() {
 	uEmail := w.GetString("userEmail")
 	//获取emp_info
 	employee := new(oa.Employee)
-	services.Slave().Preload("Department").Take(employee, "email = ?", uEmail)
+	services.Slave().Preload("Department").Preload("Department.Leader").Take(employee, "email = ?", uEmail)
 	if employee.ID == 0 {
 		w.ErrorOK("未找到员工信息")
 	}
@@ -91,6 +91,11 @@ func (w *WorkController) GetProjects() {
 		query = query.Where("engagement_code_desc like ?", "%"+desc+"%")
 	}
 	query.Find(&projects)
+	for _, p :=range projects{
+		if p.CodeOwnerID == int(employee.ID){
+			p.Owner = employee.Department.Leader
+		}
+	}
 	w.Correct(projects)
 }
 
