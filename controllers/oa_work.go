@@ -100,8 +100,8 @@ func (w *WorkController) GetProjects() {
 	fmt.Println("employee.Department.Leader", employee.Department.Leader)
 	for i:=0;i<len(projects);i++{
 		fmt.Println("CodeOwnerID",projects[i].CodeOwnerID)
-		fmt.Println("ID",projects[i].ID)
-		if projects[i].CodeOwnerID == int(projects[i].ID){
+		fmt.Println("int(employee.ID)",int(employee.ID))
+		if projects[i].CodeOwnerID == int(employee.ID){
 			projects[i].Owner = employee.Department.Leader
 		}
 	}
