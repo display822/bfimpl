@@ -13,6 +13,7 @@ import (
 	"bfimpl/services"
 	"bfimpl/services/log"
 	"encoding/json"
+	"fmt"
 	"strings"
 	"time"
 )
@@ -91,11 +92,20 @@ func (w *WorkController) GetProjects() {
 		query = query.Where("engagement_code_desc like ?", "%"+desc+"%")
 	}
 	query.Find(&projects)
-	for _, p :=range projects{
-		if p.CodeOwnerID == int(employee.ID){
-			p.Owner = employee.Department.Leader
+	// for _, p :=range projects{
+	// 	if p.CodeOwnerID == int(employee.ID){
+	// 		p.Owner = employee.Department.Leader
+	// 	}
+	// }
+	fmt.Println("employee.Department.Leader", employee.Department.Leader)
+	for i:=0;i<len(projects);i++{
+		fmt.Println("CodeOwnerID",projects[i].CodeOwnerID)
+		fmt.Println("ID",projects[i].ID)
+		if projects[i].CodeOwnerID == int(projects[i].ID){
+			projects[i].Owner = employee.Department.Leader
 		}
 	}
+
 	w.Correct(projects)
 }
 
