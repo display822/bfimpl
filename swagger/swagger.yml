@@ -900,24 +900,12 @@ paths:
         type: integer
         format: int64
       - in: query
-        name: userType
-        description: 用户类型
-        required: true
-        type: integer
-        format: int64
-      - in: query
         name: myreq
         description: 我的报销
         type: boolean
       - in: query
         name: status
         description: 状态
-        type: integer
-        format: int64
-      - in: query
-        name: userEmail
-        description: 用户邮箱
-        required: true
         type: integer
         format: int64
       - in: query
@@ -948,16 +936,6 @@ paths:
       description: 申请报销
       operationId: ExpenseController.申请报销
       parameters:
-      - in: query
-        name: userID
-        description: 用户ID
-        type: integer
-        format: int64
-      - in: query
-        name: userEmail
-        description: 用户邮箱
-        type: integer
-        format: int64
       - in: body
         name: body
         description: 报销
