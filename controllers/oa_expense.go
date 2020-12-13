@@ -30,10 +30,8 @@ type ExpenseController struct {
 // @Description 报销列表
 // @Param	pagenum	    query	int	false	"页码"
 // @Param	pagesize	query	int	false	"页数"
-// @Param	userType	query	int	true	"用户类型"
 // @Param	myreq	query	bool	false	"我的报销"
 // @Param	status	query	int	false	"状态"
-// @Param	userEmail	query	int	true	"用户邮箱"
 // @Param	searchid	query	int	false	"搜索编码"
 // @Param	application_date_begin	query	int	false	"费用发生日期开始时间"
 // @Param	application_date_end	query	int	false	"费用发生日期结束时间"
@@ -93,8 +91,6 @@ func (e *ExpenseController) List() {
 
 // @Title 申请报销
 // @Description 申请报销
-// @Param	userID	    query	int	false	"用户ID"
-// @Param	userEmail	    query	int	false	"用户邮箱"
 // @Param	body	    body	oa.Expense	true	"报销"
 // @Success 200 {object} oa.Expense
 // @Failure 500 server internal err
