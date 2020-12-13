@@ -24,16 +24,19 @@ replace github.com/derekparker/delve/terminal => github.com/go-delve/delve/termi
 
 require (
 	github.com/360EntSecGroup-Skylar/excelize/v2 v2.3.1
-	github.com/astaxie/beego v1.11.1
+	github.com/astaxie/beego v1.12.1
+	github.com/beego/bee v1.12.3 // indirect
+	github.com/belogik/goes v0.0.0-20151229125003-e54d722c3aff // indirect
 	github.com/go-ini/ini v1.61.0 // indirect
 	github.com/go-ldap/ldap v0.0.0-20200627001853-45321a6717b4
 	github.com/go-redis/redis v6.14.2+incompatible
-	github.com/go-sql-driver/mysql v1.4.1
+	github.com/go-sql-driver/mysql v1.5.0
 	github.com/jinzhu/gorm v1.9.9
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/minio/minio-go v6.0.14+incompatible
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/robfig/cron/v3 v3.0.0
-	github.com/smartystreets/goconvey v0.0.0-20190330032615-68dc04aab96a
+	github.com/shiena/ansicolor v0.0.0-20200904210342-c7312218db18 // indirect
+	github.com/smartystreets/goconvey v1.6.4
 	gopkg.in/ini.v1 v1.61.0 // indirect
 )

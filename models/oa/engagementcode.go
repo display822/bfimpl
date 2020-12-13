@@ -23,6 +23,6 @@ type EngagementCode struct {
 	CodeOwnerID        int          `gorm:"comment:'负责人id'" json:"code_owner_id"`
 	Owner              *models.User `gorm:"ForeignKey:CodeOwnerID" json:"owner"`
 	TeamLeaderID       int          `gorm:"comment:'组长'" json:"team_leader_id"`
-	HRID               int          `gorm:"comment:'人事'" json:"team_leader_id"`
-	FinanceID          int          `gorm:"comment:'财务'" json:"team_leader_id"`
+	HRID               int          `gorm:"comment:'人事'" json:"hr_id"`
+	FinanceID          int          `gorm:"comment:'财务'" json:"finance_id"`
 }

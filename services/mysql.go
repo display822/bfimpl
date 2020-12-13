@@ -75,5 +75,8 @@ func DBInit() {
 		&oa.ServiceLine{},
 		&oa.ProjectCategory{},
 		&oa.ProjectDelivery{},
+		&oa.Expense{},
+		&oa.ExpenseDetail{},
+		&oa.ExpenseAccount{},
 	)
 }

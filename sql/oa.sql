@@ -12,6 +12,8 @@ insert into workflow_definitions(created_at,updated_at,workflow_type,workflow_pu
 values (now(),now(),'Approval','Overtime','Overtime');
 insert into workflow_definitions(created_at,updated_at,workflow_type,workflow_purpose,workflow_entity)
 values (now(),now(),'Approval','Leave','Leave');
+insert into workflow_definitions(created_at,updated_at,workflow_type,workflow_purpose,workflow_entity)
+values (now(),now(),'Approval','Expense','Expense');
 
 -- type: TextField, TextArea
 insert into workflow_form_element_defs(created_at,updated_at,workflow_definition_id,element_seq,element_type, element_name) values
@@ -23,7 +25,28 @@ insert into workflow_form_element_defs(created_at,updated_at,workflow_definition
 insert into workflow_form_element_defs(created_at,updated_at,workflow_definition_id,element_seq,element_type, element_name) values
 (now(),now(),4,1,'TextField','NULL'),(now(),now(),4,2,'TextArea','leader_comment'),(now(),now(),4,3,'TextArea','hr_comment');
 
+insert into workflow_form_element_defs(created_at,updated_at,workflow_definition_id,element_seq,element_type, element_name) values
+(now(),now(),5,1,'TextField','NULL'),
+(now(),now(),5,2,'TextArea','leader_comment'),
+(now(),now(),5,3,'TextArea','finance_comment');
 
+
+-- 新增费用科目
+insert into expense_account(created_at,updated_at,expense_account_name,expense_account_code) values
+(now(),now(),'餐补费','10001'),
+(now(),now(),'交通费(市内)','10002'),
+(now(),now(),'团队激励','10003'),
+(now(),now(),'活动费','10004'),
+(now(),now(),'办公费','10005'),
+(now(),now(),'招聘费','10006'),
+(now(),now(),'通讯费','10007'),
+(now(),now(),'销售费用','10008'),
+(now(),now(),'充值费用','10009'),
+(now(),now(),'交通费(市外)','10010'),
+(now(),now(),'住宿费','10011'),
+(now(),now(),'出差补贴','10012'),
+
+                                                                                                    )
 -- 新增部门
 insert into users(id,created_at,updated_at, name, email,wx,phone,user_type) values
 (66,now(),now(),'马俊杰','ralph.ma@broadfun.cn', '','',10),
@@ -35,6 +58,7 @@ insert into users(id,created_at,updated_at, name, email,wx,phone,user_type) valu
 (89,now(),now(),'何勤勤','Theresa.he@broadfun.cn', '','',10),
 (90,now(),now(),'孙丹峰','danfeng.sun@broadfun.cn', '','',10),
 (91,now(),now(),'陈一菲','yifei.chen@broadfun.cn', '','',10);
+
 insert into departments(created_at,updated_at,department_name,department_leader_id) values
 (now(),now(),'游戏测试一组',84),
 (now(),now(),'游戏测试二组',84),

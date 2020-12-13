@@ -1,0 +1,259 @@
+POST http://localhost:8080/v1/expense
+Content-Type: application/json
+
+{
+  "expense_details": [
+    {
+      "ID": 0,
+      "CreatedAt": "0001-01-01T00:00:00Z",
+      "UpdatedAt": "0001-01-01T00:00:00Z",
+      "DeletedAt": null,
+      "expense_id": 0,
+      "expense_account_code": "10010",
+      "expense_account": {
+        "ID": 0,
+        "CreatedAt": "0001-01-01T00:00:00Z",
+        "UpdatedAt": "0001-01-01T00:00:00Z",
+        "DeletedAt": null,
+        "expense_account_code": "10010",
+        "expense_account_name": "交通费(市外)"
+      },
+      "ocurred_date": "2006-01-02",
+      "expense_amount": 11,
+      "remarks1": "1",
+      "remarks2": "1",
+      "remarks3": ""
+    },
+    {
+      "ID": 0,
+      "CreatedAt": "0001-01-01T00:00:00Z",
+      "UpdatedAt": "0001-01-01T00:00:00Z",
+      "DeletedAt": null,
+      "expense_id": 0,
+      "expense_account_code": "10010",
+      "expense_account": {
+        "ID": 0,
+        "CreatedAt": "0001-01-01T00:00:00Z",
+        "UpdatedAt": "0001-01-01T00:00:00Z",
+        "DeletedAt": null,
+        "expense_account_code": "10010",
+        "expense_account_name": "交通费(市外)"
+      },
+      "ocurred_date": "2006-01-02",
+      "expense_amount": 100.11,
+      "remarks1": "1",
+      "remarks2": "",
+      "remarks3": ""
+    },
+    {
+      "ID": 0,
+      "CreatedAt": "0001-01-01T00:00:00Z",
+      "UpdatedAt": "0001-01-01T00:00:00Z",
+      "DeletedAt": null,
+      "expense_id": 0,
+      "expense_account_code": "10010",
+      "expense_account": {
+        "ID": 0,
+        "CreatedAt": "0001-01-01T00:00:00Z",
+        "UpdatedAt": "0001-01-01T00:00:00Z",
+        "DeletedAt": null,
+        "expense_account_code": "10010",
+        "expense_account_name": "交通费(市外)"
+      },
+      "ocurred_date": "2006-01-02",
+      "expense_amount": 11,
+      "remarks1": "1",
+      "remarks2": "1",
+      "remarks3": ""
+    },
+    {
+      "ID": 0,
+      "CreatedAt": "0001-01-01T00:00:00Z",
+      "UpdatedAt": "0001-01-01T00:00:00Z",
+      "DeletedAt": null,
+      "expense_id": 0,
+      "expense_account_code": "10010",
+      "expense_account": {
+        "ID": 0,
+        "CreatedAt": "0001-01-01T00:00:00Z",
+        "UpdatedAt": "0001-01-01T00:00:00Z",
+        "DeletedAt": null,
+        "expense_account_code": "10010",
+        "expense_account_name": "交通费(市外)"
+      },
+      "ocurred_date": "2006-01-02",
+      "expense_amount": 11,
+      "remarks1": "1",
+      "remarks2": "1",
+      "remarks3": ""
+    },
+    {
+      "ID": 0,
+      "CreatedAt": "0001-01-01T00:00:00Z",
+      "UpdatedAt": "0001-01-01T00:00:00Z",
+      "DeletedAt": null,
+      "expense_id": 0,
+      "expense_account_code": "10010",
+      "expense_account": {
+        "ID": 0,
+        "CreatedAt": "0001-01-01T00:00:00Z",
+        "UpdatedAt": "0001-01-01T00:00:00Z",
+        "DeletedAt": null,
+        "expense_account_code": "10010",
+        "expense_account_name": "交通费(市外)"
+      },
+      "ocurred_date": "2006-01-02",
+      "expense_amount": 11,
+      "remarks1": "1",
+      "remarks2": "1",
+      "remarks3": ""
+    },
+    {
+      "ID": 0,
+      "CreatedAt": "0001-01-01T00:00:00Z",
+      "UpdatedAt": "0001-01-01T00:00:00Z",
+      "DeletedAt": null,
+      "expense_id": 0,
+      "expense_account_code": "10010",
+      "expense_account": {
+        "ID": 0,
+        "CreatedAt": "0001-01-01T00:00:00Z",
+        "UpdatedAt": "0001-01-01T00:00:00Z",
+        "DeletedAt": null,
+        "expense_account_code": "10010",
+        "expense_account_name": "交通费(市外)"
+      },
+      "ocurred_date": "2006-01-02",
+      "expense_amount": 11,
+      "remarks1": "1",
+      "remarks2": "1",
+      "remarks3": ""
+    },
+    {
+      "ID": 0,
+      "CreatedAt": "0001-01-01T00:00:00Z",
+      "UpdatedAt": "0001-01-01T00:00:00Z",
+      "DeletedAt": null,
+      "expense_id": 0,
+      "expense_account_code": "10010",
+      "expense_account": {
+        "ID": 0,
+        "CreatedAt": "0001-01-01T00:00:00Z",
+        "UpdatedAt": "0001-01-01T00:00:00Z",
+        "DeletedAt": null,
+        "expense_account_code": "10010",
+        "expense_account_name": "交通费(市外)"
+      },
+      "ocurred_date": "2006-01-02",
+      "expense_amount": 11,
+      "remarks1": "1",
+      "remarks2": "1",
+      "remarks3": ""
+    },
+    {
+      "ID": 0,
+      "CreatedAt": "0001-01-01T00:00:00Z",
+      "UpdatedAt": "0001-01-01T00:00:00Z",
+      "DeletedAt": null,
+      "expense_id": 0,
+      "expense_account_code": "10010",
+      "expense_account": {
+        "ID": 0,
+        "CreatedAt": "0001-01-01T00:00:00Z",
+        "UpdatedAt": "0001-01-01T00:00:00Z",
+        "DeletedAt": null,
+        "expense_account_code": "10010",
+        "expense_account_name": "交通费(市外)"
+      },
+      "ocurred_date": "2006-01-02",
+      "expense_amount": 11,
+      "remarks1": "1",
+      "remarks2": "1",
+      "remarks3": ""
+    },
+    {
+      "ID": 0,
+      "CreatedAt": "0001-01-01T00:00:00Z",
+      "UpdatedAt": "0001-01-01T00:00:00Z",
+      "DeletedAt": null,
+      "expense_id": 0,
+      "expense_account_code": "10010",
+      "expense_account": {
+        "ID": 0,
+        "CreatedAt": "0001-01-01T00:00:00Z",
+        "UpdatedAt": "0001-01-01T00:00:00Z",
+        "DeletedAt": null,
+        "expense_account_code": "10010",
+        "expense_account_name": "交通费(市外)"
+      },
+      "ocurred_date": "2006-01-02",
+      "expense_amount": 11,
+      "remarks1": "1",
+      "remarks2": "1",
+      "remarks3": ""
+    },
+    {
+      "ID": 0,
+      "CreatedAt": "0001-01-01T00:00:00Z",
+      "UpdatedAt": "0001-01-01T00:00:00Z",
+      "DeletedAt": null,
+      "expense_id": 0,
+      "expense_account_code": "10010",
+      "expense_account": {
+        "ID": 0,
+        "CreatedAt": "0001-01-01T00:00:00Z",
+        "UpdatedAt": "0001-01-01T00:00:00Z",
+        "DeletedAt": null,
+        "expense_account_code": "10010",
+        "expense_account_name": "交通费(市外)"
+      },
+      "ocurred_date": "2006-01-02",
+      "expense_amount": 11,
+      "remarks1": "1",
+      "remarks2": "1",
+      "remarks3": ""
+    },
+    {
+      "ID": 0,
+      "CreatedAt": "0001-01-01T00:00:00Z",
+      "UpdatedAt": "0001-01-01T00:00:00Z",
+      "DeletedAt": null,
+      "expense_id": 0,
+      "expense_account_code": "10010",
+      "expense_account": {
+        "ID": 0,
+        "CreatedAt": "0001-01-01T00:00:00Z",
+        "UpdatedAt": "0001-01-01T00:00:00Z",
+        "DeletedAt": null,
+        "expense_account_code": "10010",
+        "expense_account_name": "交通费(市外)"
+      },
+      "ocurred_date": "2006-01-02",
+      "expense_amount": 11,
+      "remarks1": "1",
+      "remarks2": "1",
+      "remarks3": ""
+    }
+  ]
+}
+
+### 申请报销
+
+GET http://localhost:8080/v1/expense?userEmail=11111112@qq.com&searchid=1&application_date_begin=2020-12-01 15:14:14&application_date_end=2020-12-30 15:14:14
+Accept: application/json
+
+### 报销列表
+GET http://localhost:8080/v1/expense/approvals?userEmail=kaili.wang@broadfun.cn
+Accept: application/json
+
+### 报销审核人
+POST http://localhost:8080/v1/expense/details
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="excel.xlsx"
+
+< tmp/t.xlsx
+--WebAppBoundary--
+
+### 解析报销xlsx文件

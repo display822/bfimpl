@@ -9,6 +9,7 @@ package services
 import (
 	"bfimpl/models"
 	"bfimpl/models/oa"
+	"bfimpl/services/log"
 	"errors"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -20,6 +21,7 @@ const (
 	EmployeeLeave = "EmployeeLeave"
 	Overtime      = "Overtime"
 	Leave         = "Leave"
+	Expense       = "Expense"
 )
 
 var WorkFlowDef map[string]int
@@ -40,6 +42,7 @@ func init() {
 	for _, u := range users {
 		mUsers[u.UserType] = u
 	}
+	log.GLogger.Info("WorkFlowDef", WorkFlowDef)
 }
 
 func GetEntryDef() int {
@@ -422,6 +425,89 @@ func ReqLeave(db *gorm.DB, leaveID, uID, leaderID, hrID int, others ...int) erro
 		Status:     models.FlowNA,
 	}
 	err = db.Create(&nodeFront).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// 报销工作流
+func ReqExpense(db *gorm.DB, expenseID, uID, leaderID, financeID int) error {
+	//工作流
+	workflow := oa.Workflow{
+		WorkflowDefinitionID: WorkFlowDef[Expense],
+		Status:               oa.Processing,
+		EntityID:             expenseID,
+	}
+	err := db.Create(&workflow).Error
+	if err != nil {
+		return err
+	}
+	//查询elements
+	eleDef := make([]*oa.WorkflowFormElementDef, 0)
+	db.Model(oa.WorkflowFormElementDef{}).Where("workflow_definition_id = ?", WorkFlowDef[Expense]).Find(&eleDef)
+	log.GLogger.Info("eleDef", eleDef)
+	if len(eleDef) != 3 {
+		return errors.New("wrong workflow elements")
+	}
+	//元素填写
+	ele1 := oa.WorkflowFormElement{
+		WfElementDefID: int(eleDef[0].ID),
+		Name:           eleDef[0].ElementName,
+		WorkflowID:     workflow.ID,
+	}
+	ele2 := oa.WorkflowFormElement{
+		WfElementDefID: int(eleDef[1].ID),
+		Name:           eleDef[1].ElementName,
+		WorkflowID:     workflow.ID,
+	}
+	ele3 := oa.WorkflowFormElement{
+		WfElementDefID: int(eleDef[2].ID),
+		Name:           eleDef[2].ElementName,
+		WorkflowID:     workflow.ID,
+	}
+	err = db.Create(&ele1).Error
+	err = db.Create(&ele2).Error
+	err = db.Create(&ele3).Error
+	if err != nil {
+		return err
+	}
+	//节点1，自己录入
+	nodeSelf := oa.WorkflowNode{
+		WorkflowID: int(workflow.ID),
+		NodeSeq:    1,
+		OperatorID: uID,
+		Status:     models.FlowCompleted,
+	}
+	err = db.Create(&nodeSelf).Error
+	if err != nil {
+		return err
+	}
+	//节点2，负责人审批
+	nodeLeader := oa.WorkflowNode{
+		WorkflowID: int(workflow.ID),
+		NodeSeq:    2,
+		OperatorID: leaderID,
+		Status:     models.FlowProcessing,
+	}
+	if leaderID == financeID {
+		nodeLeader.Status = models.FlowCompleted
+	}
+	err = db.Create(&nodeLeader).Error
+	if err != nil {
+		return err
+	}
+	//节点3，财务填写
+	nodeHR := oa.WorkflowNode{
+		WorkflowID: int(workflow.ID),
+		NodeSeq:    3,
+		OperatorID: financeID,
+	}
+	if leaderID == financeID {
+		nodeHR.Status = models.FlowProcessing
+	}
+	err = db.Create(&nodeHR).Error
 	if err != nil {
 		return err
 	}

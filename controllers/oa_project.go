@@ -106,7 +106,7 @@ func (p *ProjectController) Create() {
 // @Success 200 {object} []oa.ProjectDelivery
 // @Failure 500 server internal err
 // @router /details [post]
-func (p *ProjectController) ParseDetailFile() {
+func (p *ProjectController) ParseProjectDetailFile() {
 	periodTime := p.GetString("period_time")
 	if periodTime == "" {
 		p.ErrorOK("need period_time")
