@@ -1,5 +1,8 @@
 .idea/
-swagger/
 swagger.zip
 lastupdate.tmp
 routers/commentsRouter_.go
+tmp/
+.DS_Store
+logs/
+bfimpl
