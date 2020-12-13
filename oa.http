@@ -1,4 +1,14 @@
-POST http://localhost:8080/v1/expense
+POST {{host}}/v1/login
+Content-Type: application/json
+
+{
+  "username":"qianqian.niu",
+  "password": "123"
+}
+
+
+###
+POST {{host}}/v1/expense
 Content-Type: application/json
 
 {
@@ -239,16 +249,17 @@ Content-Type: application/json
 
 ### 申请报销
 
-GET http://localhost:8080/v1/expense?userEmail=11111112@qq.com&searchid=1&application_date_begin=2020-12-01 15:14:14&application_date_end=2020-12-30 15:14:14
+GET {{host}}/v1/expense?userEmail=11111112@qq.com&searchid=1&application_date_begin=2020-12-01 15:14:14&application_date_end=2020-12-30 15:14:14
 Accept: application/json
 
 ### 报销列表
-GET http://localhost:8080/v1/expense/approvals?userEmail=kaili.wang@broadfun.cn
+GET {{host}}/v1/expense/approvals?userEmail=kaili.wang@broadfun.cn
 Accept: application/json
 
 ### 报销审核人
-POST http://localhost:8080/v1/expense/details
+POST {{host}}/v1/expense/details
 Content-Type: multipart/form-data; boundary=WebAppBoundary
+Authorization: 9fc46d57c95141c504bfcb2357499ad0
 
 --WebAppBoundary
 Content-Disposition: form-data; name="file"; filename="excel.xlsx"

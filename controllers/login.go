@@ -12,6 +12,7 @@ import (
 	"bfimpl/services/log"
 	"bfimpl/services/util"
 	"encoding/json"
+	"github.com/astaxie/beego"
 	"math/rand"
 	"strconv"
 	"time"
@@ -35,14 +36,17 @@ func (l *LoginController) Login() {
 		l.ErrorOK(MsgInvalidParam)
 	}
 
-	b, e := services.LdapService().Login(param.UserName, param.Password)
-	if e != nil {
-		log.GLogger.Error(e.Error())
+	if beego.AppConfig.String("runmode") != beego.DEV {
+		b, e := services.LdapService().Login(param.UserName, param.Password)
+		if e != nil {
+			log.GLogger.Error(e.Error())
+		}
+		if !b {
+			l.ErrorOK("login fail")
+		}
+		//ldap登录成功后，查看信息是否录入
 	}
-	if !b {
-		l.ErrorOK("login fail")
-	}
-	//ldap登录成功后，查看信息是否录入
+
 	var user models.User
 	err = services.Slave().Where("email = ?", param.UserName+"@broadfun.cn").First(&user).Error
 	if err != nil {
