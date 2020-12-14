@@ -254,7 +254,7 @@ func (w *WorkController) ApprovalOvertime() {
 	services.Slave().Model(oa.Workflow{}).Where("workflow_definition_id = ? and entity_id = ?",
 		services.GetFlowDefID(services.Overtime), param.Id).Preload("Nodes").Preload("Nodes.User").
 		Preload("Elements").First(workflow)
-	if workflow.Nodes == nil || len(workflow.Nodes) != 3 {
+	if workflow.Nodes == nil {
 		w.ErrorOK("工作流配置错误")
 	}
 	isCheck := false
