@@ -48,6 +48,9 @@ const (
 	LeaveFlexible = "Flexible"
 	LeaveAnnual   = "Annual"
 	LeaveAffair   = "PrivateAffair"
+
+	FlowUnpaid = "Unpaid"
+	FlowPaid   = "Paid"
 )
 
 var Months = []int{31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}

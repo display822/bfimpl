@@ -448,7 +448,7 @@ func ReqExpense(db *gorm.DB, expenseID, uID, leaderID, financeID int) error {
 	eleDef := make([]*oa.WorkflowFormElementDef, 0)
 	db.Model(oa.WorkflowFormElementDef{}).Where("workflow_definition_id = ?", WorkFlowDef[Expense]).Find(&eleDef)
 	log.GLogger.Info("eleDef", eleDef)
-	if len(eleDef) != 3 {
+	if len(eleDef) != 4 {
 		return errors.New("wrong workflow elements")
 	}
 	//元素填写
@@ -467,9 +467,15 @@ func ReqExpense(db *gorm.DB, expenseID, uID, leaderID, financeID int) error {
 		Name:           eleDef[2].ElementName,
 		WorkflowID:     workflow.ID,
 	}
+	ele4 := oa.WorkflowFormElement{
+		WfElementDefID: int(eleDef[3].ID),
+		Name:           eleDef[3].ElementName,
+		WorkflowID:     workflow.ID,
+	}
 	err = db.Create(&ele1).Error
 	err = db.Create(&ele2).Error
 	err = db.Create(&ele3).Error
+	err = db.Create(&ele4).Error
 	if err != nil {
 		return err
 	}
@@ -491,23 +497,37 @@ func ReqExpense(db *gorm.DB, expenseID, uID, leaderID, financeID int) error {
 		OperatorID: leaderID,
 		Status:     models.FlowProcessing,
 	}
-	if leaderID == financeID {
+	if leaderID == uID {
 		nodeLeader.Status = models.FlowCompleted
 	}
 	err = db.Create(&nodeLeader).Error
 	if err != nil {
 		return err
 	}
-	//节点3，财务填写
-	nodeHR := oa.WorkflowNode{
+	//节点3，财务填写(审核流程)
+	nodeFinance := oa.WorkflowNode{
 		WorkflowID: int(workflow.ID),
 		NodeSeq:    3,
 		OperatorID: financeID,
 	}
-	if leaderID == financeID {
-		nodeHR.Status = models.FlowProcessing
+	//if leaderID == financeID {
+	//	nodeHR.Status = models.FlowProcessing
+	//}
+	err = db.Create(&nodeFinance).Error
+	if err != nil {
+		return err
 	}
-	err = db.Create(&nodeHR).Error
+
+	//节点4，财务填写(支付流程)
+	nodeFinancePaid := oa.WorkflowNode{
+		WorkflowID: int(workflow.ID),
+		NodeSeq:    4,
+		OperatorID: financeID,
+	}
+	//if leaderID == financeID {
+	//	nodeHR.Status = models.FlowProcessing
+	//}
+	err = db.Create(&nodeFinancePaid).Error
 	if err != nil {
 		return err
 	}

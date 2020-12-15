@@ -12,3 +12,10 @@ type ReqApprovalOvertime struct {
 	Status  int    `json:"status"`
 	Comment string `json:"comment"`
 }
+
+//报销审批信息
+type ReqApprovalExpense struct {
+	Id      int    `json:"id"`
+	Status  int    `json:"status"`
+	Comment string `json:"comment"`
+}

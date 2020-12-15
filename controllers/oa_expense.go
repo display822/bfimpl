@@ -160,6 +160,124 @@ func (e *ExpenseController) ReqExpense() {
 	e.Correct(param)
 }
 
+// @Title 单条申请报销
+// @Description 单条申请报销
+// @Param	id	path	int	true	"报销id"
+// @Success 200 {string} "success"
+// @Failure 500 server err
+// @router /expense/:id [get]
+func (e *ExpenseController) ExpenseById() {
+	eID, _ := e.GetInt(":id", 0)
+	expense := new(oa.Expense)
+	services.Slave().Take(expense, "id = ?", eID)
+	//oID 查询 workflow
+	workflow := new(oa.Workflow)
+	services.Slave().Model(oa.Workflow{}).Where("workflow_definition_id = ? and entity_id = ?",
+		services.GetFlowDefID(services.Expense), eID).Preload("Nodes").Preload("Nodes.User").
+		Preload("Elements").First(workflow)
+	if len(workflow.Nodes) != 4 {
+		e.ErrorOK("工作流配置错误")
+	}
+	var resp struct {
+		Info     *oa.Expense `json:"info"`
+		WorkFlow *oa.Workflow `json:"work_flow"`
+	}
+	resp.Info = expense
+	resp.WorkFlow = workflow
+
+	e.Correct(resp)
+}
+
+// @Title 审批申请报销
+// @Description 审批申请报销
+// @Param	id	body	int	true	"报销id"
+// @Param	comment	body	string	true	"审批意见"
+// @Success 200 {string} "success"
+// @Failure 500 server err
+// @router /expense [put]
+func (e *ExpenseController) ApprovalExpense() {
+	param := new(forms.ReqApprovalExpense)
+	err := json.Unmarshal(e.Ctx.Input.RequestBody, param)
+	if err != nil {
+		log.GLogger.Error("parse expense err:%s", err.Error())
+		e.ErrorOK(MsgInvalidParam)
+	}
+	//oID 查询 workflow
+	workflow := new(oa.Workflow)
+	services.Slave().Model(oa.Workflow{}).Where("workflow_definition_id = ? and entity_id = ?",
+		services.GetFlowDefID(services.Expense), param.Id).Preload("Nodes").Preload("Nodes.User").
+		Preload("Elements").First(workflow)
+	if workflow.Nodes == nil || len(workflow.Nodes) != 4 {
+		e.ErrorOK("工作流配置错误")
+	}
+	//isCheck := false
+	//userID, _ := e.GetInt("userID", 0)
+	// 负责人，hr审批
+	//num := len(workflow.Nodes)
+	//for i, node := range workflow.Nodes {
+	//	if node.Status == models.FlowProcessing && node.OperatorID == userID {
+	//		isCheck = true
+	//		status := models.FlowRejected
+	//		if param.Status == 1 {
+	//			status = models.FlowApproved
+	//		}
+	//		node.Status = status
+	//		workflow.Elements[i].Value = param.Comment
+	//		if i < num-1 {
+	//			//负责人
+	//			if param.Status == 0 {
+	//				workflow.Status = status
+	//				services.Slave().Model(oa.Overtime{}).Where("id = ?", param.Id).Updates(map[string]interface{}{
+	//					"status": status,
+	//				})
+	//			} else {
+	//				workflow.Nodes[i+1].Status = models.FlowProcessing
+	//			}
+	//			services.Slave().Save(workflow)
+	//		} else if i == num-1 {
+	//			//hr
+	//			workflow.Status = status
+	//			services.Slave().Save(workflow)
+	//			services.Slave().Model(oa.Overtime{}).Where("id = ?", param.Id).Updates(map[string]interface{}{
+	//				"status": status,
+	//			})
+	//			//审批通过且类型为weekend,holiday，将加班时长放入leave balance
+	//			if status == models.FlowApproved {
+	//				overtime := new(oa.Overtime)
+	//				services.Slave().Take(overtime, "id = ?", param.Id)
+	//				if overtime.Type == "weekend" || overtime.Type == "holiday" {
+	//					balance := oa.LeaveBalance{
+	//						EmpID:      overtime.EmpID,
+	//						Type:       oa.OverTime,
+	//						Amount:     (overtime.RealDuration) / 8,
+	//						OvertimeID: int(overtime.ID),
+	//					}
+	//					if balance.Amount == 0 {
+	//						balance.Amount = (overtime.Duration) / 8
+	//					}
+	//					services.Slave().Create(&balance)
+	//				}
+	//			}
+	//		}
+	//		break
+	//	}
+	//}
+	//if !isCheck {
+	//	e.ErrorOK("您不是当前审批人")
+	//}
+	e.Correct("")
+}
+
+// @Title 支付报销
+// @Description 支付报销
+// @Param	id	body	int	true	"报销id"
+// @Success 200 {string} "success"
+// @Failure 500 server err
+// @router /expense/paid [put]
+func (e *ExpenseController) PaidExpense() {
+
+}
+
 // @Title 解析用户报销内容的excel文件
 // @Description 解析用户报销内容的excel文件
 // @Param  file form-data binary true "文件"
@@ -233,7 +351,7 @@ func Read(f *excelize.File) ([]*oa.ExpenseDetail, error) {
 		if colList[0] == "" {
 			errorArray = append(errorArray, fmt.Sprintf("第%d行费用发生日期未填写", x))
 		} else {
-			t, err := time.Parse(models.TimeFormat, colList[0])
+			t, err := time.Parse(models.DateFormat, colList[0])
 			if err != nil {
 				errorArray = append(errorArray, fmt.Sprintf("第%d行费用发生日期格式不正确", x))
 			}
@@ -264,7 +382,7 @@ func Read(f *excelize.File) ([]*oa.ExpenseDetail, error) {
 		} else {
 			log.GLogger.Info("expenseAmount string：%s", colList[2])
 			float, err := strconv.ParseFloat(colList[2], 64)
-			if err != nil {
+			if err != nil || float <= 0 {
 				errorArray = append(errorArray, fmt.Sprintf("第%d行费用金额格式不正确", x))
 			}
 			expenseAmount = float
@@ -294,7 +412,7 @@ func Read(f *excelize.File) ([]*oa.ExpenseDetail, error) {
 // @Description 项目code
 // @Success 200 {string} "success"
 // @Failure 500 server err
-// @router /overtime/projects [get]
+// @router /projects [get]
 func (e *ExpenseController) GetProjects() {
 	desc := e.GetString("desc")
 	uEmail := e.GetString("userEmail")
@@ -348,6 +466,6 @@ func (e *ExpenseController) ApprovalUsers() {
 	services.Slave().Model(oa.EngagementCode{}).Where("department_id = ?", employee.DepartmentID).First(engagementCode)
 	log.GLogger.Info("engagementCode:%s", engagementCode)
 	u := new(models.User)
-
+	services.Slave().Take(u, "id = ?", engagementCode.FinanceID)
 	e.Correct(u.Name)
 }

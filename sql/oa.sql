@@ -29,6 +29,7 @@ insert into workflow_form_element_defs(created_at,updated_at,workflow_definition
 (now(),now(),5,1,'TextField','NULL'),
 (now(),now(),5,2,'TextArea','leader_comment'),
 (now(),now(),5,3,'TextArea','finance_comment');
+(now(),now(),5,4,'TextField','NULL'),
 
 
 -- 新增费用科目
