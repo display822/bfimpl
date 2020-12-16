@@ -98,10 +98,10 @@ func (w *WorkController) GetProjects() {
 	// 	}
 	// }
 	fmt.Println("employee.Department.Leader", employee.Department.Leader)
-	for i:=0;i<len(projects);i++{
-		fmt.Println("CodeOwnerID",projects[i].CodeOwnerID)
-		fmt.Println("int(employee.ID)",int(employee.ID))
-		if projects[i].CodeOwnerID == int(employee.ID){
+	for i := 0; i < len(projects); i++ {
+		fmt.Println("CodeOwnerID", projects[i].CodeOwnerID)
+		fmt.Println("int(employee.ID)", int(employee.ID))
+		if projects[i].CodeOwnerID == int(employee.ID) {
 			projects[i].Owner = employee.Department.Leader
 			projects[i].CodeOwnerID = int(employee.Department.Leader.ID)
 		}
@@ -384,6 +384,9 @@ func (w *WorkController) ReqLeave() {
 	leaderID := 0
 	if employee.Department != nil {
 		leaderID = employee.Department.DepartmentLeaderID
+		if leaderID == uID {
+			leaderID = 0
+		}
 	}
 	err = services.ReqLeave(tx, int(param.ID), uID, leaderID, engagementCode.HRID, param.Others...)
 	if err != nil {
