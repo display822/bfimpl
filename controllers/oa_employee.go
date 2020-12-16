@@ -257,6 +257,17 @@ func (e *EmployeeController) CommitWorkflowNode() {
 		workflow.Nodes[2].Status = models.FlowCompleted
 		workflow.Status = models.FlowCompleted
 		services.Slave().Save(workflow)
+		//增加user
+		emp := new(oa.Employee)
+		services.Slave().Take(emp, "id = ?", eID)
+		user := models.User{
+			Name:     emp.Name,
+			Email:    emp.Email,
+			Wx:       emp.WxWork,
+			Phone:    emp.Mobile,
+			UserType: 5,
+		}
+		services.Slave().Create(&user)
 	}
 	e.Correct("")
 }
