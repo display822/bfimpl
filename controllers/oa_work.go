@@ -405,6 +405,7 @@ func (w *WorkController) ReqLeave() {
 // @router /leave/approvals [get]
 func (w *WorkController) LeaveApprovalUsers() {
 	uEmail := w.GetString("userEmail")
+	uID, _ := w.GetInt("userID")
 	//获取emp_info
 	employee := new(oa.Employee)
 	services.Slave().Preload("Department").Preload("Department.Leader").Take(employee, "email = ?", uEmail)
@@ -413,7 +414,9 @@ func (w *WorkController) LeaveApprovalUsers() {
 	}
 	approvalUsers := make([]string, 0)
 	if employee.Department != nil && employee.Department.Leader != nil {
-		approvalUsers = append(approvalUsers, employee.Department.Leader.Name)
+		if uID != employee.Department.DepartmentLeaderID {
+			approvalUsers = append(approvalUsers, employee.Department.Leader.Name)
+		}
 	}
 	//查询HRBP id
 	engagementCode := new(oa.EngagementCode)
