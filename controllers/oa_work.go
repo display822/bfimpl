@@ -655,8 +655,8 @@ func (w *WorkController) ApprovalLeave() {
 	w.Correct("")
 }
 
-// @Title 审批申请加班
-// @Description 审批申请加班
+// @Title 请假时长校验
+// @Description 请假时长校验
 // @Param	id	path	int	true	"加班id"
 // @Param	real	query	string	true	"实际加班时长"
 // @Success 200 {string} "success"
@@ -664,7 +664,7 @@ func (w *WorkController) ApprovalLeave() {
 // @router /leave/:id/check [put]
 func (w *WorkController) ValidLeave() {
 	lID, _ := w.GetInt(":id", 0)
-	realDuration, _ := w.GetInt("real", 0)
+	realDuration, _ := w.GetFloat("real", 0)
 	err := services.Slave().Model(oa.Leave{}).Where("id = ?", lID).Updates(map[string]interface{}{
 		"real_duration": realDuration,
 	}).Error
