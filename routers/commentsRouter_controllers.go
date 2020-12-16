@@ -917,6 +917,15 @@ func init() {
 			Filters:          nil,
 			Params:           nil})
 
+	beego.GlobalControllerRouter["bfimpl/controllers:ExpenseController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:ExpenseController"],
+		beego.ControllerComments{
+			Method:           "GetProjects",
+			Router:           `/projects`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
 	beego.GlobalControllerRouter["bfimpl/controllers:ProjectController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:ProjectController"],
 		beego.ControllerComments{
 			Method:           "FilterField",
@@ -926,10 +935,28 @@ func init() {
 			Filters:          nil,
 			Params:           nil})
 
+	beego.GlobalControllerRouter["bfimpl/controllers:ExpenseController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:ExpenseController"],
+		beego.ControllerComments{
+			Method:           "ApprovalUsers",
+			Router:           `/approvals`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
 	beego.GlobalControllerRouter["bfimpl/controllers:ProjectController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:ProjectController"],
 		beego.ControllerComments{
 			Method:           "List",
 			Router:           `/`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:ExpenseController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:ExpenseController"],
+		beego.ControllerComments{
+			Method:           "ExpenseById",
+			Router:           `/:id`,
 			AllowHTTPMethods: []string{"get"},
 			MethodParams:     param.Make(),
 			Filters:          nil,

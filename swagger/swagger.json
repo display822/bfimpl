@@ -1439,7 +1439,106 @@
                 }
             }
         },
-        "/expense/overtime/projects": {
+        "/expense/expense": {
+            "put": {
+                "tags": [
+                    "expense"
+                ],
+                "description": "审批申请报销",
+                "operationId": "ExpenseController.审批申请报销",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "id",
+                        "description": "报销id",
+                        "required": true,
+                        "schema": {
+                            "format": "int64",
+                            "type": "integer"
+                        },
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "in": "body",
+                        "name": "comment",
+                        "description": "审批意见",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{string} \"success\""
+                    },
+                    "500": {
+                        "description": "server err"
+                    }
+                }
+            }
+        },
+        "/expense/expense/paid": {
+            "put": {
+                "tags": [
+                    "expense"
+                ],
+                "description": "支付报销",
+                "operationId": "ExpenseController.支付报销",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "id",
+                        "description": "报销id",
+                        "required": true,
+                        "schema": {
+                            "format": "int64",
+                            "type": "integer"
+                        },
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{string} \"success\""
+                    },
+                    "500": {
+                        "description": "server err"
+                    }
+                }
+            }
+        },
+        "/expense/expense/{id}": {
+            "get": {
+                "tags": [
+                    "expense"
+                ],
+                "description": "单条申请报销",
+                "operationId": "ExpenseController.单条申请报销",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "description": "报销id",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{string} \"success\""
+                    },
+                    "500": {
+                        "description": "server err"
+                    }
+                }
+            }
+        },
+        "/expense/projects": {
             "get": {
                 "tags": [
                     "expense"

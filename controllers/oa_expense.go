@@ -141,13 +141,14 @@ func (e *ExpenseController) ReqExpense() {
 		e.ErrorOK(MsgServerErr)
 	}
 
-	// 批量创建报销详情
-	err = oa.BatchCreateExpenseDetail(tx, int(param.ID), param.ExpenseDetails)
-	if err != nil {
-		log.GLogger.Error("batch create expense detail err:%s", err.Error())
-		tx.Rollback()
-		e.ErrorOK(MsgServerErr)
-	}
+	//log.GLogger.Info("param.ExpenseDetails: %v", param.ExpenseDetails)
+	//// 批量创建报销详情
+	//err = oa.BatchCreateExpenseDetail(tx, int(param.ID), param.ExpenseDetails)
+	//if err != nil {
+	//	log.GLogger.Error("batch create expense detail err:%s", err.Error())
+	//	tx.Rollback()
+	//	e.ErrorOK(MsgServerErr)
+	//}
 
 	// 执行报销工作流
 	err = services.ReqExpense(tx, int(param.ID), uID, param.LeaderId, engagementCode.FinanceID)
@@ -169,7 +170,7 @@ func (e *ExpenseController) ReqExpense() {
 func (e *ExpenseController) ExpenseById() {
 	eID, _ := e.GetInt(":id", 0)
 	expense := new(oa.Expense)
-	services.Slave().Take(expense, "id = ?", eID)
+	services.Slave().Preload("ExpenseDetails").Take(expense, "id = ?", eID)
 	//oID 查询 workflow
 	workflow := new(oa.Workflow)
 	services.Slave().Model(oa.Workflow{}).Where("workflow_definition_id = ? and entity_id = ?",
@@ -179,7 +180,7 @@ func (e *ExpenseController) ExpenseById() {
 		e.ErrorOK("工作流配置错误")
 	}
 	var resp struct {
-		Info     *oa.Expense `json:"info"`
+		Info     *oa.Expense  `json:"info"`
 		WorkFlow *oa.Workflow `json:"work_flow"`
 	}
 	resp.Info = expense
