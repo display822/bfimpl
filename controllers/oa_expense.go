@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/360EntSecGroup-Skylar/excelize/v2"
+	"github.com/google/uuid"
 )
 
 type ExpenseController struct {
@@ -31,7 +32,10 @@ type ExpenseController struct {
 // @Param	pagenum	    query	int	false	"页码"
 // @Param	pagesize	query	int	false	"页数"
 // @Param	myreq	query	bool	false	"我的报销"
+// @Param	mytodo	query	bool	false	"我的审核"
 // @Param	status	query	int	false	"状态"
+// @Param	todostatus	query	int	false	"0：代办；1：已办"
+// @Param	name	query	string	false	"搜索申请人"
 // @Param	searchid	query	int	false	"搜索编码"
 // @Param	application_date_begin	query	int	false	"费用发生日期开始时间"
 // @Param	application_date_end	query	int	false	"费用发生日期结束时间"
@@ -44,6 +48,7 @@ func (e *ExpenseController) List() {
 	userType, _ := e.GetInt("userType", 0)
 	name := e.GetString("name")
 	myReq, _ := e.GetBool("myreq", false)
+	myTodo, _ := e.GetBool("mytodo", false)
 	status := e.GetString("status")
 	userEmail := e.GetString("userEmail")
 	searchID := e.GetString("searchid")
@@ -61,30 +66,61 @@ func (e *ExpenseController) List() {
 	if searchID != "" {
 		query = query.Where("id like ?", fmt.Sprintf("%%%s%%", searchID))
 	}
-
+	if name != "" {
+		query = query.Where("e_name like ?", "%"+name+"%")
+	}
 	if status != "" {
 		query = query.Where("status = ?", status)
 	}
 	if applicationDateBegin != "" && applicationDateEnd != "" {
 		query = query.Where("application_date > ?", applicationDateBegin).Where("application_date <= ?", applicationDateEnd)
 	}
-	if userType != models.UserHR && userType != models.UserLeader {
-		//不是hr和部门负责人，只能查自己
-		query = query.Where("emp_id = ?", employee.ID)
-	} else {
-		if name != "" {
-			query = query.Where("e_name like ?", "%"+name+"%")
-		}
-		if myReq {
-			// 查自己
-			query = query.Where("emp_id = ?", employee.ID)
-		}
-	}
+
 	var resp struct {
 		Total int           `json:"total"`
 		List  []*oa.Expense `json:"list"`
 	}
-	query.Limit(pageSize).Offset((pageNum - 1) * pageSize).Order("created_at desc").Find(&expenses).Limit(-1).Offset(-1).Count(&resp.Total)
+
+	if myReq {
+		query = query.Where("emp_id = ?", employee.ID)
+		query.Limit(pageSize).Offset((pageNum - 1) * pageSize).Order("created_at desc").Find(&expenses).Limit(-1).Offset(-1).Count(&resp.Total)
+	}
+
+	if myTodo {
+		userID, _ := e.GetInt("userID", 0)
+		log.GLogger.Info("userID：%d", userID)
+		ids := make([]*oa.EntityID, 0)
+		var s []string
+		if status == "" {
+			if userType == models.UserFinance {
+				s = oa.TodoStatusFinanceMap[e.GetString("todostatus")]
+			} else {
+				s = oa.TodoStatusLeaderMap[e.GetString("todostatus")]
+			}
+
+		} else {
+			s = append(s, status)
+		}
+		if len(s) == 0 {
+			services.Slave().Debug().Raw("select w.entity_id from workflows w,workflow_nodes wn where w.id = "+
+				"wn.workflow_id and w.workflow_definition_id = ? and operator_id = ?"+
+				" and wn.node_seq != 1", services.GetFlowDefID(services.Expense), userID).Scan(&ids)
+		} else {
+			services.Slave().Debug().Raw("select w.entity_id from workflows w,workflow_nodes wn where w.id = "+
+				"wn.workflow_id and w.workflow_definition_id = ? and operator_id = ? and wn.status in (?)"+
+				" and wn.node_seq != 1", services.GetFlowDefID(services.Expense), userID, s).Scan(&ids)
+		}
+
+		resp.Total = len(ids)
+		log.GLogger.Info("resp.Total: %d", len(ids))
+		start, end := getPage(resp.Total, pageSize, pageNum)
+		eIDs := make([]int, 0)
+		for _, eID := range ids[start:end] {
+			eIDs = append(eIDs, eID.EntityID)
+		}
+		services.Slave().Model(oa.Expense{}).Preload("ExpenseDetails").Where(eIDs).Order("created_at desc").Find(&expenses)
+	}
+
 	resp.List = expenses
 	e.Correct(resp)
 }
@@ -119,6 +155,22 @@ func (e *ExpenseController) ReqExpense() {
 		e.ErrorOK(MsgInvalidParam)
 	}
 
+	if param.EngagementCode == "" {
+		e.ErrorOK("need engagement_code")
+	}
+	if param.Project == "" {
+		e.ErrorOK("need project")
+	}
+	if param.ImportFile == "" {
+		e.ErrorOK("need import_file")
+	}
+	if param.LeaderId <= 0 {
+		e.ErrorOK("need leader_id")
+	}
+	if len(param.ExpenseDetails) == 0 {
+		e.ErrorOK("need expense_details")
+	}
+
 	param.EmpID = int(employee.ID)
 	param.EName = employee.Name
 	param.ApplicationDate = time.Now()
@@ -127,6 +179,9 @@ func (e *ExpenseController) ReqExpense() {
 	var expenseSummary float64
 
 	for _, item := range param.ExpenseDetails {
+		if item.ExpenseAmount <= 0 {
+			e.ErrorOK("expense_amount error")
+		}
 		expenseSummary += item.ExpenseAmount
 	}
 	param.ExpenseSummary = expenseSummary
@@ -141,14 +196,10 @@ func (e *ExpenseController) ReqExpense() {
 		e.ErrorOK(MsgServerErr)
 	}
 
-	//log.GLogger.Info("param.ExpenseDetails: %v", param.ExpenseDetails)
-	//// 批量创建报销详情
-	//err = oa.BatchCreateExpenseDetail(tx, int(param.ID), param.ExpenseDetails)
-	//if err != nil {
-	//	log.GLogger.Error("batch create expense detail err:%s", err.Error())
-	//	tx.Rollback()
-	//	e.ErrorOK(MsgServerErr)
-	//}
+	log.GLogger.Info("engagementCode.FinanceID: %d", engagementCode.FinanceID)
+	if engagementCode.FinanceID <= 0 {
+		e.ErrorOK("no finance_id")
+	}
 
 	// 执行报销工作流
 	err = services.ReqExpense(tx, int(param.ID), uID, param.LeaderId, engagementCode.FinanceID)
@@ -166,7 +217,7 @@ func (e *ExpenseController) ReqExpense() {
 // @Param	id	path	int	true	"报销id"
 // @Success 200 {string} "success"
 // @Failure 500 server err
-// @router /expense/:id [get]
+// @router /:id [get]
 func (e *ExpenseController) ExpenseById() {
 	eID, _ := e.GetInt(":id", 0)
 	expense := new(oa.Expense)
@@ -195,7 +246,7 @@ func (e *ExpenseController) ExpenseById() {
 // @Param	comment	body	string	true	"审批意见"
 // @Success 200 {string} "success"
 // @Failure 500 server err
-// @router /expense [put]
+// @router / [put]
 func (e *ExpenseController) ApprovalExpense() {
 	param := new(forms.ReqApprovalExpense)
 	err := json.Unmarshal(e.Ctx.Input.RequestBody, param)
@@ -274,7 +325,7 @@ func (e *ExpenseController) ApprovalExpense() {
 // @Param	id	body	int	true	"报销id"
 // @Success 200 {string} "success"
 // @Failure 500 server err
-// @router /expense/paid [put]
+// @router /paid [put]
 func (e *ExpenseController) PaidExpense() {
 
 }
@@ -292,7 +343,8 @@ func (e *ExpenseController) ParseDetailFile() {
 		e.Error(err.Error())
 		return
 	}
-	fmt.Println(mf, mfh)
+	defer mf.Close()
+
 	fs := strings.Split(mfh.Filename, ".")
 	ft := fs[len(fs)-1:][0]
 	if ft != "xlsx" {
@@ -308,9 +360,15 @@ func (e *ExpenseController) ParseDetailFile() {
 		fmt.Println(err)
 		e.ErrorOK(err.Error())
 	}
+	fileName := uuid.New().String() + ".xlsx"
+
+	err = e.SaveToFile("file", "static/"+fileName)
+	if err != nil {
+		e.ErrorOK("文件保存失败")
+	}
 	data := forms.ParseExpenseDetailResponse{
 		Details:  res,
-		FileName: mfh.Filename,
+		FileName: fileName,
 	}
 
 	e.Correct(data)
@@ -430,17 +488,12 @@ func (e *ExpenseController) GetProjects() {
 		query = query.Where("engagement_code_desc like ?", "%"+desc+"%")
 	}
 	query.Find(&projects)
-	// for _, p :=range projects{
-	// 	if p.CodeOwnerID == int(employee.ID){
-	// 		p.Owner = employee.Department.Leader
-	// 	}
-	// }
+
 	fmt.Println("employee.Department.Leader", employee.Department.Leader)
 	for i := 0; i < len(projects); i++ {
-		fmt.Println("CodeOwnerID", projects[i].CodeOwnerID)
-		fmt.Println("int(employee.ID)", int(employee.ID))
 		if projects[i].CodeOwnerID == int(employee.ID) {
 			projects[i].Owner = employee.Department.Leader
+			projects[i].CodeOwnerID = int(employee.Department.Leader.ID)
 		}
 	}
 

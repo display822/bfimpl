@@ -2,8 +2,6 @@ package oa
 
 import (
 	"bfimpl/models"
-	"bfimpl/services/log"
-	"fmt"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -26,6 +24,18 @@ var ExpenseAccountMap = map[string]string{
 	"出差补贴":    "10012",
 }
 
+var TodoStatusLeaderMap = map[string][]string{
+	"0": {models.FlowNA}, // 代办
+	"1": {models.FlowProcessing, models.FlowCompleted, models.FlowApproved,
+		models.FlowRejected, models.FlowUnpaid, models.FlowPaid}, // 已办
+}
+
+var TodoStatusFinanceMap = map[string][]string{
+	"0": {models.FlowNA, models.FlowUnpaid}, // 代办
+	"1": {models.FlowProcessing, models.FlowCompleted, models.FlowApproved,
+		models.FlowRejected, models.FlowPaid}, // 已办
+}
+
 // Expense 报销表
 type Expense struct {
 	gorm.Model
@@ -34,7 +44,7 @@ type Expense struct {
 	EName           string          `gorm:"size:30;comment:'员工姓名'" json:"e_name"`
 	Project         string          `gorm:"size:64;comment:'项目'" json:"project"`
 	Status          string          `gorm:"size:20;comment:'申请状态'" json:"status"`
-	ExpenseSummary  float64         `gorm:"type:decimal(5,2);comment:'费用总金额'" json:"expense_summary"`
+	ExpenseSummary  float64         `gorm:"type:decimal(10,2);comment:'费用总金额'" json:"expense_summary"`
 	ApplicationDate time.Time       `gorm:"type:date;comment:'申请日期'" json:"application_date"`
 	PaymentDate     *time.Time      `gorm:"type:date;comment:'支付日期'" json:"payment_date"`
 	ImportFile      string          `gorm:"size:30;comment:'导入文件'" json:"import_file"`
@@ -49,7 +59,7 @@ type ExpenseDetail struct {
 	ExpenseAccountCode string          `gorm:"size:64;comment:'报销科目编码'" json:"expense_account_code"`
 	ExpenseAccount     *ExpenseAccount `json:"expense_account"`
 	OcurredDate        models.Date     `gorm:"type:date;comment:'发生日期'" json:"ocurred_date"`
-	ExpenseAmount      float64         `gorm:"type:decimal(5,2);comment:'费用金额'" json:"expense_amount"`
+	ExpenseAmount      float64         `gorm:"type:decimal(10,2);comment:'费用金额'" json:"expense_amount"`
 	Remarks1           string          `gorm:"size:30;comment:'备注1'" json:"remarks1"`
 	Remarks2           string          `gorm:"size:100;comment:'备注2'" json:"remarks2"`
 	Remarks3           string          `gorm:"size:100;comment:'备注3'" json:"remarks3"`
@@ -60,25 +70,4 @@ type ExpenseAccount struct {
 	gorm.Model
 	ExpenseAccountCode string `gorm:"size:64;comment:'报销科目编码'" json:"expense_account_code"`
 	ExpenseAccountName string `gorm:"size:64;comment:'报销科目名称'" json:"expense_account_name"`
-}
-
-// BatchCreateExpenseDetail 批量创建报销明细
-func BatchCreateExpenseDetail(db *gorm.DB, expenseID int, details []ExpenseDetail) error {
-	log.GLogger.Info("ExpenseDetail: %+v", details[1])
-	sql := "INSERT INTO `expense_details` (`created_at`,`updated_at`,`expense_id`,`expense_account_code`,`ocurred_date`,`expense_amount`,`remarks1`" +
-		",`remarks2`,`remarks3`) VALUES "
-	// 循环data数组,组合sql语句
-	for key, value := range details {
-		if len(details)-1 == key {
-			//最后一条数据 以分号结尾
-			sql += fmt.Sprintf("('%s','%s',%d,'%s','%s',%.2f,'%s','%s','%s');", time.Now().Format("2006-01-02 15:04:05"), time.Now().Format("2006-01-02 15:04:05"), expenseID, value.ExpenseAccountCode, value.OcurredDate,
-				value.ExpenseAmount, value.Remarks1, value.Remarks2, value.Remarks3)
-		} else {
-			sql += fmt.Sprintf("('%s','%s',%d,'%s','%s',%.2f,'%s','%s','%s'),", time.Now().Format("2006-01-02 15:04:05"), time.Now().Format("2006-01-02 15:04:05"), expenseID, value.ExpenseAccountCode, value.OcurredDate,
-				value.ExpenseAmount, value.Remarks1, value.Remarks2, value.Remarks3)
-		}
-	}
-	log.GLogger.Info("sql: %s", sql)
-
-	return db.Exec(sql).Error
 }

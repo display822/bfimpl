@@ -31,6 +31,7 @@ require (
 	github.com/go-ldap/ldap v0.0.0-20200627001853-45321a6717b4
 	github.com/go-redis/redis v6.14.2+incompatible
 	github.com/go-sql-driver/mysql v1.5.0
+	github.com/google/uuid v1.1.2
 	github.com/jinzhu/gorm v1.9.9
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/minio/minio-go v6.0.14+incompatible

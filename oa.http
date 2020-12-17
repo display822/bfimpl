@@ -7,6 +7,7 @@ GET {{host}}/v1/expense/projects
 Accept: application/json
 Authorization: 8c087c137126cf0b673ada443e7b963e
 ###
+
 POST {{host}}/v1/login
 Content-Type: application/json
 
@@ -15,19 +16,40 @@ Content-Type: application/json
   "password": "123"
 }
 
+### 登陆员工
 
-###
-GET {{host}}/v1/expense/9
+POST {{host}}/v1/login
+Content-Type: application/json
+
+{
+  "username":"lie.chen",
+  "password": "123"
+}
+
+### 登陆负责人
+
+POST {{host}}/v1/login
+Content-Type: application/json
+
+{
+  "username":"kaili.wang",
+  "password": "123"
+}
+
+### 登陆财务
+
+
+GET {{host}}/v1/expense/12
 Content-Type: application/json
 Authorization: 8c087c137126cf0b673ada443e7b963e
 
 ###
 POST {{host}}/v1/expense
 Content-Type: application/json
-Authorization: 8c087c137126cf0b673ada443e7b963e
+Authorization: 6796f471e2c886bb27b063a8a32814bc
 
 {
-  "engagement_code": "10001",
+  "engagement_code": "",
   "expense_details": [
     {
       "ID": 0,
@@ -84,13 +106,28 @@ GET {{host}}/v1/expense?userEmail=11111112@qq.com&searchid=1&application_date_be
 Accept: application/json
 
 ### 报销列表
+
+GET {{host}}/v1/expense?mytodo=true
+Accept: application/json
+Authorization: a5550694abf5e184242678d7f26c4833
+
+### 报销列表 审核
+
+GET {{host}}/v1/expense?mytodo=true&todostatus=1
+Accept: application/json
+Authorization: e3312b5a292c5c5085243eca5b548202
+
+### 报销列表 报销
+
+
 GET {{host}}/v1/expense/approvals?userEmail=kaili.wang@broadfun.cn
 Accept: application/json
+
 
 ### 报销审核人
 POST {{host}}/v1/expense/details
 Content-Type: multipart/form-data; boundary=WebAppBoundary
-Authorization: 32b190b3a7dd93fdcf0b449b550c8cc0
+Authorization: 6796f471e2c886bb27b063a8a32814bc
 
 --WebAppBoundary
 Content-Disposition: form-data; name="file"; filename="excel.xlsx"
