@@ -221,7 +221,7 @@ func (e *ExpenseController) ReqExpense() {
 func (e *ExpenseController) ExpenseById() {
 	eID, _ := e.GetInt(":id", 0)
 	expense := new(oa.Expense)
-	services.Slave().Preload("ExpenseDetails").Take(expense, "id = ?", eID)
+	services.Slave().Debug().Preload("ExpenseDetails").Preload("ExpenseDetails.ExpenseAccount").Take(expense, "id = ?", eID)
 	//oID 查询 workflow
 	workflow := new(oa.Workflow)
 	services.Slave().Model(oa.Workflow{}).Where("workflow_definition_id = ? and entity_id = ?",
@@ -427,7 +427,7 @@ func Read(f *excelize.File) ([]*oa.ExpenseDetail, error) {
 			code, ok := oa.ExpenseAccountMap[colList[1]]
 			if ok {
 				expenseAccountCode = code
-				expenseAccount.ExpenseAccountCode = code
+				expenseAccount.Code = code
 				expenseAccount.ExpenseAccountName = colList[1]
 			} else {
 				errorArray = append(errorArray, fmt.Sprintf("第%d行费用科目不正确", x))

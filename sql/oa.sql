@@ -33,19 +33,19 @@ insert into workflow_form_element_defs(created_at,updated_at,workflow_definition
 
 
 -- 新增费用科目
-insert into expense_account(created_at,updated_at,expense_account_name,expense_account_code) values
-(now(),now(),'餐补费','10001'),
-(now(),now(),'交通费(市内)','10002'),
-(now(),now(),'团队激励','10003'),
-(now(),now(),'活动费','10004'),
-(now(),now(),'办公费','10005'),
-(now(),now(),'招聘费','10006'),
-(now(),now(),'通讯费','10007'),
-(now(),now(),'销售费用','10008'),
-(now(),now(),'充值费用','10009'),
-(now(),now(),'交通费(市外)','10010'),
-(now(),now(),'住宿费','10011'),
-(now(),now(),'出差补贴','10012'),
+insert into expense_accounts(expense_account_name,code) values
+('餐补费','10001'),
+('交通费(市内)','10002'),
+('团队激励','10003'),
+('活动费','10004'),
+('办公费','10005'),
+('招聘费','10006'),
+('通讯费','10007'),
+('销售费用','10008'),
+('充值费用','10009'),
+('交通费(市外)','10010'),
+('住宿费','10011'),
+('出差补贴','10012');
 
                                                                                                     )
 -- 新增部门

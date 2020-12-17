@@ -47,7 +47,7 @@ type Expense struct {
 	ExpenseSummary  float64         `gorm:"type:decimal(10,2);comment:'费用总金额'" json:"expense_summary"`
 	ApplicationDate time.Time       `gorm:"type:date;comment:'申请日期'" json:"application_date"`
 	PaymentDate     *time.Time      `gorm:"type:date;comment:'支付日期'" json:"payment_date"`
-	ImportFile      string          `gorm:"size:30;comment:'导入文件'" json:"import_file"`
+	ImportFile      string          `gorm:"size:255;comment:'导入文件'" json:"import_file"`
 	LeaderId        int             `gorm:"-" json:"leader_id"`
 	ExpenseDetails  []ExpenseDetail `gorm:"ForeignKey:ExpenseID" json:"expense_details"`
 }
@@ -57,7 +57,7 @@ type ExpenseDetail struct {
 	gorm.Model
 	ExpenseID          int             `gorm:"comment:'报销id'" json:"expense_id"`
 	ExpenseAccountCode string          `gorm:"size:64;comment:'报销科目编码'" json:"expense_account_code"`
-	ExpenseAccount     *ExpenseAccount `json:"expense_account"`
+	ExpenseAccount     *ExpenseAccount `gorm:"foreignKey:ExpenseAccountCode;References:Code" json:"expense_account"`
 	OcurredDate        models.Date     `gorm:"type:date;comment:'发生日期'" json:"ocurred_date"`
 	ExpenseAmount      float64         `gorm:"type:decimal(10,2);comment:'费用金额'" json:"expense_amount"`
 	Remarks1           string          `gorm:"size:30;comment:'备注1'" json:"remarks1"`
@@ -67,7 +67,6 @@ type ExpenseDetail struct {
 
 // ExpenseAccount 报销科目表
 type ExpenseAccount struct {
-	gorm.Model
-	ExpenseAccountCode string `gorm:"size:64;comment:'报销科目编码'" json:"expense_account_code"`
+	Code               string `gorm:"size:64;comment:'报销科目编码'" json:"expense_account_code"`
 	ExpenseAccountName string `gorm:"size:64;comment:'报销科目名称'" json:"expense_account_name"`
 }
