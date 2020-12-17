@@ -36,15 +36,25 @@ func (b *BenchController) GetMyApprove() {
 		//已办
 		flowStatus = []string{models.FlowApproved, models.FlowCompleted}
 	}
-	flowIds := make([]int, 0)
 	var resp struct {
 		Total int            `json:"total"`
 		List  []*oa.Workflow `json:"list"`
 	}
+	nodes := make([]*oa.WorkflowNode, 0)
 	services.Slave().Model(oa.WorkflowNode{}).Where("node_seq != 1 and operator_id = ? and status in (?)", userID,
-		flowStatus).Count(&resp.Total).Limit(pageSize).Offset((pageNum-1)*pageSize).
-		Pluck("workflow_id", &flowIds)
+		flowStatus).Order("created_at desc").Find(&nodes)
+	flowIds := make([]int, 0)
+	ex := make(map[int]bool)
+	for _, n := range nodes {
+		if _, ok := ex[n.WorkflowID]; !ok {
+			ex[n.WorkflowID] = true
+			flowIds = append(flowIds, n.WorkflowID)
+		}
+	}
+	resp.Total = len(flowIds)
+	start, end := getPage(resp.Total, pageSize, pageNum)
 	//查询flow
+	flowIds = flowIds[start:end]
 	services.Slave().Model(oa.Workflow{}).Preload("WorkflowDefinition").Preload("Nodes").
 		Preload("Nodes.User").Where(flowIds).Find(&resp.List)
 	b.Correct(resp)
