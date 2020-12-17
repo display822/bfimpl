@@ -56,7 +56,7 @@ func (b *BenchController) GetMyApprove() {
 	//查询flow
 	flowIds = flowIds[start:end]
 	services.Slave().Model(oa.Workflow{}).Preload("WorkflowDefinition").Preload("Nodes").
-		Preload("Nodes.User").Where(flowIds).Find(&resp.List)
+		Preload("Nodes.User").Where(flowIds).Order("created_at desc").Find(&resp.List)
 	b.Correct(resp)
 }
 
