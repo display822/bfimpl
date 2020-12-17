@@ -1059,6 +1059,17 @@ paths:
           description: '{string} "success"'
         "500":
           description: server err
+  /expense/paid/info:
+    get:
+      tags:
+      - expense
+      description: 支付信息统计
+      operationId: ExpenseController.支付信息统计
+      responses:
+        "200":
+          description: '{string} "success"'
+        "500":
+          description: server err
   /expense/projects:
     get:
       tags:
@@ -2974,6 +2985,156 @@ definitions:
         format: int64
       wx:
         type: string
+  oa.Department:
+    title: Department
+    type: object
+    properties:
+      children:
+        type: array
+        items:
+          $ref: '#/definitions/oa.Department'
+      department_leader_id:
+        type: integer
+        format: int64
+      department_name:
+        type: string
+      leader:
+        $ref: '#/definitions/models.User'
+  oa.Employee:
+    title: Employee
+    type: object
+    properties:
+      age:
+        type: integer
+        format: int64
+      annual:
+        type: integer
+        format: int64
+      create_time:
+        $ref: '#/definitions/models.Time'
+      department:
+        $ref: '#/definitions/oa.Department'
+      department_id:
+        type: integer
+        format: int64
+      email:
+        type: string
+      emp_no:
+        type: string
+      employee_basic:
+        $ref: '#/definitions/oa.EmployeeBasic'
+      entry_date:
+        $ref: '#/definitions/models.Time'
+      gender:
+        type: string
+      id_card:
+        type: string
+      interview_comment:
+        type: string
+      level:
+        $ref: '#/definitions/oa.Level'
+      level_id:
+        type: integer
+        format: int64
+      mobile:
+        type: string
+      name:
+        type: string
+      nation:
+        type: string
+      personal_email:
+        type: string
+      plan_date:
+        $ref: '#/definitions/models.Time'
+      politic_status:
+        type: string
+      position:
+        type: string
+      reason:
+        type: string
+      req_user:
+        type: string
+      resignation_date:
+        $ref: '#/definitions/models.Time'
+      resume:
+        type: string
+      service_line:
+        type: string
+      status:
+        type: integer
+        format: int64
+      tapd:
+        type: string
+      wx_work:
+        type: string
+  oa.EmployeeBasic:
+    title: EmployeeBasic
+    type: object
+    properties:
+      birthday:
+        $ref: '#/definitions/models.Time'
+      birthplace:
+        type: string
+      children:
+        type: integer
+        format: int64
+      contacts:
+        type: string
+      debit_card1:
+        type: string
+      debit_card1_front:
+        type: string
+      debit_card2:
+        type: string
+      debit_card2_front:
+        type: string
+      degree:
+        type: string
+      degree_certification_copy:
+        type: string
+      degree_property:
+        type: string
+      degree_verification:
+        type: string
+      employee_id:
+        type: integer
+        format: int64
+      en_skill:
+        type: string
+      graduation_school:
+        type: string
+      huji_type:
+        type: string
+      id_card_back:
+        type: string
+      id_card_front:
+        type: string
+      inhabited_address:
+        type: string
+      inhabited_city:
+        type: string
+      inhabited_district:
+        type: string
+      issuing_bank1:
+        type: string
+      issuing_bank1_detail:
+        type: string
+      issuing_bank2:
+        type: string
+      issuing_bank2_detail:
+        type: string
+      major:
+        type: string
+      marriage:
+        type: string
+      other_language_skill:
+        type: string
+      public_fund:
+        type: string
+      relations:
+        type: string
+      social_security:
+        type: string
   oa.Expense:
     title: Expense
     type: object
@@ -2986,6 +3147,8 @@ definitions:
       emp_id:
         type: integer
         format: int64
+      employee:
+        $ref: '#/definitions/oa.Employee'
       engagement_code:
         type: string
       expense_details:
@@ -3037,3 +3200,18 @@ definitions:
         type: string
       remarks3:
         type: string
+  oa.Level:
+    title: Level
+    type: object
+    properties:
+      cc_rate:
+        type: number
+        format: float
+      department_id:
+        type: integer
+        format: int64
+      level_name:
+        type: string
+      oc_rate:
+        type: number
+        format: float
