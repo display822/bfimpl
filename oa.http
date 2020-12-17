@@ -1,3 +1,8 @@
+GET {{host}}/v1/expense/paid/info
+Accept: application/json
+Authorization: 7801152fcf6e5dae2a15d9dab904203a
+
+###
 GET {{host}}/v1/expense/approvals
 Accept: application/json
 Authorization: 8c087c137126cf0b673ada443e7b963e

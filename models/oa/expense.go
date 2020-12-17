@@ -41,6 +41,7 @@ type Expense struct {
 	gorm.Model
 	EngagementCode  string          `gorm:"size:64;comment:'任务指派编码'" json:"engagement_code"`
 	EmpID           int             `gorm:"comment:'报销申请人id'" json:"emp_id"`
+	Employee        *Employee       `gorm:"ForeignKey:EmpID" json:"employee"`
 	EName           string          `gorm:"size:30;comment:'员工姓名'" json:"e_name"`
 	Project         string          `gorm:"size:64;comment:'项目'" json:"project"`
 	Status          string          `gorm:"size:20;comment:'申请状态'" json:"status"`

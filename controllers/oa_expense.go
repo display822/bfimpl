@@ -221,7 +221,7 @@ func (e *ExpenseController) ReqExpense() {
 func (e *ExpenseController) ExpenseById() {
 	eID, _ := e.GetInt(":id", 0)
 	expense := new(oa.Expense)
-	services.Slave().Debug().Preload("ExpenseDetails").Preload("ExpenseDetails.ExpenseAccount").Take(expense, "id = ?", eID)
+	services.Slave().Debug().Preload("Employee").Preload("Employee.EmployeeBasic").Preload("ExpenseDetails").Preload("ExpenseDetails.ExpenseAccount").Take(expense, "id = ?", eID)
 	//oID 查询 workflow
 	workflow := new(oa.Workflow)
 	services.Slave().Model(oa.Workflow{}).Where("workflow_definition_id = ? and entity_id = ?",
@@ -522,4 +522,34 @@ func (e *ExpenseController) ApprovalUsers() {
 	u := new(models.User)
 	services.Slave().Take(u, "id = ?", engagementCode.FinanceID)
 	e.Correct(u.Name)
+}
+
+// @Title 支付信息统计
+// @Description 支付信息统计
+// @Success 200 {string} "success"
+// @Failure 500 server err
+// @router /paid/info [get]
+func (e *ExpenseController) PaidInfo() {
+	userID := e.GetString("userID")
+
+	type res struct {
+		Sum float64
+	}
+
+	t := time.Now().AddDate(0, -1, 0)
+	fmt.Println(t)
+
+	var ExpenseTotal res
+	var ExpensePaidTotal res
+	services.Slave().Debug().Raw("select sum(expense_summary) as sum from expenses where emp_id = ? and application_date >= ?;", userID, t).Scan(&ExpenseTotal)
+	services.Slave().Debug().Raw("select sum(expense_summary) as sum from expenses where emp_id = ? and application_date >= ? and status= ?;", userID, t, models.FlowPaid).Scan(&ExpensePaidTotal)
+
+	data := struct {
+		ExpenseTotal     float64 `json:"expense_total"`
+		ExpensePaidTotal float64 `json:"expense_paid_total"`
+	}{
+		ExpenseTotal:     ExpenseTotal.Sum,
+		ExpensePaidTotal: ExpensePaidTotal.Sum,
+	}
+	e.Correct(data)
 }
