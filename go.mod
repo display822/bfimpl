@@ -39,6 +39,8 @@ require (
 	github.com/robfig/cron/v3 v3.0.0
 	github.com/shiena/ansicolor v0.0.0-20200904210342-c7312218db18 // indirect
 	github.com/smartystreets/goconvey v1.6.4
-	golang.org/x/arch v0.0.0-20190927153633-4e8777c89be4
+	golang.org/x/arch v0.0.0-20190927153633-4e8777c89be4 // indirect
+	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
+	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 	gopkg.in/ini.v1 v1.61.0 // indirect
 )

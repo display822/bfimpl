@@ -254,6 +254,10 @@ func (e *ExpenseController) ApprovalExpense() {
 		e.ErrorOK(MsgInvalidParam)
 	}
 	log.GLogger.Info("param :%+v", param)
+
+	expense := new(oa.Expense)
+	services.Slave().Debug().Preload("Employee").Take(expense, "id = ?", param.Id)
+	log.GLogger.Info("expense:%+v", expense)
 	//oID 查询 workflow
 	workflow := new(oa.Workflow)
 	services.Slave().Model(oa.Workflow{}).Where("workflow_definition_id = ? and entity_id = ?",
@@ -266,12 +270,12 @@ func (e *ExpenseController) ApprovalExpense() {
 	userID, _ := e.GetInt("userID", 0)
 
 	log.GLogger.Info("userId: %d", userID)
+	log.GLogger.Info("expense.Employee.Email:%s", expense.Employee.Email)
 
 	// 负责人，hr审批
 	for i, node := range workflow.Nodes {
 		log.GLogger.Info("node.OperatorId:%d", node.OperatorID)
-		if node.OperatorID == userID {
-			//if node.Status == models.FlowProcessing && node.OperatorID == userID {
+		if node.Status == models.FlowProcessing && node.OperatorID == userID {
 			isCheck = true
 			status := models.FlowRejected
 			if param.Status == 1 {
@@ -285,7 +289,7 @@ func (e *ExpenseController) ApprovalExpense() {
 					"status": status,
 				})
 				if i == 2 {
-					// TODO 发送驳回邮件
+					go services.EmailExpenseRejectedUp(expense.Employee.Email)
 
 				}
 			} else {
@@ -297,7 +301,7 @@ func (e *ExpenseController) ApprovalExpense() {
 						"status": models.FlowUnpaid,
 					})
 					nextNodeStatus = models.FlowUnpaid
-					// TODO 发送审批通过邮件
+					go services.EmailExpenseApproved(expense.Employee.Email)
 				}
 				workflow.Nodes[i+1].Status = nextNodeStatus
 			}
@@ -326,6 +330,12 @@ func (e *ExpenseController) PaidExpense() {
 		e.ErrorOK(MsgInvalidParam)
 	}
 	log.GLogger.Info("param :%+v", param)
+
+	expense := new(oa.Expense)
+	services.Slave().Debug().Preload("Employee").Take(expense, "id = ?", param.Id)
+	log.GLogger.Info("expense:%+v", expense)
+	log.GLogger.Info("expense.Employee.Email:%s", expense.Employee.Email)
+
 	//oID 查询 workflow
 	workflow := new(oa.Workflow)
 	services.Slave().Model(oa.Workflow{}).Where("workflow_definition_id = ? and entity_id = ?",
@@ -343,10 +353,10 @@ func (e *ExpenseController) PaidExpense() {
 	var status string
 	if param.Status == 0 {
 		status = models.FlowRejected
-		// TODO 发送驳回邮件
+		go services.EmailExpenseRejectedDown(expense.Employee.Email)
 	} else {
 		status = models.FlowPaid
-		// TODO 发送审批通过邮件
+		go services.EmailExpensePaid(expense.Employee.Email)
 	}
 	workflow.Status = status
 	services.Slave().Model(oa.Expense{}).Where("id = ?", param.Id).Updates(map[string]interface{}{

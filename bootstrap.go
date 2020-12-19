@@ -79,3 +79,7 @@ func init() {
 func init() {
 	//services.DBInit()
 }
+
+func init() {
+	services.MailInit()
+}
