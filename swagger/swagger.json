@@ -1389,25 +1389,11 @@
                 "parameters": [
                     {
                         "in": "body",
-                        "name": "id",
-                        "description": "报销id",
-                        "required": true,
+                        "name": "body",
+                        "description": "true",
                         "schema": {
-                            "format": "int64",
-                            "type": "integer"
-                        },
-                        "type": "integer",
-                        "format": "int64"
-                    },
-                    {
-                        "in": "body",
-                        "name": "comment",
-                        "description": "审批意见",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        },
-                        "type": "string"
+                            "$ref": "#/definitions/forms.ReqApprovalExpense"
+                        }
                     }
                 ],
                 "responses": {
@@ -1507,15 +1493,11 @@
                 "parameters": [
                     {
                         "in": "body",
-                        "name": "id",
-                        "description": "报销id",
-                        "required": true,
+                        "name": "body",
+                        "description": "true",
                         "schema": {
-                            "format": "int64",
-                            "type": "integer"
-                        },
-                        "type": "integer",
-                        "format": "int64"
+                            "$ref": "#/definitions/forms.ReqApprovalExpense"
+                        }
                     }
                 ],
                 "responses": {
@@ -3596,6 +3578,23 @@
                 },
                 "file_name": {
                     "type": "string"
+                }
+            }
+        },
+        "forms.ReqApprovalExpense": {
+            "title": "ReqApprovalExpense",
+            "type": "object",
+            "properties": {
+                "comment": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "status": {
+                    "type": "integer",
+                    "format": "int64"
                 }
             }
         },

@@ -242,8 +242,7 @@ func (e *ExpenseController) ExpenseById() {
 
 // @Title 审批申请报销
 // @Description 审批申请报销
-// @Param	id	body	int	true	"报销id"
-// @Param	comment	body	string	true	"审批意见"
+// @Param	body	body	forms.ReqApprovalExpense	true
 // @Success 200 {string} "success"
 // @Failure 500 server err
 // @router / [put]
@@ -254,6 +253,7 @@ func (e *ExpenseController) ApprovalExpense() {
 		log.GLogger.Error("parse expense err:%s", err.Error())
 		e.ErrorOK(MsgInvalidParam)
 	}
+	log.GLogger.Info("param :%+v", param)
 	//oID 查询 workflow
 	workflow := new(oa.Workflow)
 	services.Slave().Model(oa.Workflow{}).Where("workflow_definition_id = ? and entity_id = ?",
@@ -262,72 +262,100 @@ func (e *ExpenseController) ApprovalExpense() {
 	if workflow.Nodes == nil || len(workflow.Nodes) != 4 {
 		e.ErrorOK("工作流配置错误")
 	}
-	//isCheck := false
-	//userID, _ := e.GetInt("userID", 0)
+	isCheck := false
+	userID, _ := e.GetInt("userID", 0)
+
+	log.GLogger.Info("userId: %d", userID)
+
 	// 负责人，hr审批
-	//num := len(workflow.Nodes)
-	//for i, node := range workflow.Nodes {
-	//	if node.Status == models.FlowProcessing && node.OperatorID == userID {
-	//		isCheck = true
-	//		status := models.FlowRejected
-	//		if param.Status == 1 {
-	//			status = models.FlowApproved
-	//		}
-	//		node.Status = status
-	//		workflow.Elements[i].Value = param.Comment
-	//		if i < num-1 {
-	//			//负责人
-	//			if param.Status == 0 {
-	//				workflow.Status = status
-	//				services.Slave().Model(oa.Overtime{}).Where("id = ?", param.Id).Updates(map[string]interface{}{
-	//					"status": status,
-	//				})
-	//			} else {
-	//				workflow.Nodes[i+1].Status = models.FlowProcessing
-	//			}
-	//			services.Slave().Save(workflow)
-	//		} else if i == num-1 {
-	//			//hr
-	//			workflow.Status = status
-	//			services.Slave().Save(workflow)
-	//			services.Slave().Model(oa.Overtime{}).Where("id = ?", param.Id).Updates(map[string]interface{}{
-	//				"status": status,
-	//			})
-	//			//审批通过且类型为weekend,holiday，将加班时长放入leave balance
-	//			if status == models.FlowApproved {
-	//				overtime := new(oa.Overtime)
-	//				services.Slave().Take(overtime, "id = ?", param.Id)
-	//				if overtime.Type == "weekend" || overtime.Type == "holiday" {
-	//					balance := oa.LeaveBalance{
-	//						EmpID:      overtime.EmpID,
-	//						Type:       oa.OverTime,
-	//						Amount:     (overtime.RealDuration) / 8,
-	//						OvertimeID: int(overtime.ID),
-	//					}
-	//					if balance.Amount == 0 {
-	//						balance.Amount = (overtime.Duration) / 8
-	//					}
-	//					services.Slave().Create(&balance)
-	//				}
-	//			}
-	//		}
-	//		break
-	//	}
-	//}
-	//if !isCheck {
-	//	e.ErrorOK("您不是当前审批人")
-	//}
+	for i, node := range workflow.Nodes {
+		log.GLogger.Info("node.OperatorId:%d", node.OperatorID)
+		if node.OperatorID == userID {
+			//if node.Status == models.FlowProcessing && node.OperatorID == userID {
+			isCheck = true
+			status := models.FlowRejected
+			if param.Status == 1 {
+				status = models.FlowApproved
+			}
+			node.Status = status
+			workflow.Elements[i].Value = param.Comment
+			if param.Status == 0 {
+				workflow.Status = status
+				services.Slave().Model(oa.Expense{}).Where("id = ?", param.Id).Updates(map[string]interface{}{
+					"status": status,
+				})
+				if i == 2 {
+					// TODO 发送驳回邮件
+
+				}
+			} else {
+				var nextNodeStatus string
+				if i == 1 {
+					nextNodeStatus = models.FlowProcessing
+				} else if i == 2 {
+					services.Slave().Model(oa.Expense{}).Where("id = ?", param.Id).Updates(map[string]interface{}{
+						"status": models.FlowUnpaid,
+					})
+					nextNodeStatus = models.FlowUnpaid
+					// TODO 发送审批通过邮件
+				}
+				workflow.Nodes[i+1].Status = nextNodeStatus
+			}
+			services.Slave().Save(workflow)
+			break
+		}
+
+	}
+	if !isCheck {
+		e.ErrorOK("您不是当前审批人")
+	}
 	e.Correct("")
 }
 
 // @Title 支付报销
 // @Description 支付报销
-// @Param	id	body	int	true	"报销id"
+// @Param	body	body	forms.ReqApprovalExpense	true
 // @Success 200 {string} "success"
 // @Failure 500 server err
 // @router /paid [put]
 func (e *ExpenseController) PaidExpense() {
+	param := new(forms.ReqApprovalExpense)
+	err := json.Unmarshal(e.Ctx.Input.RequestBody, param)
+	if err != nil {
+		log.GLogger.Error("parse expense err:%s", err.Error())
+		e.ErrorOK(MsgInvalidParam)
+	}
+	log.GLogger.Info("param :%+v", param)
+	//oID 查询 workflow
+	workflow := new(oa.Workflow)
+	services.Slave().Model(oa.Workflow{}).Where("workflow_definition_id = ? and entity_id = ?",
+		services.GetFlowDefID(services.Expense), param.Id).Preload("Nodes").Preload("Nodes.User").
+		Preload("Elements").First(workflow)
+	if workflow.Nodes == nil || len(workflow.Nodes) != 4 {
+		e.ErrorOK("工作流配置错误")
+	}
+	userID, _ := e.GetInt("userID", 0)
 
+	if workflow.Nodes[len(workflow.Nodes)-1].OperatorID != userID {
+		e.ErrorOK("您不是当前审批人")
+	}
+
+	var status string
+	if param.Status == 0 {
+		status = models.FlowRejected
+		// TODO 发送驳回邮件
+	} else {
+		status = models.FlowPaid
+		// TODO 发送审批通过邮件
+	}
+	workflow.Status = status
+	services.Slave().Model(oa.Expense{}).Where("id = ?", param.Id).Updates(map[string]interface{}{
+		"status": status,
+	})
+	workflow.Nodes[len(workflow.Nodes)-1].Status = status
+	services.Slave().Save(workflow)
+
+	e.Correct("")
 }
 
 // @Title 解析用户报销内容的excel文件

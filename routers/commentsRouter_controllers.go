@@ -937,9 +937,18 @@ func init() {
 
 	beego.GlobalControllerRouter["bfimpl/controllers:ExpenseController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:ExpenseController"],
 		beego.ControllerComments{
-			Method:           "ApprovalUsers",
-			Router:           `/approvals`,
-			AllowHTTPMethods: []string{"get"},
+			Method:           "ApprovalExpense",
+			Router:           `/`,
+			AllowHTTPMethods: []string{"put"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:ExpenseController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:ExpenseController"],
+		beego.ControllerComments{
+			Method:           "PaidExpense",
+			Router:           `/paid`,
+			AllowHTTPMethods: []string{"put"},
 			MethodParams:     param.Make(),
 			Filters:          nil,
 			Params:           nil})

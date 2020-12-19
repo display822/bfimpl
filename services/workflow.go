@@ -510,9 +510,6 @@ func ReqExpense(db *gorm.DB, expenseID, uID, leaderID, financeID int) error {
 		NodeSeq:    3,
 		OperatorID: financeID,
 	}
-	//if leaderID == financeID {
-	//	nodeHR.Status = models.FlowProcessing
-	//}
 	err = db.Create(&nodeFinance).Error
 	if err != nil {
 		return err
@@ -524,9 +521,6 @@ func ReqExpense(db *gorm.DB, expenseID, uID, leaderID, financeID int) error {
 		NodeSeq:    4,
 		OperatorID: financeID,
 	}
-	//if leaderID == financeID {
-	//	nodeHR.Status = models.FlowProcessing
-	//}
 	err = db.Create(&nodeFinancePaid).Error
 	if err != nil {
 		return err
