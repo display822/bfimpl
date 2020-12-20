@@ -522,6 +522,12 @@ func (e *ExpenseController) GetProjects() {
 		if projects[i].CodeOwnerID == int(employee.ID) {
 			projects[i].Owner = employee.Department.Leader
 			projects[i].CodeOwnerID = int(employee.Department.Leader.ID)
+			if employee.Department.Leader.ID == employee.ID{
+				user := new(models.User)
+				services.Slave().Take(user, "id = ?", 2) // 马俊杰
+				projects[i].Owner = user
+				projects[i].CodeOwnerID = 2 // 马俊杰
+			}
 		}
 	}
 
