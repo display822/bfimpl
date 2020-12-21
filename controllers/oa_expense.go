@@ -279,8 +279,7 @@ func (e *ExpenseController) ApprovalExpense() {
 	// 负责人，hr审批
 	for i, node := range workflow.Nodes {
 		log.GLogger.Info("node.OperatorId:%d", node.OperatorID)
-		if node.OperatorID == userID {
-			//if node.Status == models.FlowProcessing && node.OperatorID == userID {
+		if node.Status == models.FlowProcessing && node.OperatorID == userID {
 			isCheck = true
 			status := models.FlowRejected
 			if param.Status == 1 {
@@ -652,7 +651,6 @@ func (e *ExpenseController) GetDebitCard(employeeID int) string {
 	} else if employeeContract.ContractMain == "上海品埃" {
 		return employee.EmployeeBasic.DebitCard1
 	} else {
-		e.Correct("")
+		return ""
 	}
-	return ""
 }
