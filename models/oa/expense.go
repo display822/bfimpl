@@ -31,9 +31,8 @@ var TodoStatusLeaderMap = map[string][]string{
 }
 
 var TodoStatusFinanceMap = map[string][]string{
-	"0": {models.FlowProcessing, models.FlowUnpaid}, // 代办
-	"1": {models.FlowCompleted, models.FlowApproved,
-		models.FlowRejected, models.FlowPaid}, // 已办
+	"0": {models.FlowProcessing, models.FlowUnpaid},                  // 代办
+	"1": {models.FlowApproved, models.FlowRejected, models.FlowPaid}, // 已办
 }
 
 // Expense 报销表
