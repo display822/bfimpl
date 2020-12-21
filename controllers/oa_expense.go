@@ -103,7 +103,7 @@ func (e *ExpenseController) List() {
 		}
 		if len(s) == 0 {
 			services.Slave().Debug().Raw("select w.entity_id from workflows w,workflow_nodes wn where w.id = "+
-				"wn.workflow_id and w.workflow_definition_id = ? and operator_id = ?"+
+				"wn.workflow_id and w.workflow_definition_id = ? and operator_id = ? and status <> 'NA'"+
 				" and wn.node_seq != 1", services.GetFlowDefID(services.Expense), userID).Scan(&ids)
 		} else {
 			services.Slave().Debug().Raw("select w.entity_id from workflows w,workflow_nodes wn where w.id = "+
