@@ -31,10 +31,10 @@ func (b *BenchController) GetMyApprove() {
 	status := b.GetString("type", "todo")
 
 	//待办
-	flowStatus := []string{models.FlowProcessing}
+	flowStatus := []string{models.FlowProcessing, models.FlowUnpaid}
 	if status != "todo" {
 		//已办
-		flowStatus = []string{models.FlowApproved, models.FlowCompleted}
+		flowStatus = []string{models.FlowApproved, models.FlowCompleted, models.FlowRejected, models.FlowPaid, models.FlowUnpaid}
 	}
 	var resp struct {
 		Total int            `json:"total"`
