@@ -5,6 +5,7 @@ import (
 	"github.com/astaxie/beego"
 	"gopkg.in/gomail.v2"
 	"html/template"
+	"time"
 
 	"bfimpl/services/log"
 )
@@ -29,28 +30,54 @@ func MailInit() {
 }
 
 // EmailExpenseApproved 通过报销审批通过通知
-func EmailExpenseApproved(mailTo string) {
+func EmailExpenseApproved(mailTo string, id uint, name string, time time.Time) {
 	subject := "Approved"
-	body := "Approved"
-	sendMail(mailTo, subject, body)
+	var body bytes.Buffer
+	t, _ := template.ParseFiles("static/mail/approved.html")
+	t.Execute(&body, struct {
+		ID   uint
+		Name string
+		Time string
+	}{
+		ID:   id,
+		Name: name,
+		Time: time.Format("2006/01/02"),
+	})
+	sendMail(mailTo, subject, body.String())
 }
 
 // EmailExpenseRejectedUp 通过报销线上审批驳回通知
-func EmailExpenseRejectedUp(mailTo string) {
+func EmailExpenseRejectedUp(mailTo string, name string, time time.Time) {
 	subject := "RejectedUp"
-	body := "RejectedUp"
-	sendMail(mailTo, subject, body)
+	var body bytes.Buffer
+	t, _ := template.ParseFiles("static/mail/rejectedUp.html")
+	t.Execute(&body, struct {
+		Name string
+		Time string
+	}{
+		Name: name,
+		Time: time.Format("2006/01/02"),
+	})
+	sendMail(mailTo, subject, body.String())
 }
 
 // EmailExpenseRejectedDown 通过报销线下审批驳回通知
-func EmailExpenseRejectedDown(mailTo string) {
+func EmailExpenseRejectedDown(mailTo string, name string, time time.Time) {
 	subject := "RejectedDown"
-	body := "RejectedDown"
-	sendMail(mailTo, subject, body)
+	var body bytes.Buffer
+	t, _ := template.ParseFiles("static/mail/rejectedDown.html")
+	t.Execute(&body, struct {
+		Name string
+		Time string
+	}{
+		Name: name,
+		Time: time.Format("2006/01/02"),
+	})
+	sendMail(mailTo, subject, body.String())
 }
 
 // EmailExpensePaid 通过报销审批支付通知
-func EmailExpensePaid(mailTo string) {
+func EmailExpensePaid(mailTo string, name string, expenseSummary float64, Acc string, time time.Time) {
 	subject := "paid"
 	var body bytes.Buffer
 	t, _ := template.ParseFiles("static/mail/paid.html")
@@ -60,10 +87,10 @@ func EmailExpensePaid(mailTo string) {
 		Acc            string
 		Time           string
 	}{
-		Name:           "yi.zhang",
-		ExpenseSummary: 123111.12,
-		Acc:            "231df12321312312312321",
-		Time:           "2020/05/06",
+		Name:           name,
+		ExpenseSummary: expenseSummary,
+		Acc:            Acc,
+		Time:           time.Format("2006/01/02"),
 	})
 	sendMail(mailTo, subject, body.String())
 }

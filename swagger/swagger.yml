@@ -996,6 +996,17 @@ paths:
           description: '{string} "success"'
         "500":
           description: server err
+  /expense/{id}/debit_card:
+    get:
+      tags:
+      - expense
+      description: 员工银行卡
+      operationId: ExpenseController.员工银行卡
+      responses:
+        "200":
+          description: '{string} "success"'
+        "500":
+          description: server err
   /expense/approvals:
     get:
       tags:
@@ -1027,6 +1038,17 @@ paths:
             $ref: '#/definitions/forms.ParseExpenseDetailResponse'
         "500":
           description: server internal err
+  /expense/export/unpaid:
+    get:
+      tags:
+      - expense
+      description: 导出待支付
+      operationId: ExpenseController.导出待支付
+      responses:
+        "200":
+          description: '{string} "success"'
+        "500":
+          description: server err
   /expense/paid:
     put:
       tags:

@@ -25,14 +25,14 @@ var ExpenseAccountMap = map[string]string{
 }
 
 var TodoStatusLeaderMap = map[string][]string{
-	"0": {models.FlowNA}, // 代办
-	"1": {models.FlowProcessing, models.FlowCompleted, models.FlowApproved,
+	"0": {models.FlowProcessing}, // 代办
+	"1": {models.FlowCompleted, models.FlowApproved,
 		models.FlowRejected, models.FlowUnpaid, models.FlowPaid}, // 已办
 }
 
 var TodoStatusFinanceMap = map[string][]string{
-	"0": {models.FlowNA, models.FlowUnpaid}, // 代办
-	"1": {models.FlowProcessing, models.FlowCompleted, models.FlowApproved,
+	"0": {models.FlowProcessing, models.FlowUnpaid}, // 代办
+	"1": {models.FlowCompleted, models.FlowApproved,
 		models.FlowRejected, models.FlowPaid}, // 已办
 }
 

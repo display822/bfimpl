@@ -171,6 +171,10 @@ func (e *ExpenseController) ReqExpense() {
 		e.ErrorOK("need expense_details")
 	}
 
+	if e.GetDebitCard(int(employee.ID)) == "" {
+		e.ErrorOK("无合同或银行卡信息")
+	}
+
 	param.EmpID = int(employee.ID)
 	param.EName = employee.Name
 	param.ApplicationDate = time.Now()
@@ -275,7 +279,8 @@ func (e *ExpenseController) ApprovalExpense() {
 	// 负责人，hr审批
 	for i, node := range workflow.Nodes {
 		log.GLogger.Info("node.OperatorId:%d", node.OperatorID)
-		if node.Status == models.FlowProcessing && node.OperatorID == userID {
+		if node.OperatorID == userID {
+			//if node.Status == models.FlowProcessing && node.OperatorID == userID {
 			isCheck = true
 			status := models.FlowRejected
 			if param.Status == 1 {
@@ -289,8 +294,7 @@ func (e *ExpenseController) ApprovalExpense() {
 					"status": status,
 				})
 				if i == 2 {
-					go services.EmailExpenseRejectedUp(expense.Employee.Email)
-
+					go services.EmailExpenseRejectedUp(expense.Employee.Email, expense.Employee.Name, expense.ApplicationDate)
 				}
 			} else {
 				var nextNodeStatus string
@@ -301,7 +305,7 @@ func (e *ExpenseController) ApprovalExpense() {
 						"status": models.FlowUnpaid,
 					})
 					nextNodeStatus = models.FlowUnpaid
-					go services.EmailExpenseApproved(expense.Employee.Email)
+					go services.EmailExpenseApproved(expense.Employee.Email, expense.ID, expense.Employee.Name, expense.ApplicationDate)
 				}
 				workflow.Nodes[i+1].Status = nextNodeStatus
 			}
@@ -350,17 +354,23 @@ func (e *ExpenseController) PaidExpense() {
 		e.ErrorOK("您不是当前审批人")
 	}
 
+	var paymentDate *time.Time
 	var status string
 	if param.Status == 0 {
 		status = models.FlowRejected
-		go services.EmailExpenseRejectedDown(expense.Employee.Email)
+		paymentDate = nil
+		go services.EmailExpenseRejectedDown(expense.Employee.Email, expense.Employee.Name, expense.ApplicationDate)
 	} else {
 		status = models.FlowPaid
-		go services.EmailExpensePaid(expense.Employee.Email)
+		t := time.Now()
+		paymentDate = &t
+		card := e.GetDebitCard(expense.EmpID)
+		go services.EmailExpensePaid(expense.Employee.Email, expense.Employee.Name, expense.ExpenseSummary, card, expense.ApplicationDate)
 	}
 	workflow.Status = status
 	services.Slave().Model(oa.Expense{}).Where("id = ?", param.Id).Updates(map[string]interface{}{
-		"status": status,
+		"status":       status,
+		"payment_date": paymentDate,
 	})
 	workflow.Nodes[len(workflow.Nodes)-1].Status = status
 	services.Slave().Save(workflow)
@@ -532,7 +542,7 @@ func (e *ExpenseController) GetProjects() {
 		if projects[i].CodeOwnerID == int(employee.ID) {
 			projects[i].Owner = employee.Department.Leader
 			projects[i].CodeOwnerID = int(employee.Department.Leader.ID)
-			if employee.Department.Leader.ID == employee.ID{
+			if employee.Department.Leader.ID == employee.ID {
 				user := new(models.User)
 				services.Slave().Take(user, "id = ?", 2) // 马俊杰
 				projects[i].Owner = user
@@ -596,4 +606,53 @@ func (e *ExpenseController) PaidInfo() {
 		ExpensePaidTotal: ExpensePaidTotal.Sum,
 	}
 	e.Correct(data)
+}
+
+// @Title 员工银行卡
+// @Description 员工银行卡
+// @Success 200 {string} "success"
+// @Failure 500 server err
+// @router /:id/debit_card [get]
+func (e *ExpenseController) DebitCard() {
+	eID, _ := e.GetInt(":id", 0)
+	expense := new(oa.Expense)
+	services.Slave().Debug().Take(expense, "id = ?", eID)
+	if expense.EmpID != 0 {
+		e.Correct(e.GetDebitCard(147))
+	}
+	e.Correct("")
+}
+
+// @Title 导出待支付
+// @Description 导出待支付
+// @Success 200 {string} "success"
+// @Failure 500 server err
+// @router /export/unpaid [get]
+func (e *ExpenseController) ExportUnpaid() {
+	e.Correct("")
+}
+
+func (e *ExpenseController) GetDebitCard(employeeID int) string {
+	employee := new(oa.Employee)
+	services.Slave().Debug().Preload("EmployeeBasic").Take(employee, "id = ?", employeeID)
+	log.GLogger.Info("employee:%+v", employee)
+
+	employeeContract := new(oa.EmployeeContract)
+	services.Slave().Debug().Where("employee_id = ?", employee.ID).Order("contract_start_date desc").First(employeeContract)
+	log.GLogger.Info("employeeContract:%+v", employeeContract)
+
+	if employee.EmployeeBasic == nil {
+		return ""
+	}
+
+	if employeeContract.ContractMain == "上海游因" {
+		return employee.EmployeeBasic.DebitCard2
+	} else if employeeContract.ContractMain == "宁波比孚" {
+		return employee.EmployeeBasic.DebitCard1
+	} else if employeeContract.ContractMain == "上海品埃" {
+		return employee.EmployeeBasic.DebitCard1
+	} else {
+		e.Correct("")
+	}
+	return ""
 }
