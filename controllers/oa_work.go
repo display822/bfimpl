@@ -757,7 +757,7 @@ func DeleteAnnual() {
 			balance := oa.LeaveBalance{
 				EmpID:  int(emp.ID),
 				Type:   oa.AnnualLeave,
-				Amount: total - thisYear,
+				Amount: thisYear - total,
 			}
 			services.Slave().Create(&balance)
 		}
