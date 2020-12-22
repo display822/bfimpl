@@ -438,7 +438,7 @@ func (a *AttendanceController) ConfirmUserAttendance() {
 				InStatus:       row.Status,
 				InResult:       row.Result,
 			}
-			if row.LeaveID > 0 {
+			if row.LeaveID != "" {
 				attendance.LeaveId = row.LeaveID
 			}
 			am := (time.Time(row.AttendanceDate)).Add(9 * time.Hour).Add(45 * time.Minute)
@@ -465,7 +465,7 @@ func (a *AttendanceController) ConfirmUserAttendance() {
 			}
 			data[attendanceIndex].OutStatus = row.Status
 			data[attendanceIndex].OutResult = row.Result
-			if row.LeaveID > 0 {
+			if row.LeaveID != "" {
 				data[attendanceIndex].LeaveId = row.LeaveID
 			}
 		}

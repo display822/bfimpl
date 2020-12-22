@@ -93,7 +93,7 @@ type AttendanceSimple struct {
 	OutStatus      string
 	InResult       string
 	OutResult      string
-	LeaveId        int
+	LeaveId        string
 	Shift          float32
 	Overtime       float32
 }
