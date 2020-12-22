@@ -31,7 +31,7 @@ func MailInit() {
 
 // EmailExpenseApproved 通过报销审批通过通知
 func EmailExpenseApproved(mailTo string, id uint, name string, time time.Time) {
-	subject := "Approved"
+	subject := "报销审核通知"
 	var body bytes.Buffer
 	t, _ := template.ParseFiles("static/mail/approved.html")
 	t.Execute(&body, struct {
@@ -48,7 +48,7 @@ func EmailExpenseApproved(mailTo string, id uint, name string, time time.Time) {
 
 // EmailExpenseRejectedUp 通过报销线上审批驳回通知
 func EmailExpenseRejectedUp(mailTo string, name string, time time.Time) {
-	subject := "RejectedUp"
+	subject := "报销审核通知"
 	var body bytes.Buffer
 	t, _ := template.ParseFiles("static/mail/rejectedUp.html")
 	t.Execute(&body, struct {
@@ -63,7 +63,7 @@ func EmailExpenseRejectedUp(mailTo string, name string, time time.Time) {
 
 // EmailExpenseRejectedDown 通过报销线下审批驳回通知
 func EmailExpenseRejectedDown(mailTo string, name string, time time.Time) {
-	subject := "RejectedDown"
+	subject := "报销支付通知"
 	var body bytes.Buffer
 	t, _ := template.ParseFiles("static/mail/rejectedDown.html")
 	t.Execute(&body, struct {
@@ -78,7 +78,7 @@ func EmailExpenseRejectedDown(mailTo string, name string, time time.Time) {
 
 // EmailExpensePaid 通过报销审批支付通知
 func EmailExpensePaid(mailTo string, name string, expenseSummary float64, Acc string, time time.Time) {
-	subject := "paid"
+	subject := "报销支付通知"
 	var body bytes.Buffer
 	t, _ := template.ParseFiles("static/mail/paid.html")
 	t.Execute(&body, struct {

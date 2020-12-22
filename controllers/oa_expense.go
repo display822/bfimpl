@@ -15,6 +15,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -171,7 +172,8 @@ func (e *ExpenseController) ReqExpense() {
 		e.ErrorOK("need expense_details")
 	}
 
-	if e.GetDebitCard(int(employee.ID)) == "" {
+	paidCardInfo := e.GetDebitCard(int(employee.ID))
+	if paidCardInfo.CardID == "" {
 		e.ErrorOK("无合同或银行卡信息")
 	}
 
@@ -363,8 +365,8 @@ func (e *ExpenseController) PaidExpense() {
 		status = models.FlowPaid
 		t := time.Now()
 		paymentDate = &t
-		card := e.GetDebitCard(expense.EmpID)
-		go services.EmailExpensePaid(expense.Employee.Email, expense.Employee.Name, expense.ExpenseSummary, card, expense.ApplicationDate)
+		paidCardInfo := e.GetDebitCard(expense.EmpID)
+		go services.EmailExpensePaid(expense.Employee.Email, expense.Employee.Name, expense.ExpenseSummary, paidCardInfo.CardID, expense.ApplicationDate)
 	}
 	workflow.Status = status
 	services.Slave().Model(oa.Expense{}).Where("id = ?", param.Id).Updates(map[string]interface{}{
@@ -457,6 +459,7 @@ func Read(f *excelize.File) ([]*oa.ExpenseDetail, error) {
 		if colList[0] == "" {
 			errorArray = append(errorArray, fmt.Sprintf("第%d行费用发生日期未填写", x))
 		} else {
+			log.GLogger.Info("time: %s", colList[0])
 			t, err := time.Parse(models.DateFormat, colList[0])
 			if err != nil {
 				errorArray = append(errorArray, fmt.Sprintf("第%d行费用发生日期格式不正确", x))
@@ -628,11 +631,63 @@ func (e *ExpenseController) DebitCard() {
 // @Failure 500 server err
 // @router /export/unpaid [get]
 func (e *ExpenseController) ExportUnpaid() {
-	e.Ctx.Output.Download("static/mail/paid.html", "paid.html")
+	ids := e.GetString("ids")
+	if ids == "" {
+		e.ErrorOK("need expense ids")
+	}
+	log.GLogger.Info("ids: %s", ids)
+
+	expenseIds := strings.Split(ids, ",")
+
+	var expenses []*oa.Expense
+	services.Slave().Where(expenseIds).Find(&expenses)
+
+	log.GLogger.Info("expenses: %s", expenses)
+
+	f := excelize.NewFile()
+
+	f.NewSheet("上海游因")
+	f.NewSheet("宁波比孚")
+	f.NewSheet("上海品埃")
+	f.DeleteSheet("Sheet1")
+
+	_ = f.SetSheetRow("上海游因", "A1", &[]interface{}{"账号", "户名", "金额", "开户行"})
+	_ = f.SetSheetRow("宁波比孚", "A1", &[]interface{}{"卡名称", "收款账户", "收款账户名称", "金额", "汇款用途"})
+	_ = f.SetSheetRow("上海品埃", "A1", &[]interface{}{"卡名称", "收款账户", "收款账户名称", "金额", "汇款用途"})
+	num1 := 2
+	num2 := 2
+	num3 := 2
+
+	for _, expense := range expenses {
+		log.GLogger.Info("empid:%d", expense.EmpID)
+		paidCardInfo := e.GetDebitCard(expense.EmpID)
+		log.GLogger.Info("paidCardInfo:%s", paidCardInfo)
+		if paidCardInfo.PaymentName == "上海游因" {
+			err := f.SetSheetRow("上海游因", "A"+strconv.Itoa(num1), &[]interface{}{
+				paidCardInfo.CardID, expense.EName, expense.ExpenseSummary, paidCardInfo.BankName,
+			})
+			log.GLogger.Info("err", err)
+			num1++
+		} else if paidCardInfo.PaymentName == "宁波比孚" {
+			_ = f.SetSheetRow("宁波比孚", "A"+strconv.Itoa(num2), &[]interface{}{
+				"宁波比孚", paidCardInfo.CardID, expense.EName, expense.ExpenseSummary, "报销",
+			})
+			num2++
+		} else if paidCardInfo.PaymentName == "上海品埃" {
+			_ = f.SetSheetRow("上海品埃", "A"+strconv.Itoa(num3), &[]interface{}{
+				"上海品埃", paidCardInfo.CardID, expense.EName, expense.ExpenseSummary, "报销",
+			})
+			num3++
+		}
+	}
+	f.SetActiveSheet(0)
+	f.SaveAs("static/expense.xlsx")
+	e.Ctx.Output.Download("static/expense.xlsx", "expense.xlsx")
+	os.Remove("static/expense.xlsx")
 	//e.Correct("")
 }
 
-func (e *ExpenseController) GetDebitCard(employeeID int) string {
+func (e *ExpenseController) GetDebitCard(employeeID int) forms.PaidCardInfo {
 	employee := new(oa.Employee)
 	services.Slave().Debug().Preload("EmployeeBasic").Take(employee, "id = ?", employeeID)
 	log.GLogger.Info("employee:%+v", employee)
@@ -641,17 +696,27 @@ func (e *ExpenseController) GetDebitCard(employeeID int) string {
 	services.Slave().Debug().Where("employee_id = ?", employee.ID).Order("contract_start_date desc").First(employeeContract)
 	log.GLogger.Info("employeeContract:%+v", employeeContract)
 
+	var paidCardInfo forms.PaidCardInfo
 	if employee.EmployeeBasic == nil {
-		return ""
+		return paidCardInfo
 	}
 
 	if employeeContract.ContractMain == "上海游因" {
-		return employee.EmployeeBasic.DebitCard2
+		paidCardInfo.BankName = "招行"
+		paidCardInfo.CardID = employee.EmployeeBasic.DebitCard2
+		paidCardInfo.PaymentName = employeeContract.ContractMain
+		return paidCardInfo
 	} else if employeeContract.ContractMain == "宁波比孚" {
-		return employee.EmployeeBasic.DebitCard1
+		paidCardInfo.BankName = "工行"
+		paidCardInfo.CardID = employee.EmployeeBasic.DebitCard1
+		paidCardInfo.PaymentName = employeeContract.ContractMain
+		return paidCardInfo
 	} else if employeeContract.ContractMain == "上海品埃" {
-		return employee.EmployeeBasic.DebitCard1
+		paidCardInfo.BankName = "工行"
+		paidCardInfo.CardID = employee.EmployeeBasic.DebitCard1
+		paidCardInfo.PaymentName = employeeContract.ContractMain
+		return paidCardInfo
 	} else {
-		return ""
+		return paidCardInfo
 	}
 }
