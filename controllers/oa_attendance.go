@@ -547,10 +547,13 @@ func (a *AttendanceController) ExportPos() {
 	num := 2
 	for _, at := range attendances {
 		tapd := nameTapd[at.Name]
+		inTime, outTime := strings.Split(at.CheckIn.PosFormat(), " "), strings.Split(at.CheckOut.PosFormat(), " ")
+		if strings.Contains(inTime[1], "00:00:00") && strings.Contains(outTime[1], "00:00:00") {
+			continue
+		}
 		_ = f.SetSheetRow("Sheet1", "A"+strconv.Itoa(num), &[]interface{}{
 			at.CheckIn.PosFormat(), 0, tapd, at.Name})
 		num++
-		inTime, outTime := strings.Split(at.CheckIn.PosFormat(), " "), strings.Split(at.CheckOut.PosFormat(), " ")
 		if outTime[0] > inTime[0] {
 			//下班时间是第二天
 			_ = f.SetSheetRow("Sheet1", "A"+strconv.Itoa(num), &[]interface{}{
