@@ -617,7 +617,7 @@ func (e *ExpenseController) DebitCard() {
 	expense := new(oa.Expense)
 	services.Slave().Debug().Take(expense, "id = ?", eID)
 	if expense.EmpID != 0 {
-		e.Correct(e.GetDebitCard(147))
+		e.Correct(e.GetDebitCard(expense.EmpID))
 	}
 	e.Correct("")
 }
