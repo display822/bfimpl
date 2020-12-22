@@ -324,7 +324,7 @@ func (w *WorkController) ApprovalOvertime() {
 // @router /overtime/:id/check [put]
 func (w *WorkController) ValidOvertime() {
 	oID, _ := w.GetInt(":id", 0)
-	realDuration, _ := w.GetInt("real", 0)
+	realDuration, _ := w.GetFloat("real", 0)
 	err := services.Slave().Model(oa.Overtime{}).Where("id = ?", oID).Updates(map[string]interface{}{
 		"real_duration": realDuration,
 	}).Error
