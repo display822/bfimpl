@@ -628,7 +628,8 @@ func (e *ExpenseController) DebitCard() {
 // @Failure 500 server err
 // @router /export/unpaid [get]
 func (e *ExpenseController) ExportUnpaid() {
-	e.Correct("")
+	e.Ctx.Output.Download("static/mail/paid.html", "paid.html")
+	//e.Correct("")
 }
 
 func (e *ExpenseController) GetDebitCard(employeeID int) string {
