@@ -731,3 +731,35 @@ func AddAnnual() {
 		}
 	}
 }
+
+//每年4月1号清空去年年假
+func DeleteAnnual() {
+	emps := make([]*oa.Employee, 0)
+	services.Slave().Model(oa.Employee{}).Where("status = 2").Find(&emps)
+	thisYearTime := time.Date(time.Now().Year(), time.January, 2, 0, 0, 0, 0, time.Local)
+	for _, emp := range emps {
+		balances := make([]*oa.LeaveBalance, 0)
+		services.Slave().Model(oa.LeaveBalance{}).Where("emp_id = ?", emp.ID).Find(&balances)
+		var total, thisYear float32
+		for _, b := range balances {
+			switch b.Type {
+			case oa.Annual:
+				total += b.Amount
+				if b.CreatedAt.After(thisYearTime) {
+					thisYear += b.Amount
+				}
+			case oa.AnnualLeave:
+				total += b.Amount
+			}
+		}
+		//如果年假总剩余大于今天增加的年假
+		if total > thisYear {
+			balance := oa.LeaveBalance{
+				EmpID:  int(emp.ID),
+				Type:   oa.AnnualLeave,
+				Amount: total - thisYear,
+			}
+			services.Slave().Create(&balance)
+		}
+	}
+}
