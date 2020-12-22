@@ -50,7 +50,7 @@ func main() {
 	}
 	//清空去年年假 4月1号6点
 	_, err = c.AddFunc("0 6 1 4 *", func() {
-		controllers.AddAnnual()
+		controllers.DeleteAnnual()
 	})
 	if err != nil {
 		logs.Error("add annual:%s", err.Error())
