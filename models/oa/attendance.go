@@ -32,7 +32,7 @@ type Attendance struct {
 	InResult       string      `gorm:"size:20;comment:'异常判断'" json:"in_result"`
 	OutResult      string      `gorm:"size:20;comment:'异常判断'" json:"out_result"`
 	OvertimeID     int         `gorm:"size:60;comment:'加班申请记录号'" json:"overtime_id"`
-	LeaveID        int         `gorm:"size:60;comment:'休假申请记录号'" json:"leave_id"`
+	LeaveID        string      `gorm:"size:255;comment:'休假申请记录号'" json:"leave_id"`
 	Shift          float32     `gorm:"comment:'弹性'" json:"-"`
 	Overtime       float32     `gorm:"comment:'加班'" json:"-"`
 	//ImportFile     string      `gorm:"comment:'导入文件名'" json:"import_file"`
@@ -51,7 +51,7 @@ type AttendanceTmp struct {
 	CheckTime      models.Time `gorm:"type:timestamp;comment:'打卡时间'" json:"check_time"`
 	Status         string      `gorm:"size:20;comment:'Normal, Exception'" json:"status"`
 	Result         string      `gorm:"size:20;comment:'异常判断'" json:"result"`
-	LeaveID        int         `gorm:"size:60;comment:'休假申请记录号'" json:"leave_id"`
+	LeaveID        string      `gorm:"size:255;comment:'休假申请记录号'" json:"leave_id"`
 }
 
 //节假日补班
