@@ -84,6 +84,11 @@ func (e *EmployeeController) DeleteEmp() {
 		e.ErrorOK("您不是HR")
 	}
 	services.Slave().Delete(oa.Employee{}, "id = ?", eID)
+	//删除入职离职流程信息
+	workflows := make([]int, 0)
+	services.Slave().Model(oa.Workflow{}).Where("workflow_definition_id in (1,2) and entity_id = ?", eID).Pluck("id", &workflows)
+	services.Slave().Delete(oa.WorkflowNode{}, "workflow_id in (?)", workflows)
+	services.Slave().Delete(oa.Workflow{}, "id in (?)", workflows)
 	e.Correct("")
 }
 
