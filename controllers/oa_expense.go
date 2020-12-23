@@ -120,7 +120,7 @@ func (e *ExpenseController) List() {
 		for _, eID := range ids[start:end] {
 			eIDs = append(eIDs, eID.EntityID)
 		}
-		services.Slave().Model(oa.Expense{}).Preload("ExpenseDetails").Where(eIDs).Find(&expenses)
+		services.Slave().Model(oa.Expense{}).Preload("ExpenseDetails").Order("created_at desc").Where(eIDs).Find(&expenses)
 	}
 
 	resp.List = expenses
