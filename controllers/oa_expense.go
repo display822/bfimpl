@@ -90,7 +90,7 @@ func (e *ExpenseController) List() {
 	if myTodo {
 		userID, _ := e.GetInt("userID", 0)
 		log.GLogger.Info("userID：%d", userID)
-		ids := make([]*oa.EntityID, 0)
+		ids := make([]oa.EntityID, 0)
 		var s []string
 		if status == "" {
 			if userType == models.UserFinance {
