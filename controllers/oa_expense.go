@@ -114,6 +114,7 @@ func (e *ExpenseController) List() {
 
 		resp.Total = len(ids)
 		log.GLogger.Info("resp.Total: %d", len(ids))
+		log.GLogger.Info("ids", ids)
 		start, end := getPage(resp.Total, pageSize, pageNum)
 		eIDs := make([]int, 0)
 		for _, eID := range ids[start:end] {
