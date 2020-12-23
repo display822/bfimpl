@@ -105,11 +105,11 @@ func (e *ExpenseController) List() {
 		if len(s) == 0 {
 			services.Slave().Debug().Raw("select w.entity_id from workflows w,workflow_nodes wn where w.id = "+
 				"wn.workflow_id and w.workflow_definition_id = ? and operator_id = ? and wn.status <> ?"+
-				" and wn.node_seq != 1 order by w.entity_id", services.GetFlowDefID(services.Expense), userID, "NA").Scan(&ids)
+				" and wn.node_seq != 1 order by w.entity_id desc", services.GetFlowDefID(services.Expense), userID, "NA").Scan(&ids)
 		} else {
 			services.Slave().Debug().Raw("select w.entity_id from workflows w,workflow_nodes wn where w.id = "+
 				"wn.workflow_id and w.workflow_definition_id = ? and operator_id = ? and wn.status in (?)"+
-				" and wn.node_seq != 1 order by w.entity_id", services.GetFlowDefID(services.Expense), userID, s).Scan(&ids)
+				" and wn.node_seq != 1 order by w.entity_id desc", services.GetFlowDefID(services.Expense), userID, s).Scan(&ids)
 		}
 
 		resp.Total = len(ids)
