@@ -218,7 +218,7 @@ func (w *WorkController) OvertimeList() {
 		}
 		userID, _ := w.GetInt("userID", 0)
 		ids := make([]*oa.EntityID, 0)
-		rsql := "select w.entity_id from workflows w,workflow_nodes wn,overtimes o where w.id = " +
+		rsql := "select distinct w.entity_id from workflows w,workflow_nodes wn,overtimes o where w.id = " +
 			"wn.workflow_id and w.workflow_definition_id = ? and w.entity_id = o.id and operator_id = ? and wn.status in (?)" +
 			" and wn.node_seq != 1"
 		p := make([]interface{}, 0)
@@ -231,6 +231,7 @@ func (w *WorkController) OvertimeList() {
 			rsql += " and o.type = ?"
 			p = append(p, workType)
 		}
+		rsql += " order by o.created_at desc"
 		services.Slave().Raw(rsql, p...).Scan(&ids)
 		resp.Total = len(ids)
 		start, end := getPage(resp.Total, pageSize, pageNum)
@@ -238,7 +239,7 @@ func (w *WorkController) OvertimeList() {
 		for _, eID := range ids[start:end] {
 			eIDs = append(eIDs, eID.EntityID)
 		}
-		services.Slave().Model(oa.Overtime{}).Where(eIDs).Order("created_at desc").Find(&overtimes)
+		services.Slave().Model(oa.Overtime{}).Where(eIDs).Find(&overtimes)
 	} else {
 		query.Limit(pageSize).Offset((pageNum - 1) * pageSize).Order("created_at desc").Find(&overtimes).Limit(-1).Offset(-1).Count(&resp.Total)
 	}
@@ -525,7 +526,7 @@ func (w *WorkController) LeaveList() {
 		}
 		userID, _ := w.GetInt("userID", 0)
 		ids := make([]*oa.EntityID, 0)
-		rsql := "select w.entity_id from workflows w,workflow_nodes wn,leaves l where w.id = " +
+		rsql := "select distinct w.entity_id from workflows w,workflow_nodes wn,leaves l where w.id = " +
 			"wn.workflow_id and w.workflow_definition_id = ? and w.entity_id = l.id and operator_id = ? and wn.status in (?)" +
 			" and wn.node_seq != 1"
 		p := make([]interface{}, 0)
@@ -538,6 +539,7 @@ func (w *WorkController) LeaveList() {
 			rsql += " and l.type = ?"
 			p = append(p, workType)
 		}
+		rsql += " order by l.created_at desc"
 		services.Slave().Raw(rsql, p...).Scan(&ids)
 		resp.Total = len(ids)
 		start, end := getPage(resp.Total, pageSize, pageNum)
@@ -545,7 +547,7 @@ func (w *WorkController) LeaveList() {
 		for _, eID := range ids[start:end] {
 			eIDs = append(eIDs, eID.EntityID)
 		}
-		services.Slave().Model(oa.Leave{}).Order("created_at desc").Where(eIDs).Find(&leaves)
+		services.Slave().Model(oa.Leave{}).Where(eIDs).Find(&leaves)
 	} else {
 		query.Limit(pageSize).Offset((pageNum - 1) * pageSize).Order("created_at desc").Find(&leaves).Limit(-1).Offset(-1).Count(&resp.Total)
 	}
