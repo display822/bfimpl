@@ -712,8 +712,9 @@ func (e *ExpenseController) ExportUnpaid() {
 		if len(issuingBankSplit) == 2 {
 			province = issuingBankSplit[0]
 			city = issuingBankSplit[1]
+		} else {
+			city = issuingBank
 		}
-		city = issuingBank
 		if paidCardInfo.PaymentName == "上海游因" {
 			err := f.SetSheetRow("上海游因", "A"+strconv.Itoa(num1), &[]interface{}{
 				paidCardInfo.CardID, expense.EName, expense.ExpenseSummary, paidCardInfo.BankName, paidCardInfo.BankName,
