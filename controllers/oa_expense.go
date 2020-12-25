@@ -661,7 +661,7 @@ func (e *ExpenseController) ExportUnpaid() {
 	f.DeleteSheet("Sheet1")
 
 	// 设置单元格宽度
-	f.SetColWidth("上海游因", "A", "A", 16)
+	f.SetColWidth("上海游因", "A", "A", 20)
 
 	f.SetColWidth("宁波比孚", "A", "A", 6)
 	f.SetColWidth("宁波比孚", "B", "D", 10)
