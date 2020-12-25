@@ -499,6 +499,14 @@ func Read(f *excelize.File) ([]*oa.ExpenseDetail, error) {
 			log.GLogger.Info("float：%v", expenseAmount)
 		}
 
+		// 校验备注
+		vList := oa.ExpenseAccountValidMap[expenseAccount.ExpenseAccountName]
+		for _, v := range vList {
+			if colList[v] == "" {
+				errorArray = append(errorArray, fmt.Sprintf("第%d行备注%d未填写", x, v))
+			}
+		}
+
 		ed := &oa.ExpenseDetail{
 			OcurredDate:        ocurredDate,
 			ExpenseAccountCode: expenseAccountCode,
@@ -652,9 +660,13 @@ func (e *ExpenseController) ExportUnpaid() {
 	f.NewSheet("上海品埃")
 	f.DeleteSheet("Sheet1")
 
-	_ = f.SetSheetRow("上海游因", "A1", &[]interface{}{"账号", "户名", "金额", "开户行"})
-	_ = f.SetSheetRow("宁波比孚", "A1", &[]interface{}{"卡名称", "收款账户", "收款账户名称", "金额", "汇款用途"})
-	_ = f.SetSheetRow("上海品埃", "A1", &[]interface{}{"卡名称", "收款账户", "收款账户名称", "金额", "汇款用途"})
+	_ = f.SetSheetRow("上海游因", "A1", &[]interface{}{"收款帐号", "收款户名", "金额", "开户行", "开户地"})
+	_ = f.SetSheetRow("宁波比孚", "A1", &[]interface{}{"币种", "日期", "明细标志", "顺序号", "付款账号开户行",
+		"付款账号/卡号", "付款账号名称/卡名称", "收款账号开户行", "收款账号省份", "收款账号地市", "收款账号地区码", "收款账号",
+		"收款账号名称", "金额", "汇款用途", "备注信息", "汇款方式", "收款账户短信通知手机号码", "自定义序号"})
+	_ = f.SetSheetRow("上海品埃", "A1", &[]interface{}{"币种", "日期", "明细标志", "顺序号", "付款账号开户行",
+		"付款账号/卡号", "付款账号名称/卡名称", "收款账号开户行", "收款账号省份", "收款账号地市", "收款账号地区码", "收款账号",
+		"收款账号名称", "金额", "汇款用途", "备注信息", "汇款方式", "收款账户短信通知手机号码", "自定义序号"})
 	num1 := 2
 	num2 := 2
 	num3 := 2
@@ -665,18 +677,27 @@ func (e *ExpenseController) ExportUnpaid() {
 		log.GLogger.Info("paidCardInfo:%s", paidCardInfo)
 		if paidCardInfo.PaymentName == "上海游因" {
 			err := f.SetSheetRow("上海游因", "A"+strconv.Itoa(num1), &[]interface{}{
-				paidCardInfo.CardID, expense.EName, expense.ExpenseSummary, paidCardInfo.BankName,
+				paidCardInfo.CardID, expense.EName, expense.ExpenseSummary, paidCardInfo.BankName, paidCardInfo.BankName,
 			})
 			log.GLogger.Info("err", err)
 			num1++
 		} else if paidCardInfo.PaymentName == "宁波比孚" {
 			_ = f.SetSheetRow("宁波比孚", "A"+strconv.Itoa(num2), &[]interface{}{
-				"宁波比孚", paidCardInfo.CardID, expense.EName, expense.ExpenseSummary, "报销",
+				"RMB" /*币种*/, "" /*日期*/, "" /*明细标志*/, num2 - 1 /*顺序号*/, "工行", /*付款账号开户行*/
+				"1001100419005023362" /*付款账号/卡号*/, "宁波比孚信息科技有限公司" /*付款账号名称/卡名称*/, "工行" /*收款账号开户行*/, "", /*收款账号省份*/
+				"" /*收款账号地市*/, "" /*收款账号地区码*/, paidCardInfo.CardID /*收款账号*/, expense.EName, /*收款账号名称*/
+				expense.ExpenseSummary /*金额*/, "报销" /*汇款用途*/, "" /*备注信息*/, "1", /*汇款方式*/
+				"" /*收款账户短信通知手机号码*/, "", /*自定义序号*/
 			})
+
 			num2++
 		} else if paidCardInfo.PaymentName == "上海品埃" {
 			_ = f.SetSheetRow("上海品埃", "A"+strconv.Itoa(num3), &[]interface{}{
-				"上海品埃", paidCardInfo.CardID, expense.EName, expense.ExpenseSummary, "报销",
+				"RMB" /*币种*/, "" /*日期*/, "" /*明细标志*/, num3 - 1 /*顺序号*/, "工行", /*付款账号开户行*/
+				"1001100409100025962" /*付款账号/卡号*/, "上海品埃信息科技有限公司" /*付款账号名称/卡名称*/, "工行" /*收款账号开户行*/, "", /*收款账号省份*/
+				"" /*收款账号地市*/, "" /*收款账号地区码*/, paidCardInfo.CardID /*收款账号*/, expense.EName, /*收款账号名称*/
+				expense.ExpenseSummary /*金额*/, "报销" /*汇款用途*/, "" /*备注信息*/, "1", /*汇款方式*/
+				"" /*收款账户短信通知手机号码*/, "", /*自定义序号*/
 			})
 			num3++
 		}
@@ -703,7 +724,7 @@ func (e *ExpenseController) GetDebitCard(employeeID int) forms.PaidCardInfo {
 	}
 
 	if employeeContract.ContractMain == "上海游因" {
-		paidCardInfo.BankName = "招行"
+		paidCardInfo.BankName = "招商银行"
 		paidCardInfo.CardID = employee.EmployeeBasic.DebitCard2
 		paidCardInfo.PaymentName = employeeContract.ContractMain
 		return paidCardInfo
