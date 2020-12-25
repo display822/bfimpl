@@ -24,6 +24,21 @@ var ExpenseAccountMap = map[string]string{
 	"出差补贴":    "10012",
 }
 
+var ExpenseAccountValidMap = map[string][]int{
+	"餐补费":     {3, 4, 5},
+	"交通费(市内)": {3, 4},
+	"团队激励":    {3, 4, 5},
+	"活动费":     {3, 4},
+	"办公费":     {3},
+	"招聘费":     {3, 4},
+	"通讯费":     {3},
+	"销售费用":    {3, 4},
+	"充值费用":    {3},
+	"交通费(市外)": {3, 4, 5},
+	"住宿费":     {3, 4, 5},
+	"出差补贴":    {},
+}
+
 var TodoStatusLeaderMap = map[string][]string{
 	"0": {models.FlowProcessing}, // 代办
 	"1": {models.FlowCompleted, models.FlowApproved,
