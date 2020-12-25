@@ -8,9 +8,8 @@ type ParseExpenseDetailResponse struct {
 }
 
 type PaidCardInfo struct {
-	BankName string
-	CardID   string
-	//UserName       string
-	//ExpenseSummary float64
+	BankName    string
+	CardID      string
 	PaymentName string
+	IssuingBank string
 }
