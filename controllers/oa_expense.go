@@ -665,36 +665,37 @@ func (e *ExpenseController) ExportUnpaid() {
 
 	f.SetColWidth("宁波比孚", "A", "A", 6)
 	f.SetColWidth("宁波比孚", "B", "D", 10)
+	f.SetColWidth("宁波比孚", "B", "D", 10)
 	f.SetColWidth("宁波比孚", "E", "E", 17)
 	f.SetColWidth("宁波比孚", "F", "F", 20)
-	f.SetColWidth("宁波比孚", "G", "G", 27)
-	f.SetColWidth("宁波比孚", "H", "H", 17)
-	f.SetColWidth("宁波比孚", "I", "I", 30) // 地址
-	f.SetColWidth("宁波比孚", "J", "J", 20)
-	f.SetColWidth("宁波比孚", "K", "K", 15)
-	f.SetColWidth("宁波比孚", "L", "O", 10)
-	f.SetColWidth("宁波比孚", "P", "P", 27)
-	f.SetColWidth("宁波比孚", "Q", "Q", 15)
+	f.SetColWidth("宁波比孚", "G", "G", 25)
+	f.SetColWidth("宁波比孚", "H", "K", 17)
+	f.SetColWidth("宁波比孚", "L", "L", 20)
+	f.SetColWidth("宁波比孚", "M", "M", 15)
+	f.SetColWidth("宁波比孚", "M", "M", 15)
+	f.SetColWidth("宁波比孚", "N", "Q", 10)
+	f.SetColWidth("宁波比孚", "R", "R", 27)
+	f.SetColWidth("宁波比孚", "S", "S", 10)
 
 	f.SetColWidth("上海品埃", "A", "A", 6)
 	f.SetColWidth("上海品埃", "B", "D", 10)
 	f.SetColWidth("上海品埃", "E", "E", 17)
 	f.SetColWidth("上海品埃", "F", "F", 20)
-	f.SetColWidth("上海品埃", "G", "G", 27)
-	f.SetColWidth("上海品埃", "H", "H", 17)
-	f.SetColWidth("上海品埃", "I", "I", 30) // 地址
-	f.SetColWidth("上海品埃", "J", "J", 20)
-	f.SetColWidth("上海品埃", "K", "K", 15)
-	f.SetColWidth("上海品埃", "L", "O", 10)
-	f.SetColWidth("上海品埃", "P", "P", 27)
-	f.SetColWidth("上海品埃", "Q", "Q", 15)
+	f.SetColWidth("上海品埃", "G", "G", 25)
+	f.SetColWidth("上海品埃", "H", "K", 17)
+	f.SetColWidth("上海品埃", "L", "L", 20)
+	f.SetColWidth("上海品埃", "M", "M", 15)
+	f.SetColWidth("上海品埃", "M", "M", 15)
+	f.SetColWidth("上海品埃", "N", "Q", 10)
+	f.SetColWidth("上海品埃", "R", "R", 27)
+	f.SetColWidth("上海品埃", "S", "S", 10)
 
 	_ = f.SetSheetRow("上海游因", "A1", &[]interface{}{"收款帐号", "收款户名", "金额", "开户行", "开户地"})
 	_ = f.SetSheetRow("宁波比孚", "A1", &[]interface{}{"币种", "日期", "明细标志", "顺序号", "付款账号开户行",
-		"付款账号/卡号", "付款账号名称/卡名称", "收款账号开户行", "收款帐号开户行地址", "收款账号",
+		"付款账号/卡号", "付款账号名称/卡名称", "收款账号开户行", "收款账号省份", "收款账号地市", "收款账号地区码", "收款账号",
 		"收款账号名称", "金额", "汇款用途", "备注信息", "汇款方式", "收款账户短信通知手机号码", "自定义序号"})
 	_ = f.SetSheetRow("上海品埃", "A1", &[]interface{}{"币种", "日期", "明细标志", "顺序号", "付款账号开户行",
-		"付款账号/卡号", "付款账号名称/卡名称", "收款账号开户行", "收款帐号开户行地址", "收款账号",
+		"付款账号/卡号", "付款账号名称/卡名称", "收款账号开户行", "收款账号省份", "收款账号地市", "收款账号地区码", "收款账号",
 		"收款账号名称", "金额", "汇款用途", "备注信息", "汇款方式", "收款账户短信通知手机号码", "自定义序号"})
 	num1 := 2
 	num2 := 2
@@ -713,9 +714,8 @@ func (e *ExpenseController) ExportUnpaid() {
 		} else if paidCardInfo.PaymentName == "宁波比孚" {
 			_ = f.SetSheetRow("宁波比孚", "A"+strconv.Itoa(num2), &[]interface{}{
 				"RMB" /*币种*/, "" /*日期*/, "" /*明细标志*/, num2 - 1 /*顺序号*/, "工行", /*付款账号开户行*/
-				"1001100419005023362" /*付款账号/卡号*/, "宁波比孚信息科技有限公司", /*付款账号名称/卡名称*/
-				"工行" /*收款账号开户行*/, paidCardInfo.IssuingBank, /*收款帐号开户行地址*/
-				paidCardInfo.CardID /*收款账号*/, expense.EName, /*收款账号名称*/
+				"1001100419005023362" /*付款账号/卡号*/, "宁波比孚信息科技有限公司" /*付款账号名称/卡名称*/, "工行" /*收款账号开户行*/, "", /*收款账号省份*/
+				"" /*收款账号地市*/, "" /*收款账号地区码*/, paidCardInfo.CardID /*收款账号*/, expense.EName, /*收款账号名称*/
 				expense.ExpenseSummary /*金额*/, "报销" /*汇款用途*/, "" /*备注信息*/, "1", /*汇款方式*/
 				"" /*收款账户短信通知手机号码*/, "", /*自定义序号*/
 			})
@@ -724,9 +724,8 @@ func (e *ExpenseController) ExportUnpaid() {
 		} else if paidCardInfo.PaymentName == "上海品埃" {
 			_ = f.SetSheetRow("上海品埃", "A"+strconv.Itoa(num3), &[]interface{}{
 				"RMB" /*币种*/, "" /*日期*/, "" /*明细标志*/, num3 - 1 /*顺序号*/, "工行", /*付款账号开户行*/
-				"1001100409100025962" /*付款账号/卡号*/, "上海品埃信息科技有限公司", /*付款账号名称/卡名称*/
-				"工行" /*收款账号开户行*/, paidCardInfo.IssuingBank, /*收款帐号开户行地址*/
-				paidCardInfo.CardID /*收款账号*/, expense.EName, /*收款账号名称*/
+				"1001100409100025962" /*付款账号/卡号*/, "上海品埃信息科技有限公司" /*付款账号名称/卡名称*/, "工行" /*收款账号开户行*/, "", /*收款账号省份*/
+				"" /*收款账号地市*/, "" /*收款账号地区码*/, paidCardInfo.CardID /*收款账号*/, expense.EName, /*收款账号名称*/
 				expense.ExpenseSummary /*金额*/, "报销" /*汇款用途*/, "" /*备注信息*/, "1", /*汇款方式*/
 				"" /*收款账户短信通知手机号码*/, "", /*自定义序号*/
 			})
@@ -758,19 +757,16 @@ func (e *ExpenseController) GetDebitCard(employeeID int) forms.PaidCardInfo {
 		paidCardInfo.BankName = "招商银行"
 		paidCardInfo.CardID = employee.EmployeeBasic.DebitCard2
 		paidCardInfo.PaymentName = employeeContract.ContractMain
-		paidCardInfo.IssuingBank = employee.EmployeeBasic.IssuingBank2
 		return paidCardInfo
 	} else if employeeContract.ContractMain == "宁波比孚" {
 		paidCardInfo.BankName = "工行"
 		paidCardInfo.CardID = employee.EmployeeBasic.DebitCard1
 		paidCardInfo.PaymentName = employeeContract.ContractMain
-		paidCardInfo.IssuingBank = employee.EmployeeBasic.IssuingBank1
 		return paidCardInfo
 	} else if employeeContract.ContractMain == "上海品埃" {
 		paidCardInfo.BankName = "工行"
 		paidCardInfo.CardID = employee.EmployeeBasic.DebitCard1
 		paidCardInfo.PaymentName = employeeContract.ContractMain
-		paidCardInfo.IssuingBank = employee.EmployeeBasic.IssuingBank1
 		return paidCardInfo
 	} else {
 		return paidCardInfo
