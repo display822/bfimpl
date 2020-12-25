@@ -682,7 +682,7 @@ func (e *ExpenseController) ExportUnpaid() {
 	f.SetColWidth("上海品埃", "E", "E", 17)
 	f.SetColWidth("上海品埃", "F", "F", 20)
 	f.SetColWidth("上海品埃", "G", "G", 25)
-	f.SetColWidth("上海品埃", "H", "K", 15)
+	f.SetColWidth("上海品埃", "H", "K", 17)
 	f.SetColWidth("上海品埃", "L", "L", 20)
 	f.SetColWidth("上海品埃", "M", "M", 15)
 	f.SetColWidth("上海品埃", "M", "M", 15)
