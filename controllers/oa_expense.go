@@ -689,7 +689,7 @@ func (e *ExpenseController) ExportUnpaid() {
 	f.SetColWidth("上海品埃", "N", "Q", 10)
 	f.SetColWidth("上海品埃", "R", "R", 27)
 	f.SetColWidth("上海品埃", "S", "S", 10)
-	f.AutoFilter()
+
 	_ = f.SetSheetRow("上海游因", "A1", &[]interface{}{"收款帐号", "收款户名", "金额", "开户行", "开户地"})
 	_ = f.SetSheetRow("宁波比孚", "A1", &[]interface{}{"币种", "日期", "明细标志", "顺序号", "付款账号开户行",
 		"付款账号/卡号", "付款账号名称/卡名称", "收款账号开户行", "收款账号省份", "收款账号地市", "收款账号地区码", "收款账号",
