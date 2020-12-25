@@ -709,7 +709,7 @@ func (e *ExpenseController) ExportUnpaid() {
 		log.GLogger.Info("issuingBank:%s", issuingBank)
 		var province, city string
 		issuingBankSplit := strings.SplitN(issuingBank, "省", 2)
-		if len(issuingBankSplit) != 2 {
+		if len(issuingBankSplit) == 2 {
 			province = issuingBankSplit[0]
 			city = issuingBankSplit[1]
 		}
