@@ -871,4 +871,31 @@ func init() {
 			MethodParams:     param.Make(),
 			Filters:          nil,
 			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:ProjectController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:ProjectController"],
+		beego.ControllerComments{
+			Method:           "ParseDetailFile",
+			Router:           `/details`,
+			AllowHTTPMethods: []string{"post"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:ProjectController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:ProjectController"],
+		beego.ControllerComments{
+			Method:           "Create",
+			Router:           `/`,
+			AllowHTTPMethods: []string{"post"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:ProjectController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:ProjectController"],
+		beego.ControllerComments{
+			Method:           "List",
+			Router:           `/`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
 }

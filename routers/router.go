@@ -29,6 +29,7 @@ func init() {
 			&controllers.WorkController{},
 			&controllers.AttendanceController{})),
 		beego.NSNamespace("/bench", beego.NSInclude(&controllers.BenchController{})),
+		beego.NSNamespace("/project", beego.NSInclude(&controllers.ProjectController{})),
 	)
 
 	ips := beego.AppConfig.Strings("bkcors")
