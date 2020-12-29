@@ -1006,4 +1006,31 @@ func init() {
 			MethodParams:     param.Make(),
 			Filters:          nil,
 			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:EngagementController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:EngagementController"],
+		beego.ControllerComments{
+			Method:           "ParseEngagementDetailFile",
+			Router:           `/details`,
+			AllowHTTPMethods: []string{"post"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:EngagementController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:EngagementController"],
+		beego.ControllerComments{
+			Method:           "Create",
+			Router:           `/`,
+			AllowHTTPMethods: []string{"post"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:EngagementController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:EngagementController"],
+		beego.ControllerComments{
+			Method:           "List",
+			Router:           `/`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
 }
