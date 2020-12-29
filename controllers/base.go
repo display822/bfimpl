@@ -3,12 +3,6 @@ package controllers
 import (
 	"bfimpl/services/log"
 	"net/http"
-	"strconv"
-
-	"bfimpl/models"
-	"bfimpl/services"
-	"strings"
-	"time"
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/validation"
@@ -82,22 +76,22 @@ func (b *BaseController) ErrorObject(code int, msg string, obj interface{}) {
 }
 
 func (b *BaseController) Prepare() {
-	if strings.Contains(b.Ctx.Request.URL.Path, "login") {
-		return
-	}
-	userKey := b.Ctx.Request.Header.Get("Authorization")
-	userID, err := services.RedisClient().Get(userKey).Result()
-	if err != nil {
-		b.ErrorCode(http.StatusUnauthorized, http.StatusOK, "login required")
-	}
-	services.RedisClient().Expire(userKey, time.Hour*24)
-	//查询用户
-	var user models.User
-	services.Slave().Take(&user, "id = ?", userID)
-	b.Input().Set("userID", userID)
-	b.Input().Set("userName", user.Name)
-	b.Input().Set("userType", strconv.Itoa(user.UserType))
-	b.Input().Set("userEmail", user.Email)
+	// if strings.Contains(b.Ctx.Request.URL.Path, "login") {
+	// 	return
+	// }
+	// userKey := b.Ctx.Request.Header.Get("Authorization")
+	// userID, err := services.RedisClient().Get(userKey).Result()
+	// if err != nil {
+	// 	b.ErrorCode(http.StatusUnauthorized, http.StatusOK, "login required")
+	// }
+	// services.RedisClient().Expire(userKey, time.Hour*24)
+	// //查询用户
+	// var user models.User
+	// services.Slave().Take(&user, "id = ?", userID)
+	// b.Input().Set("userID", userID)
+	// b.Input().Set("userName", user.Name)
+	// b.Input().Set("userType", strconv.Itoa(user.UserType))
+	// b.Input().Set("userEmail", user.Email)
 	//b.Input().Set("userID", strconv.Itoa(3))
 	//b.Input().Set("userType", strconv.Itoa(7))
 	//b.Input().Set("userEmail", "lie.chen@broadfun.cn")

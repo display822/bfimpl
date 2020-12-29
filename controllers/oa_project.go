@@ -7,9 +7,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/360EntSecGroup-Skylar/excelize/v2"
+	"github.com/jinzhu/gorm"
 )
 
 type ProjectController struct {
@@ -22,20 +24,71 @@ type ProjectController struct {
 // @Failure 500 server internal err
 // @router /details [post]
 func (p *ProjectController) List() {
+	pageSize, _ := p.GetInt("pagesize", 10)
+	pageNum, _ := p.GetInt("pagenum", 1)
+	periodTime := p.GetString("period_time")
+	projectName := p.GetString("project_name")
 
-	p.Correct("")
+	var resp struct {
+		Total              int                   `json:"total"`
+		TotalDeliveryValue float64               `json:"total_delivery_value"`
+		List               []*oa.ProjectDelivery `json:"list"`
+	}
+
+	db := services.Slave()
+	if periodTime != "" {
+		db = db.Where("period_time = ?", periodTime)
+	}
+	if projectName != "" {
+		db = db.Where("project_name=?", projectName)
+	}
+	var totalDeliveryValue struct {
+		N float64
+	}
+
+	db.Table("project_deliveries").Select("sum(project_delivery_value) as n").Scan(&totalDeliveryValue)
+	resp.TotalDeliveryValue = totalDeliveryValue.N
+
+	db.Limit(pageSize).Offset((pageNum - 1) * pageSize).Order("created_at desc").Find(&resp.List).Limit(-1).Offset(-1).Count(&resp.Total)
+
+	p.Correct(resp)
+}
+
+// @Title 项目交付过滤字段
+// @Description 项目交付过滤字段
+// @Success 200 {string} ""
+// @Failure 500 server internal err
+// @router /filter [get]
+func (p *ProjectController) FilterField() {
+	var resp struct {
+		ProjectName []string `json:"project_name"`
+		PeriodTime  []string `json:"period_time"`
+	}
+	var projectName []*oa.ProjectDelivery
+	services.Slave().Group("project_name").Order("created_at desc").Find(&projectName)
+	var periodTime []*oa.ProjectDelivery
+	services.Slave().Group("period_time").Order("created_at desc").Find(&periodTime)
+
+	for _, item := range projectName {
+		resp.ProjectName = append(resp.ProjectName, item.ProjectName)
+	}
+	for _, item := range periodTime {
+		resp.PeriodTime = append(resp.PeriodTime, item.PeriodTime)
+	}
+
+	p.Correct(resp)
 }
 
 // @Title 创建项目交付
 // @Description 创建项目交付
 // @Success 200 {string} ""
 // @Failure 500 server internal err
-// @router /details [post]
+// @router / [post]
 func (p *ProjectController) Create() {
 	var ps []*oa.ProjectDelivery
 	err := json.Unmarshal(p.Ctx.Input.RequestBody, &ps)
 	if err != nil {
-		log.GLogger.Error("new employee err：%s", err.Error())
+		log.GLogger.Error("new ProjectDelivery err：%s", err.Error())
 		p.ErrorOK(MsgInvalidParam)
 	}
 
@@ -54,6 +107,10 @@ func (p *ProjectController) Create() {
 // @Failure 500 server internal err
 // @router /details [post]
 func (p *ProjectController) ParseDetailFile() {
+	periodTime := p.GetString("period_time")
+	if periodTime == "" {
+		p.ErrorOK("need period_time")
+	}
 	mf, mfh, err := p.GetFile("file")
 	if err != nil {
 		log.GLogger.Error("get file err: %s", err.Error())
@@ -72,7 +129,7 @@ func (p *ProjectController) ParseDetailFile() {
 		fmt.Println(err)
 		p.ErrorOK(err.Error())
 	}
-	res, err := ReadProjectFile(f)
+	res, err := ReadProjectFile(f, periodTime)
 	if err != nil {
 		fmt.Println(err)
 		p.ErrorOK(err.Error())
@@ -81,7 +138,7 @@ func (p *ProjectController) ParseDetailFile() {
 	p.Correct(res)
 }
 
-func ReadProjectFile(f *excelize.File) ([]*oa.ProjectDelivery, error) {
+func ReadProjectFile(f *excelize.File, periodTime string) ([]*oa.ProjectDelivery, error) {
 	rows, err := f.GetRows("Sheet1")
 	if err != nil {
 		return nil, err
@@ -103,8 +160,8 @@ func ReadProjectFile(f *excelize.File) ([]*oa.ProjectDelivery, error) {
 	}
 	var res []*oa.ProjectDelivery
 	var errorArray []string
-	for _, row := range rows[1:] {
-		//x := i + 2
+	for i, row := range rows[1:] {
+		x := i + 2
 		fmt.Println(row)
 		var colList [6]string
 		for i, colCell := range row {
@@ -112,64 +169,57 @@ func ReadProjectFile(f *excelize.File) ([]*oa.ProjectDelivery, error) {
 			fmt.Println(colList)
 		}
 
-		// 校验数量
-		//var ocurredDate models.Date
-		//if colList[0] == "" {
-		//	errorArray = append(errorArray, fmt.Sprintf("第%d行费用发生日期未填写", x))
-		//} else {
-		//	log.GLogger.Info("time: %s", colList[0])
-		//	t, err := time.Parse(models.DateFormat, colList[0])
-		//	if err != nil {
-		//		errorArray = append(errorArray, fmt.Sprintf("第%d行费用发生日期格式不正确", x))
-		//	}
-		//	log.GLogger.Info("ocurredDate: %s", ocurredDate)
-		//	ocurredDate = models.Date(t)
-		//}
+		// 校验项目名称
+		if colList[0] == "" {
+			errorArray = append(errorArray, fmt.Sprintf("第%d行项目名称未填写", x))
+		}
 
-		// 校验费用科目
-		//var expenseAccountCode string
-		//var expenseAccount oa.ExpenseAccount
-		//if colList[1] == "" {
-		//	errorArray = append(errorArray, fmt.Sprintf("第%d行费用科目未填写", x))
-		//} else {
-		//	code, ok := oa.ExpenseAccountMap[colList[1]]
-		//	if ok {
-		//		expenseAccountCode = code
-		//		expenseAccount.Code = code
-		//		expenseAccount.ExpenseAccountName = colList[1]
-		//	} else {
-		//		errorArray = append(errorArray, fmt.Sprintf("第%d行费用科目不正确", x))
-		//	}
-		//}
+		// 校验项目编码
+		var projectCategory oa.ProjectCategory
+		if colList[1] == "" {
+			errorArray = append(errorArray, fmt.Sprintf("第%d行项目编码未填写", x))
+		} else {
+			err = services.Slave().Where("project_category_code=?", colList[1]).First(&projectCategory).Error
+			if err != nil || err == gorm.ErrRecordNotFound {
+				errorArray = append(errorArray, fmt.Sprintf("第%d行项目编码未找到", x))
+			}
+		}
 
-		//// 校验费用金额
-		//var expenseAmount float64
-		//if colList[2] == "" {
-		//	errorArray = append(errorArray, fmt.Sprintf("第%d行费用金额未填写", x))
-		//} else {
-		//	log.GLogger.Info("expenseAmount string：%s", colList[2])
-		//	float, err := strconv.ParseFloat(colList[2], 64)
-		//	if err != nil || float <= 0 {
-		//		errorArray = append(errorArray, fmt.Sprintf("第%d行费用金额格式不正确", x))
-		//	}
-		//	expenseAmount = float
-		//	log.GLogger.Info("float：%v", expenseAmount)
-		//}
+		// 校验主服务交付数量
+		var mainServiceAmount int
+		if colList[2] == "" {
+			errorArray = append(errorArray, fmt.Sprintf("第%d行主服务交付数量未填写", x))
+		} else {
+			log.GLogger.Info("mainServiceAmount string：%s", colList[2])
+			mainServiceAmount, err = strconv.Atoi(colList[2])
+			if err != nil {
+				errorArray = append(errorArray, fmt.Sprintf("第%d行主服务交付数量不正确", x))
+			}
+			log.GLogger.Info("mainServiceAmount：%v", mainServiceAmount)
+		}
 
-		//// 校验备注
-		//vList := oa.ExpenseAccountValidMap[expenseAccount.ExpenseAccountName]
-		//for _, v := range vList {
-		//	if colList[v] == "" {
-		//		errorArray = append(errorArray, fmt.Sprintf("第%d行备注%d未填写", x, v))
-		//	}
-		//}
+		// 校验子服务交付数量
+		var subServiceAmount int
+		if colList[3] == "" {
+			errorArray = append(errorArray, fmt.Sprintf("第%d行子服务交付数量未填写", x))
+		} else {
+			log.GLogger.Info("subServiceAmount string：%s", colList[3])
+			subServiceAmount, err = strconv.Atoi(colList[3])
+			if err != nil {
+				errorArray = append(errorArray, fmt.Sprintf("第%d行子服务交付数量不正确", x))
+			}
+			log.GLogger.Info("subServiceAmount：%v", subServiceAmount)
+		}
 
+		projectDeliveryValue := projectCategory.MainServiceQuotation*float64(mainServiceAmount) +
+			projectCategory.SubServiceQuotation*float64(subServiceAmount)
 		ed := &oa.ProjectDelivery{
-			ProjectCategoryCode: colList[1],
-			StartDate:           nil,
-			EndDate:             nil,
-			MainServiceAmount:   1,
-			SubServiceAmount:    2,
+			ProjectName:          colList[0],
+			ProjectCategoryCode:  colList[1],
+			PeriodTime:           periodTime,
+			MainServiceAmount:    mainServiceAmount,
+			SubServiceAmount:     subServiceAmount,
+			ProjectDeliveryValue: projectDeliveryValue,
 		}
 		res = append(res, ed)
 	}

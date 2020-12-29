@@ -73,5 +73,7 @@ func DBInit() {
 		&oa.PublicHoliday{},
 		&oa.LeaveBalance{},
 		&oa.ServiceLine{},
+		&oa.ProjectCategory{},
+		&oa.ProjectDelivery{},
 	)
 }
