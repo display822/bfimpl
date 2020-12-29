@@ -42,6 +42,38 @@ func (u *UserController) AddUser() {
 	u.Correct(reqUser)
 }
 
+// @Title 新增用户
+// @Description 新增用户
+// @Param	name	body	string	true	"姓名"
+// @Param	email	body	string	true	"邮箱"
+// @Param	wx		body	string	true	"企业微信"
+// @Param	phone	body	string	true	"手机"
+// @Param	userType	body	int	true	"用户类型"
+// @Param	leaderId	body	int	false	"组长id"
+// @Success 200 {object} models.User
+// @Failure 500 server err
+// @router /:id [put]
+func (u *UserController) PutUser() {
+	reqUser := new(models.User)
+
+	err := json.Unmarshal(u.Ctx.Input.RequestBody, reqUser)
+	if err != nil {
+		u.ErrorOK(MsgInvalidParam)
+	}
+	b, _ := u.valid.Valid(reqUser)
+	if !b {
+		log.GLogger.Error("%s:%s", u.valid.Errors[0].Field, u.valid.Errors[0].Message)
+		u.ErrorOK(MsgInvalidParam)
+	}
+	id, _ := u.GetInt(":id", 0)
+	reqUser.ID = uint(id)
+	err = services.Slave().Save(reqUser).Error
+	if err != nil {
+		u.ErrorOK("保存失败")
+	}
+	u.Correct(reqUser)
+}
+
 // @Title 资源分配人员列表
 // @Description 无
 // @Success 200 {object} []models.User
@@ -89,7 +121,7 @@ func (u *UserController) Implementers() {
 		} else {
 			m[tmp.Id] = []*models.Impler{}
 			sort := models.SortImpl{
-				Id: tmp.Id,
+				Id:   tmp.Id,
 				Name: tmp.Name,
 			}
 			if tmp.Status == models.TaskExecute || tmp.Status == models.TaskAssign {

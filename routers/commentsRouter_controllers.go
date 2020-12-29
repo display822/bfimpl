@@ -360,6 +360,15 @@ func init() {
 
 	beego.GlobalControllerRouter["bfimpl/controllers:UserController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:UserController"],
 		beego.ControllerComments{
+			Method:           "PutUser",
+			Router:           `/:id`,
+			AllowHTTPMethods: []string{"put"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:UserController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:UserController"],
+		beego.ControllerComments{
 			Method:           "Implementers",
 			Router:           `/impls`,
 			AllowHTTPMethods: []string{"get"},
