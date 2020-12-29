@@ -85,11 +85,19 @@ func (p *ProjectController) FilterField() {
 // @Failure 500 server internal err
 // @router / [post]
 func (p *ProjectController) Create() {
+	periodTime := p.GetString("period_time")
+	if periodTime == "" {
+		p.ErrorOK("need period_time")
+	}
 	var ps []*oa.ProjectDelivery
 	err := json.Unmarshal(p.Ctx.Input.RequestBody, &ps)
 	if err != nil {
 		log.GLogger.Error("new ProjectDelivery err：%s", err.Error())
 		p.ErrorOK(MsgInvalidParam)
+	}
+
+	for _, item := range ps {
+		item.PeriodTime = periodTime
 	}
 
 	log.GLogger.Info("ps", ps)
@@ -107,10 +115,6 @@ func (p *ProjectController) Create() {
 // @Failure 500 server internal err
 // @router /details [post]
 func (p *ProjectController) ParseProjectDetailFile() {
-	periodTime := p.GetString("period_time")
-	if periodTime == "" {
-		p.ErrorOK("need period_time")
-	}
 	mf, mfh, err := p.GetFile("file")
 	if err != nil {
 		log.GLogger.Error("get file err: %s", err.Error())
@@ -129,7 +133,7 @@ func (p *ProjectController) ParseProjectDetailFile() {
 		fmt.Println(err)
 		p.ErrorOK(err.Error())
 	}
-	res, err := ReadProjectFile(f, periodTime)
+	res, err := ReadProjectFile(f)
 	if err != nil {
 		fmt.Println(err)
 		p.ErrorOK(err.Error())
@@ -138,7 +142,7 @@ func (p *ProjectController) ParseProjectDetailFile() {
 	p.Correct(res)
 }
 
-func ReadProjectFile(f *excelize.File, periodTime string) ([]*oa.ProjectDelivery, error) {
+func ReadProjectFile(f *excelize.File) ([]*oa.ProjectDelivery, error) {
 	rows, err := f.GetRows("Sheet1")
 	if err != nil {
 		return nil, err
@@ -216,7 +220,7 @@ func ReadProjectFile(f *excelize.File, periodTime string) ([]*oa.ProjectDelivery
 		ed := &oa.ProjectDelivery{
 			ProjectName:          colList[0],
 			ProjectCategoryCode:  colList[1],
-			PeriodTime:           periodTime,
+			PeriodTime:           "",
 			MainServiceAmount:    mainServiceAmount,
 			SubServiceAmount:     subServiceAmount,
 			ProjectDeliveryValue: projectDeliveryValue,
