@@ -163,7 +163,7 @@ func ReadProjectFile(f *excelize.File, periodTime string) ([]*oa.ProjectDelivery
 	for i, row := range rows[1:] {
 		x := i + 2
 		fmt.Println(row)
-		var colList [6]string
+		var colList [4]string
 		for i, colCell := range row {
 			colList[i] = colCell
 			fmt.Println(colList)
