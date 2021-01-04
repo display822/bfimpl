@@ -630,7 +630,7 @@ func (a *AttendanceController) ExportData() {
 			data = append(data, tmp)
 		}
 		//今天工时
-		if !at.CheckIn.IsZero() && !at.CheckOut.IsZero() {
+		if !strings.Contains(at.CheckIn.String(), "0001-01-01") && !strings.Contains(at.CheckOut.String(), "0001-01-01") {
 			data[i].Total += at.CheckOut.SubToHour(at.CheckIn)
 			data[i].Overtime += at.Overtime
 			data[i].Shift += at.Shift
