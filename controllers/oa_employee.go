@@ -52,7 +52,9 @@ func (e *EmployeeController) NewEmpEntry() {
 
 	tx := services.Slave().Begin()
 	employee := reqEmployee.ToEmployee()
-	employee.Email = strconv.Itoa(int(time.Now().UnixNano()))
+	if employee.Email == "" {
+		employee.Email = strconv.Itoa(int(time.Now().UnixNano()))
+	}
 	employee.CreatorId, _ = e.GetInt("userID")
 	err = tx.Create(employee).Error
 	if err != nil {
