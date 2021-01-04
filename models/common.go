@@ -23,7 +23,7 @@ const (
 
 	TimeFormat = "2006-01-02 15:04:05"
 	DateFormat = "2006-01-02"
-	PosFormat = "2006/01/02 15:04:05"
+	PosFormat  = "2006/01/02 15:04:05"
 
 	Amount_Use        = "use"
 	Amount_Cancel     = "cancel"
@@ -43,10 +43,11 @@ const (
 	FlowApproved   = "Approved"
 	FlowRejected   = "Rejected"
 
-	LeaveSick   = "Sick"
-	LeaveShift  = "Shift"
-	LeaveAnnual = "Annual"
-	LeaveAffair = "PrivateAffair"
+	LeaveSick     = "Sick"
+	LeaveShift    = "Shift"
+	LeaveFlexible = "Flexible"
+	LeaveAnnual   = "Annual"
+	LeaveAffair   = "PrivateAffair"
 )
 
 var Months = []int{31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}

@@ -613,7 +613,10 @@ func (a *AttendanceController) ExportData() {
 	leaves := make([]*oa.Leave, 0)
 	services.Slave().Model(oa.Leave{}).Where("start_date >= ? and start_date <= ? and status = ?",
 		startDate, endDate, models.FlowApproved).Find(&leaves)
-
+	//加班申请
+	overtimes := make([]*oa.Overtime, 0)
+	services.Slave().Model(oa.Overtime{}).Where("start_time >= ? and start_time <= ? and status = ? and type = ?",
+		startDate, endDate, models.FlowApproved, "workday").Find(&overtimes)
 	userIndex := make(map[string]int)
 	index := 0
 	data := make([]*oa.AttendanceExcel, 0)
@@ -632,8 +635,6 @@ func (a *AttendanceController) ExportData() {
 		//今天工时
 		if !strings.Contains(at.CheckIn.String(), "0001-01-01") && !strings.Contains(at.CheckOut.String(), "0001-01-01") {
 			data[i].Total += at.CheckOut.SubToHour(at.CheckIn)
-			data[i].Overtime += at.Overtime
-			data[i].Shift += at.Shift
 			if at.InResult == "迟到" {
 				data[i].Late++
 			}
@@ -642,6 +643,12 @@ func (a *AttendanceController) ExportData() {
 			}
 		} else {
 			data[i].Forget += 1
+		}
+	}
+	for _, overtime := range overtimes {
+		i, ok := userIndex[overtime.EName]
+		if ok {
+			data[i].Overtime += overtime.RealDuration
 		}
 	}
 	for _, leave := range leaves {
@@ -659,6 +666,8 @@ func (a *AttendanceController) ExportData() {
 				data[i].Sick += leave.RealDuration
 			} else if leave.Type == models.LeaveAffair {
 				data[i].Affair += leave.RealDuration
+			} else if leave.Type == models.LeaveFlexible {
+				data[i].Shift += leave.RealDuration
 			}
 		}
 	}
