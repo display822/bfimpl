@@ -72,5 +72,6 @@ func DBInit() {
 		&oa.SocialSecurity{},
 		&oa.PublicHoliday{},
 		&oa.LeaveBalance{},
+		&oa.ServiceLine{},
 	)
 }
