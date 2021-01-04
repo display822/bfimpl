@@ -48,3 +48,20 @@ func (d *DepartmentController) GetLevels() {
 	}
 	d.Correct(levels)
 }
+
+// @Title 部门下服务线
+// @Description 部门下服务线
+// @Param	id	path	int	true	"部门id"
+// @Success 200 {string} "success"
+// @Failure 500 server err
+// @router /service/:id [get]
+func (d *DepartmentController) GetServiceLine() {
+	departmentId, _ := d.GetInt(":id", 0)
+	s := make([]*oa.ServiceLine, 0)
+	err := services.Slave().Model(oa.ServiceLine{}).Where("department_id = ?", departmentId).Find(&s).Error
+	if err != nil {
+		log.GLogger.Error("get levels err:%s", err.Error())
+		d.ErrorOK("get levels err")
+	}
+	d.Correct(s)
+}

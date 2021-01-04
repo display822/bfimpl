@@ -413,6 +413,15 @@ func init() {
 			Filters:          nil,
 			Params:           nil})
 
+	beego.GlobalControllerRouter["bfimpl/controllers:DepartmentController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:DepartmentController"],
+		beego.ControllerComments{
+			Method:           "GetServiceLine",
+			Router:           `/service/:id`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
 	beego.GlobalControllerRouter["bfimpl/controllers:EmployeeController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:EmployeeController"],
 		beego.ControllerComments{
 			Method:           "NewEmpEntry",

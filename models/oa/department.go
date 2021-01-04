@@ -20,3 +20,9 @@ type Department struct {
 	Leader             *models.User  `gorm:"ForeignKey:DepartmentLeaderID" json:"leader"`
 	Children           []*Department `json:"children"`
 }
+
+type ServiceLine struct {
+	gorm.Model
+	DepartmentID int `gorm:"not null;comment:'归属部门'" json:"department_id"`
+	ServiceName  int `gorm:"not null;comment:'服务线名称'" json:"service_name"`
+}
