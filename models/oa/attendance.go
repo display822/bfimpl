@@ -132,6 +132,7 @@ type AttendanceExcel struct {
 	Early    int
 	Overtime float32
 	Shift    float32
+	Affair   float32
 	None     int
 	Forget   int
 }

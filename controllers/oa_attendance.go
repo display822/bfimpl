@@ -652,22 +652,24 @@ func (a *AttendanceController) ExportData() {
 		i, ok := userIndex[leave.EName]
 		if ok {
 			if leave.Type == models.LeaveAnnual {
-				data[i].Annual += leave.Duration
+				data[i].Annual += leave.RealDuration
 			} else if leave.Type == models.LeaveShift {
-				data[i].Leave += leave.Duration
+				data[i].Leave += leave.RealDuration
 			} else if leave.Type == models.LeaveSick {
-				data[i].Sick += leave.Duration
+				data[i].Sick += leave.RealDuration
+			} else if leave.Type == models.LeaveAffair {
+				data[i].Affair += leave.RealDuration
 			}
 		}
 	}
 	//生成excel
 	f := excelize.NewFile()
 	_ = f.SetSheetRow("Sheet1", "A1", &[]interface{}{"部门", "姓名", "上班总工时", "总调休时长", "工作日加班时长",
-		"弹性", "年假", "病假", "迟到", "早退", "旷工", "忘记打卡"})
+		"弹性", "事假", "年假", "病假", "迟到", "早退", "旷工", "忘记打卡"})
 	num := 2
 	for _, at := range data {
 		_ = f.SetSheetRow("Sheet1", "A"+strconv.Itoa(num), &[]interface{}{at.Dept, at.Name, at.Total, at.Leave,
-			at.Overtime, at.Shift, at.Annual, at.Sick, at.Late, at.Early, at.None, at.Forget})
+			at.Overtime, at.Shift, at.Affair, at.Annual, at.Sick, at.Late, at.Early, at.None, at.Forget})
 		num++
 	}
 	fileName := year + "-" + month + ".xlsx"

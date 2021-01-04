@@ -46,6 +46,7 @@ const (
 	LeaveSick   = "Sick"
 	LeaveShift  = "Shift"
 	LeaveAnnual = "Annual"
+	LeaveAffair = "PrivateAffair"
 )
 
 var Months = []int{31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}
