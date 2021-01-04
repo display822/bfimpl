@@ -7,18 +7,7 @@
 package forms
 
 type Engagement struct {
-	EngagementCode string
-	EmployeeCount  int
-	EmployeeHour   int
-	EngagementCost float64
-	DataField      []string
-	Employees      []Employee
-}
-
-type Employee struct {
-	EmployeeName   string
-	EmployeeCount  int
-	EmployeeHour   int
-	EngagementCost float64
-	Employees      []Employee
+	EngagementCode string         `json:"engagement_code"`
+	EmployeeName   string         `json:"employee_name"`
+	DateField      map[string]int `json:"date_field"`
 }

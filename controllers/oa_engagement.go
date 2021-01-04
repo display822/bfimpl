@@ -7,6 +7,7 @@
 package controllers
 
 import (
+	"bfimpl/models/forms"
 	"bfimpl/models/oa"
 	"bfimpl/services"
 	"bfimpl/services/log"
@@ -40,7 +41,15 @@ func (e *EngagementController) List() {
 	var es []oa.Engagement
 	services.Slave().Where("engagement_date>=?", beginTime).Where("engagement_date<=?", endTime).
 		Where("engagement_code in (?)", ecs).Find(&es)
-	e.Correct(es)
+
+	m := make(map[string]int)
+	m["2020-09-12"] = 1
+	res := forms.Engagement{
+		EngagementCode: "10001",
+		EmployeeName:   "ss",
+		DateField:      m,
+	}
+	e.Correct(res)
 }
 
 // @Title 创建人员管理
@@ -95,7 +104,30 @@ func (e *EngagementController) ParseEngagementDetailFile() {
 		e.ErrorOK(err.Error())
 	}
 
-	e.Correct(res)
+	m := make(map[string]map[string]int)
+	for _, item := range res {
+		_, ok := m[item.EngagementCode+"-"+item.EmployeeName]
+		if !ok {
+			mmm := make(map[string]int)
+			mmm[item.EngagementDate.Format("2006/01/02")] = item.EngagementHour
+			m[item.EngagementCode+"-"+item.EmployeeName] = mmm
+		} else {
+			m[item.EngagementCode+"-"+item.EmployeeName][item.EngagementDate.Format("2006/01/02")] = item.EngagementHour
+		}
+	}
+
+	var data []forms.Engagement
+	for k, v := range m {
+		l := strings.Split(k, "-")
+		eng := forms.Engagement{
+			EmployeeName:   l[1],
+			EngagementCode: l[0],
+			DateField:      v,
+		}
+		data = append(data, eng)
+	}
+
+	e.Correct(data)
 }
 
 func EngagementDetailFile(f *excelize.File) ([]*oa.Engagement, error) {
@@ -146,6 +178,8 @@ func EngagementDetailFile(f *excelize.File) ([]*oa.Engagement, error) {
 
 		fmt.Println(index)
 	}
+
+	// TODO 判断是否重复
 
 	log.GLogger.Info("workTimeIndex1", workTimeIndex1)
 
