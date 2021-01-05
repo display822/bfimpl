@@ -183,6 +183,16 @@ func EngagementDetailFile(f *excelize.File) ([]*oa.Engagement, error) {
 
 	log.GLogger.Info("workTimeIndex1", workTimeIndex1)
 
+	var phs []*oa.PublicHoliday
+	services.Slave().Where("public_holiday_date >= ?", rows[0][3]).
+		Where("public_holiday_date <= ?", rows[0][9]).
+		Find(&phs)
+
+	publicHolidayMap := make(map[string]string, len(phs))
+	for _, ph := range phs {
+		publicHolidayMap[ph.PublicHolidayDate.String()] = ph.HolidayType
+	}
+
 	var res []*oa.Engagement
 	var errorArray []string
 	for i, row := range rows[1:] {
@@ -214,19 +224,32 @@ func EngagementDetailFile(f *excelize.File) ([]*oa.Engagement, error) {
 			errorArray = append(errorArray, fmt.Sprintf("第%d行员工未找到", x))
 		}
 		for k, col := range colList[2:9] {
-			// TODO 判断是否放假
+			workTime, _ := time.Parse("01-02-06", rows[0][k+2])
+
 			y := k + 3
 			colInt, err := strconv.Atoi(col)
 			if err != nil {
 				errorArray = append(errorArray, fmt.Sprintf("第%d行%d列工时错误", x, y))
 			}
-			if k != 5 && k != 6 { // 周末不判断
-				if colInt < 8 {
-					errorArray = append(errorArray, fmt.Sprintf("第%d行%d列工时小于8小时", x, y))
+
+			// 判断是否放假
+			ph, ok := publicHolidayMap[rows[0][k+2]]
+			if ok {
+				if ph == "holiday" { // 放假 不判断
+
+				} else if ph == "workday" { //补假 判断
+					if colInt < 8 {
+						errorArray = append(errorArray, fmt.Sprintf("第%d行%d列工时小于8小时", x, y))
+					}
+				}
+			} else {
+				if k != 5 && k != 6 { // 周末不判断
+					if colInt < 8 {
+						errorArray = append(errorArray, fmt.Sprintf("第%d行%d列工时小于8小时", x, y))
+					}
 				}
 			}
 
-			workTime, _ := time.Parse("01-02-06", rows[0][k+2])
 			engagementCost := float64(((engagementCode.OCRate * employee.Level.OCRate) + (engagementCode.CCRate * employee.Level.CCRate)) * float32(colInt))
 			em := &oa.Engagement{
 				EngagementCode: colList[0],
