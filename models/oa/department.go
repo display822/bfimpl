@@ -23,6 +23,6 @@ type Department struct {
 
 type ServiceLine struct {
 	gorm.Model
-	DepartmentID int `gorm:"not null;comment:'归属部门'" json:"department_id"`
-	ServiceName  int `gorm:"not null;comment:'服务线名称'" json:"service_name"`
+	DepartmentID int    `gorm:"not null;comment:'归属部门'" json:"department_id"`
+	ServiceName  string `gorm:"not null;comment:'服务线名称'" json:"service_name"`
 }

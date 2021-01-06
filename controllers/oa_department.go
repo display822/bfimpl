@@ -58,10 +58,6 @@ func (d *DepartmentController) GetLevels() {
 func (d *DepartmentController) GetServiceLine() {
 	departmentId, _ := d.GetInt(":id", 0)
 	s := make([]*oa.ServiceLine, 0)
-	err := services.Slave().Model(oa.ServiceLine{}).Where("department_id = ?", departmentId).Find(&s).Error
-	if err != nil {
-		log.GLogger.Error("get levels err:%s", err.Error())
-		d.ErrorOK("get levels err")
-	}
+	services.Slave().Model(oa.ServiceLine{}).Where("department_id = ?", departmentId).Find(&s)
 	d.Correct(s)
 }
