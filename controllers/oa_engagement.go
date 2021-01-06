@@ -11,7 +11,6 @@ import (
 	"bfimpl/models/oa"
 	"bfimpl/services"
 	"bfimpl/services/log"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
@@ -25,6 +24,62 @@ type EngagementController struct {
 	BaseController
 }
 
+// @Title 人员管理周数据列表
+// @Description 人员管理周数据列表
+// @Success 200 {string} ""
+// @Failure 500 server internal err
+// @router /period [get]
+func (e *EngagementController) PeriodList() {
+	userID, _ := e.GetInt("userID")
+	periodTime := e.GetString("period_time")
+	var es []oa.Engagement
+	db := services.Slave().Where("department_id =?", userID)
+	if periodTime != "" {
+		db = db.Where("period_time = ?", periodTime)
+	}
+	db.Order("created_at desc").Group("period_time").Find(&es)
+
+	e.Correct(es)
+}
+
+// @Title 人员管理周数据详细
+// @Description 人员管理周数据详细
+// @Success 200 {string} ""
+// @Failure 500 server internal err
+// @router /period/detail [get]
+func (e *EngagementController) PeriodDetail() {
+	userID, _ := e.GetInt("userID")
+	periodTime := e.GetString("period_time")
+	var es []oa.Engagement
+	services.Slave().Where("department_id =?", userID).Where("period_time = ?", periodTime).
+		Order("created_at").Find(&es)
+
+	m := make(map[string]map[string]int)
+	for _, item := range es {
+		_, ok := m[item.EngagementCode+"-"+item.EmployeeName]
+		if !ok {
+			mmm := make(map[string]int)
+			mmm[item.EngagementDate.Format("2006/01/02")] = item.EngagementHour
+			m[item.EngagementCode+"-"+item.EmployeeName] = mmm
+		} else {
+			m[item.EngagementCode+"-"+item.EmployeeName][item.EngagementDate.Format("2006/01/02")] = item.EngagementHour
+		}
+	}
+
+	var data []forms.Engagement
+	for k, v := range m {
+		l := strings.Split(k, "-")
+		eng := forms.Engagement{
+			EmployeeName:   l[1],
+			EngagementCode: l[0],
+			DateField:      v,
+		}
+		data = append(data, eng)
+	}
+
+	e.Correct(data)
+}
+
 // @Title 人员管理列表
 // @Description 人员管理列表
 // @Success 200 {string} ""
@@ -35,21 +90,12 @@ func (e *EngagementController) List() {
 	beginTime := e.GetString("begin_time")
 	endTime := e.GetString("end_time")
 	ecs := strings.Split(engagementCodes, ",")
-	fmt.Println(ecs)
-	fmt.Println(beginTime)
-	fmt.Println(endTime)
+
 	var es []oa.Engagement
 	services.Slave().Where("engagement_date>=?", beginTime).Where("engagement_date<=?", endTime).
 		Where("engagement_code in (?)", ecs).Find(&es)
 
-	m := make(map[string]int)
-	m["2020-09-12"] = 1
-	res := forms.Engagement{
-		EngagementCode: "10001",
-		EmployeeName:   "ss",
-		DateField:      m,
-	}
-	e.Correct(res)
+	e.Correct(es)
 }
 
 // @Title 创建人员管理
@@ -58,28 +104,7 @@ func (e *EngagementController) List() {
 // @Failure 500 server internal err
 // @router / [post]
 func (e *EngagementController) Create() {
-	var es []*oa.Engagement
-	err := json.Unmarshal(e.Ctx.Input.RequestBody, &es)
-	if err != nil {
-		log.GLogger.Error("new Engagement err：%s", err.Error())
-		e.ErrorOK(MsgInvalidParam)
-	}
-
-	log.GLogger.Info("es", es)
-	err = oa.BatchEngagementCreate(services.Slave(), es)
-	if err != nil {
-		e.ErrorOK(MsgServerErr)
-	}
-	e.Correct("")
-}
-
-// @Title 解析人员管理内容的excel文件
-// @Description 解析人员管理内容的excel文件
-// @Param  file form-data binary true "文件"
-// @Success 200 {object}
-// @Failure 500 server internal err
-// @router /details [post]
-func (e *EngagementController) ParseEngagementDetailFile() {
+	userID, _ := e.GetInt("userID")
 	mf, mfh, err := e.GetFile("file")
 	if err != nil {
 		log.GLogger.Error("get file err: %s", err.Error())
@@ -98,11 +123,54 @@ func (e *EngagementController) ParseEngagementDetailFile() {
 		fmt.Println(err)
 		e.ErrorOK(err.Error())
 	}
-	res, err := EngagementDetailFile(f)
+
+	res, err := EngagementDetailFile(f, userID)
 	if err != nil {
 		fmt.Println(err)
 		e.ErrorOK(err.Error())
 	}
+	err = oa.BatchEngagementCreate(services.Slave(), res)
+	if err != nil {
+		e.ErrorOK(MsgServerErr)
+	}
+
+	e.Correct("")
+}
+
+// @Title 解析人员管理内容的excel文件
+// @Description 解析人员管理内容的excel文件
+// @Param  file form-data binary true "文件"
+// @Success 200 {object}
+// @Failure 500 server internal err
+// @router /details [post]
+func (e *EngagementController) ParseEngagementDetailFile() {
+	userID, _ := e.GetInt("userID")
+	mf, mfh, err := e.GetFile("file")
+	if err != nil {
+		log.GLogger.Error("get file err: %s", err.Error())
+		e.Error(err.Error())
+		return
+	}
+	defer mf.Close()
+
+	fs := strings.Split(mfh.Filename, ".")
+	ft := fs[len(fs)-1:][0]
+	if ft != "xlsx" {
+		e.ErrorOK("文件类型错误")
+	}
+	f, err := excelize.OpenReader(mf)
+	if err != nil {
+		fmt.Println(err)
+		e.ErrorOK(err.Error())
+	}
+
+	res, err := EngagementDetailFile(f, userID)
+	if err != nil {
+		fmt.Println(err)
+		e.ErrorOK(err.Error())
+	}
+
+	log.GLogger.Info("res:%s", res)
 
 	m := make(map[string]map[string]int)
 	for _, item := range res {
@@ -130,7 +198,7 @@ func (e *EngagementController) ParseEngagementDetailFile() {
 	e.Correct(data)
 }
 
-func EngagementDetailFile(f *excelize.File) ([]*oa.Engagement, error) {
+func EngagementDetailFile(f *excelize.File, departmentID int) ([]*oa.Engagement, error) {
 	rows, err := f.GetRows("Sheet1")
 	if err != nil {
 		return nil, err
@@ -154,14 +222,13 @@ func EngagementDetailFile(f *excelize.File) ([]*oa.Engagement, error) {
 	if empNameIndex != "员工" {
 		return nil, errors.New("首行表头字段有误, 无法识别")
 	}
-	workTimeStringIndex1 := rows[0][2]
 
-	log.GLogger.Info("workTimeStringIndex1", workTimeStringIndex1)
-	workTimeIndex1, err := time.Parse("01-02-06", workTimeStringIndex1)
+	workTimeIndex, err := time.Parse("01-02-06", rows[0][2])
+	workStartTime := workTimeIndex
 	if err != nil {
 		return nil, errors.New("时间无法识别")
 	}
-	if workTimeIndex1.Weekday() != time.Monday {
+	if workTimeIndex.Weekday() != time.Monday {
 		return nil, errors.New("需要从周一起")
 	}
 
@@ -171,8 +238,8 @@ func EngagementDetailFile(f *excelize.File) ([]*oa.Engagement, error) {
 		if err != nil {
 			return nil, errors.New("时间无法识别")
 		}
-		workTimeIndex1 = workTimeIndex1.AddDate(0, 0, 1)
-		if !index.Equal(workTimeIndex1) {
+		workTimeIndex = workTimeIndex.AddDate(0, 0, 1)
+		if !index.Equal(workTimeIndex) {
 			return nil, errors.New("时间不连续")
 		}
 
@@ -181,13 +248,15 @@ func EngagementDetailFile(f *excelize.File) ([]*oa.Engagement, error) {
 
 	// TODO 判断是否重复
 
-	log.GLogger.Info("workTimeIndex1", workTimeIndex1)
+	log.GLogger.Info("workTimeIndex", workTimeIndex)
 
-	var phs []*oa.PublicHoliday
-	services.Slave().Where("public_holiday_date >= ?", rows[0][3]).
-		Where("public_holiday_date <= ?", rows[0][9]).
+	log.GLogger.Info("startTime", workStartTime)
+	log.GLogger.Info("endTime", workTimeIndex)
+	var phs []oa.PublicHoliday
+	services.Slave().Where("public_holiday_date >= ?", workStartTime).
+		Where("public_holiday_date <= ?", workTimeIndex).
 		Find(&phs)
-
+	log.GLogger.Info("phs", phs)
 	publicHolidayMap := make(map[string]string, len(phs))
 	for _, ph := range phs {
 		publicHolidayMap[ph.PublicHolidayDate.String()] = ph.HolidayType
@@ -201,7 +270,6 @@ func EngagementDetailFile(f *excelize.File) ([]*oa.Engagement, error) {
 		for i, colCell := range row {
 			colList[i] = colCell
 		}
-
 		// 校验项目编号
 		if colList[0] == "" {
 			errorArray = append(errorArray, fmt.Sprintf("第%d行项目名称未填写", x))
@@ -211,15 +279,13 @@ func EngagementDetailFile(f *excelize.File) ([]*oa.Engagement, error) {
 		if engagementCode.ID == 0 {
 			errorArray = append(errorArray, fmt.Sprintf("第%d行项目名称未找到", x))
 		}
-		fmt.Println(engagementCode)
 		// 校验员工
 		employee := new(oa.Employee)
 		if colList[1] == "" {
 			errorArray = append(errorArray, fmt.Sprintf("第%d行员工未填写", x))
 		}
 		services.Slave().Preload("Level").Take(employee, "name = ?", colList[1])
-		fmt.Println(employee)
-		fmt.Println(employee.Level)
+
 		if employee.ID == 0 {
 			errorArray = append(errorArray, fmt.Sprintf("第%d行员工未找到", x))
 		}
@@ -233,19 +299,19 @@ func EngagementDetailFile(f *excelize.File) ([]*oa.Engagement, error) {
 			}
 
 			// 判断是否放假
-			ph, ok := publicHolidayMap[rows[0][k+2]]
+			ph, ok := publicHolidayMap[workTime.Format("2006-01-02")]
 			if ok {
 				if ph == "holiday" { // 放假 不判断
 
 				} else if ph == "workday" { //补假 判断
 					if colInt < 8 {
-						errorArray = append(errorArray, fmt.Sprintf("第%d行%d列工时小于8小时", x, y))
+						errorArray = append(errorArray, fmt.Sprintf("第%d行第%d列工时小于8小时", x, y))
 					}
 				}
 			} else {
 				if k != 5 && k != 6 { // 周末不判断
 					if colInt < 8 {
-						errorArray = append(errorArray, fmt.Sprintf("第%d行%d列工时小于8小时", x, y))
+						errorArray = append(errorArray, fmt.Sprintf("第%d行第%d列工时小于8小时", x, y))
 					}
 				}
 			}
@@ -254,14 +320,15 @@ func EngagementDetailFile(f *excelize.File) ([]*oa.Engagement, error) {
 			em := &oa.Engagement{
 				EngagementCode: colList[0],
 				EmployeeID:     int(employee.ID),
+				DepartmentID:   departmentID,
 				EmployeeName:   employee.Name,
+				PeriodTime:     workStartTime.Format("2006/01/02") + "-" + workTimeIndex.Format("2006/01/02"),
 				EngagementDate: workTime,
 				EngagementHour: colInt,
 				EngagementCost: engagementCost,
 			}
 			res = append(res, em)
 		}
-
 	}
 
 	if len(errorArray) > 0 {
