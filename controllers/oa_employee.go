@@ -136,7 +136,7 @@ func (e *EmployeeController) GetEmpEntryList() {
 	query := services.Slave().Model(oa.Employee{})
 
 	//查流程表，得到员工id列表
-	if userType != models.UserHR {
+	if userType != models.UserHR && userType != models.UserFinance {
 		ids := make([]*oa.EntityID, 0)
 		//如果是IT,只显示流程在自己这入职
 		services.Slave().Raw("select w.entity_id from workflows w, workflow_nodes wn where w.id = wn.workflow_id"+
