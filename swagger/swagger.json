@@ -69,7 +69,7 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/.Amount"
+                            "$ref": "#/definitions/models.Amount"
                         }
                     },
                     "500": {
@@ -150,7 +150,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/.RspAmountAll"
+                                "$ref": "#/definitions/models.RspAmountAll"
                             }
                         }
                     },
@@ -194,7 +194,7 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/.RspAmount"
+                            "$ref": "#/definitions/models.RspAmount"
                         }
                     },
                     "500": {
@@ -234,7 +234,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/.RspAmountLogs"
+                                "$ref": "#/definitions/models.RspAmountLogs"
                             }
                         }
                     },
@@ -341,7 +341,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/.RspTaskAmountLog"
+                                "$ref": "#/definitions/models.RspTaskAmountLog"
                             }
                         }
                     },
@@ -497,7 +497,7 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/.Client"
+                            "$ref": "#/definitions/models.Client"
                         }
                     },
                     "500": {
@@ -535,7 +535,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/.Client"
+                                "$ref": "#/definitions/models.Client"
                             }
                         }
                     },
@@ -1213,6 +1213,17 @@
                 ],
                 "description": "创建人员管理",
                 "operationId": "EngagementController.创建人员管理",
+                "parameters": [
+                    {
+                        "in": "form-data",
+                        "name": "file",
+                        "description": "文件",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/.binary"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "{string} \"\""
@@ -1261,6 +1272,28 @@
                 ],
                 "description": "人员管理周数据列表",
                 "operationId": "EngagementController.人员管理周数据列表",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "pagenum",
+                        "description": "分页",
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "in": "query",
+                        "name": "pagesize",
+                        "description": "分页",
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "in": "query",
+                        "name": "period_time",
+                        "description": "周期时间",
+                        "type": "string"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "{string} \"\""
@@ -1278,6 +1311,15 @@
                 ],
                 "description": "人员管理周数据详细",
                 "operationId": "EngagementController.人员管理周数据详细",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "period_time",
+                        "description": "周期时间",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "{string} \"\""
@@ -1368,7 +1410,7 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/.Expense"
+                            "$ref": "#/definitions/oa.Expense"
                         }
                     },
                     "500": {
@@ -1388,7 +1430,7 @@
                         "name": "body",
                         "description": "true",
                         "schema": {
-                            "$ref": "#/definitions/.ReqApprovalExpense"
+                            "$ref": "#/definitions/forms.ReqApprovalExpense"
                         }
                     }
                 ],
@@ -1414,7 +1456,7 @@
                         "description": "报销",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/.Expense"
+                            "$ref": "#/definitions/oa.Expense"
                         }
                     }
                 ],
@@ -1422,7 +1464,7 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/.Expense"
+                            "$ref": "#/definitions/oa.Expense"
                         }
                     },
                     "500": {
@@ -1470,7 +1512,7 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/.ParseExpenseDetailResponse"
+                            "$ref": "#/definitions/forms.ParseExpenseDetailResponse"
                         }
                     },
                     "500": {
@@ -1509,7 +1551,7 @@
                         "name": "body",
                         "description": "true",
                         "schema": {
-                            "$ref": "#/definitions/.ReqApprovalExpense"
+                            "$ref": "#/definitions/forms.ReqApprovalExpense"
                         }
                     }
                 ],
@@ -1673,7 +1715,7 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/.User"
+                            "$ref": "#/definitions/models.User"
                         }
                     },
                     "500": {
@@ -1723,7 +1765,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/.ProjectDelivery"
+                                "$ref": "#/definitions/oa.ProjectDelivery"
                             }
                         }
                     },
@@ -1784,7 +1826,7 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/.Service"
+                            "$ref": "#/definitions/models.Service"
                         }
                     },
                     "500": {
@@ -1806,7 +1848,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/.Service"
+                                "$ref": "#/definitions/models.Service"
                             }
                         }
                     },
@@ -1948,7 +1990,7 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/.Task"
+                            "$ref": "#/definitions/models.Task"
                         }
                     },
                     "500": {
@@ -1979,7 +2021,7 @@
                         "description": "body参数",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/.ReqAssignTask"
+                            "$ref": "#/definitions/forms.ReqAssignTask"
                         }
                     }
                 ],
@@ -2015,7 +2057,7 @@
                         "description": "退次参数",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/.ReqBackAmount"
+                            "$ref": "#/definitions/forms.ReqBackAmount"
                         }
                     }
                 ],
@@ -2121,7 +2163,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/.TaskComment"
+                                "$ref": "#/definitions/models.TaskComment"
                             }
                         }
                     },
@@ -2151,7 +2193,7 @@
                         "description": "body请求参数",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/.ReqCommentTask"
+                            "$ref": "#/definitions/forms.ReqCommentTask"
                         }
                     }
                 ],
@@ -2205,7 +2247,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/.RspTaskSum"
+                                "$ref": "#/definitions/forms.RspTaskSum"
                             }
                         }
                     },
@@ -2290,7 +2332,7 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/.TaskExeInfo"
+                            "$ref": "#/definitions/models.TaskExeInfo"
                         }
                     },
                     "500": {
@@ -2321,7 +2363,7 @@
                         "description": "body请求参数",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/.ReqFinishTask"
+                            "$ref": "#/definitions/forms.ReqFinishTask"
                         }
                     }
                 ],
@@ -2358,7 +2400,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/.Task"
+                                "$ref": "#/definitions/models.Task"
                             }
                         }
                     },
@@ -2408,7 +2450,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/.Task"
+                                "$ref": "#/definitions/models.Task"
                             }
                         }
                     },
@@ -2441,7 +2483,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/.TaskLog"
+                                "$ref": "#/definitions/models.TaskLog"
                             }
                         }
                     },
@@ -2487,7 +2529,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/.Task"
+                                "$ref": "#/definitions/models.Task"
                             }
                         }
                     },
@@ -2546,7 +2588,7 @@
                         "description": "任务详情",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/.ReqTaskDetail"
+                            "$ref": "#/definitions/forms.ReqTaskDetail"
                         }
                     }
                 ],
@@ -2573,7 +2615,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/.Tag"
+                                "$ref": "#/definitions/models.Tag"
                             }
                         }
                     },
@@ -2604,7 +2646,7 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/.Task"
+                            "$ref": "#/definitions/models.Task"
                         }
                     },
                     "500": {
@@ -2669,7 +2711,7 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/.User"
+                            "$ref": "#/definitions/models.User"
                         }
                     },
                     "500": {
@@ -2701,7 +2743,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/.User"
+                                "$ref": "#/definitions/models.User"
                             }
                         }
                     },
@@ -2724,7 +2766,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/.User"
+                                "$ref": "#/definitions/models.User"
                             }
                         }
                     },
@@ -2773,7 +2815,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/.User"
+                                "$ref": "#/definitions/models.User"
                             }
                         }
                     },
@@ -3563,73 +3605,7 @@
         ".\"\"": {
             "type": "object"
         },
-        ".Amount": {
-            "type": "object"
-        },
-        ".Client": {
-            "type": "object"
-        },
-        ".Expense": {
-            "type": "object"
-        },
-        ".ParseExpenseDetailResponse": {
-            "type": "object"
-        },
-        ".ProjectDelivery": {
-            "type": "object"
-        },
-        ".ReqApprovalExpense": {
-            "type": "object"
-        },
-        ".ReqAssignTask": {
-            "type": "object"
-        },
-        ".ReqBackAmount": {
-            "type": "object"
-        },
-        ".ReqCommentTask": {
-            "type": "object"
-        },
-        ".ReqFinishTask": {
-            "type": "object"
-        },
-        ".ReqTaskDetail": {
-            "type": "object"
-        },
-        ".RspAmount": {
-            "type": "object"
-        },
-        ".RspAmountAll": {
-            "type": "object"
-        },
-        ".RspAmountLogs": {
-            "type": "object"
-        },
-        ".RspTaskAmountLog": {
-            "type": "object"
-        },
-        ".RspTaskSum": {
-            "type": "object"
-        },
-        ".Service": {
-            "type": "object"
-        },
-        ".Tag": {
-            "type": "object"
-        },
-        ".Task": {
-            "type": "object"
-        },
-        ".TaskComment": {
-            "type": "object"
-        },
-        ".TaskExeInfo": {
-            "type": "object"
-        },
-        ".TaskLog": {
-            "type": "object"
-        },
-        ".User": {
+        ".Model": {
             "type": "object"
         },
         ".binary": {
@@ -3637,6 +3613,1197 @@
         },
         ".json": {
             "type": "object"
+        },
+        "forms.ParseExpenseDetailResponse": {
+            "title": "ParseExpenseDetailResponse",
+            "type": "object",
+            "properties": {
+                "details": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/oa.ExpenseDetail"
+                    }
+                },
+                "file_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "forms.ReqApprovalExpense": {
+            "title": "ReqApprovalExpense",
+            "type": "object",
+            "properties": {
+                "comment": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "status": {
+                    "type": "integer",
+                    "format": "int64"
+                }
+            }
+        },
+        "forms.ReqAssignTask": {
+            "title": "ReqAssignTask",
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "exeUserId": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "serviceId": {
+                    "type": "integer",
+                    "format": "int64"
+                }
+            }
+        },
+        "forms.ReqBackAmount": {
+            "title": "ReqBackAmount",
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "remark": {
+                    "type": "string"
+                }
+            }
+        },
+        "forms.ReqCommentTask": {
+            "title": "ReqCommentTask",
+            "type": "object",
+            "properties": {
+                "commentType": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "other": {
+                    "type": "string"
+                },
+                "reExeTimes": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "realTime": {
+                    "$ref": "#/definitions/models.Time"
+                },
+                "score": {
+                    "type": "integer",
+                    "format": "int64"
+                }
+            }
+        },
+        "forms.ReqFinishTask": {
+            "title": "ReqFinishTask",
+            "type": "object",
+            "properties": {
+                "delayTime": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "desc": {
+                    "type": "string"
+                },
+                "executeBatch": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "executeTai": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                },
+                "usedTime": {
+                    "type": "integer",
+                    "format": "int64"
+                }
+            }
+        },
+        "forms.ReqTaskDetail": {
+            "title": "ReqTaskDetail",
+            "type": "object",
+            "properties": {
+                "accountAddress": {
+                    "type": "string"
+                },
+                "accountNum": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "changeLog": {
+                    "type": "string"
+                },
+                "concurrentNum": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "expDeliverTime": {
+                    "$ref": "#/definitions/models.Time"
+                },
+                "expEndTime": {
+                    "$ref": "#/definitions/models.Time"
+                },
+                "extReq": {
+                    "type": "string"
+                },
+                "instanceMv": {
+                    "type": "string"
+                },
+                "instanceTxt": {
+                    "type": "string"
+                },
+                "phoneNum": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "pkgAddress": {
+                    "type": "string"
+                },
+                "reUse": {
+                    "type": "string"
+                },
+                "realAmount": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "realServiceId": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "reqPhone": {
+                    "type": "string"
+                },
+                "testAccountType": {
+                    "type": "string"
+                },
+                "testExtInfo": {
+                    "type": "string"
+                },
+                "testType": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                },
+                "whiteList": {
+                    "type": "string"
+                }
+            }
+        },
+        "forms.RspTaskSum": {
+            "title": "RspTaskSum",
+            "type": "object",
+            "properties": {
+                "impNum": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "reqNum": {
+                    "type": "integer",
+                    "format": "int64"
+                }
+            }
+        },
+        "models.Amount": {
+            "title": "Amount",
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "clientId": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "deadline": {
+                    "$ref": "#/definitions/models.Time"
+                },
+                "orderNumber": {
+                    "type": "string"
+                },
+                "remark": {
+                    "type": "string"
+                },
+                "serviceId": {
+                    "type": "integer",
+                    "format": "int64"
+                }
+            }
+        },
+        "models.AmountA": {
+            "title": "AmountA",
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "deadline": {
+                    "$ref": "#/definitions/models.Time"
+                },
+                "id": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "orderNumber": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.AmountLog": {
+            "title": "AmountLog",
+            "type": "object",
+            "properties": {
+                "change": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "desc": {
+                    "type": "string"
+                },
+                "realTime": {
+                    "$ref": "#/definitions/models.Time"
+                },
+                "remark": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.AmountLogA": {
+            "title": "AmountLogA",
+            "type": "object",
+            "properties": {
+                "change": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "desc": {
+                    "type": "string"
+                },
+                "real_time": {
+                    "$ref": "#/definitions/models.Time"
+                },
+                "remark": {
+                    "type": "string"
+                },
+                "service_name": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Client": {
+            "title": "Client",
+            "type": "object",
+            "properties": {
+                "level": {
+                    "type": "string"
+                },
+                "mainManageId": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "number": {
+                    "type": "string"
+                },
+                "saleId": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "saleUser": {
+                    "$ref": "#/definitions/models.User"
+                },
+                "subManageId": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "type": {
+                    "type": "integer",
+                    "format": "int64"
+                }
+            }
+        },
+        "models.Date": {
+            "type": "object"
+        },
+        "models.RspAmount": {
+            "title": "RspAmount",
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "deadline": {
+                    "$ref": "#/definitions/models.Time"
+                },
+                "delay": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "remain": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "service_id": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "service_name": {
+                    "type": "string"
+                },
+                "used": {
+                    "type": "integer",
+                    "format": "int64"
+                }
+            }
+        },
+        "models.RspAmountAll": {
+            "title": "RspAmountAll",
+            "type": "object",
+            "properties": {
+                "change": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "desc": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "real_time": {
+                    "$ref": "#/definitions/models.Time"
+                },
+                "remark": {
+                    "type": "string"
+                },
+                "service_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.RspAmountLogs": {
+            "title": "RspAmountLogs",
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "deadline": {
+                    "$ref": "#/definitions/models.Time"
+                },
+                "id": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "logs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.AmountLogA"
+                    }
+                },
+                "orderNumber": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.RspTaskAmountLog": {
+            "title": "RspTaskAmountLog",
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "logs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.AmountLog"
+                    }
+                },
+                "taskSerial": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Service": {
+            "title": "Service",
+            "type": "object",
+            "properties": {
+                "serviceName": {
+                    "type": "string"
+                },
+                "sort": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "state": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "use": {
+                    "type": "integer",
+                    "format": "int64"
+                }
+            }
+        },
+        "models.Tag": {
+            "title": "Tag",
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Task": {
+            "title": "Task",
+            "type": "object",
+            "properties": {
+                "appName": {
+                    "type": "string"
+                },
+                "assignTime": {
+                    "$ref": "#/definitions/models.Time"
+                },
+                "cancelTime": {
+                    "$ref": "#/definitions/models.Time"
+                },
+                "client": {
+                    "$ref": "#/definitions/models.Client"
+                },
+                "deliverAmount": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "endTime": {
+                    "$ref": "#/definitions/models.Time"
+                },
+                "exeUser": {
+                    "$ref": "#/definitions/models.User"
+                },
+                "exeUserId": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "executeTime": {
+                    "$ref": "#/definitions/models.Time"
+                },
+                "expDeliverTime": {
+                    "$ref": "#/definitions/models.Time"
+                },
+                "expEndDate": {
+                    "$ref": "#/definitions/models.Time"
+                },
+                "expEndTime": {
+                    "$ref": "#/definitions/models.Time"
+                },
+                "finishTime": {
+                    "$ref": "#/definitions/models.Time"
+                },
+                "frozenTime": {
+                    "$ref": "#/definitions/models.Time"
+                },
+                "isPause": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "logs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.TaskLog"
+                    }
+                },
+                "manage": {
+                    "$ref": "#/definitions/models.User"
+                },
+                "pauseTime": {
+                    "$ref": "#/definitions/models.Time"
+                },
+                "preAmount": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "preDate": {
+                    "$ref": "#/definitions/models.Time"
+                },
+                "realAmount": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "realService": {
+                    "$ref": "#/definitions/models.Service"
+                },
+                "realServiceId": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "realTime": {
+                    "$ref": "#/definitions/models.Time"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "serial": {
+                    "type": "string"
+                },
+                "service": {
+                    "$ref": "#/definitions/models.Service"
+                },
+                "serviceId": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "taskDetail": {
+                    "$ref": "#/definitions/models.TaskDetail"
+                },
+                "tmAcceptTime": {
+                    "$ref": "#/definitions/models.Time"
+                }
+            }
+        },
+        "models.TaskComment": {
+            "title": "TaskComment",
+            "type": "object",
+            "properties": {
+                "commentType": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "other": {
+                    "type": "string"
+                },
+                "reExeTimes": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "realTime": {
+                    "$ref": "#/definitions/models.Time"
+                },
+                "score": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "taskId": {
+                    "type": "integer",
+                    "format": "int64"
+                }
+            }
+        },
+        "models.TaskDetail": {
+            "title": "TaskDetail",
+            "type": "object",
+            "properties": {
+                "accountAddress": {
+                    "type": "string"
+                },
+                "accountNum": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "changeLog": {
+                    "type": "string"
+                },
+                "concurrentNum": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "extReq": {
+                    "type": "string"
+                },
+                "instanceMv": {
+                    "type": "string"
+                },
+                "instanceTxt": {
+                    "type": "string"
+                },
+                "phoneNum": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "pkgAddress": {
+                    "type": "string"
+                },
+                "reUse": {
+                    "type": "string"
+                },
+                "reqPhone": {
+                    "type": "string"
+                },
+                "taskId": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "testAccountType": {
+                    "type": "string"
+                },
+                "testExtInfo": {
+                    "type": "string"
+                },
+                "testType": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                },
+                "whiteList": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.TaskExeInfo": {
+            "title": "TaskExeInfo",
+            "type": "object",
+            "properties": {
+                "delayTime": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "desc": {
+                    "type": "string"
+                },
+                "executeBatch": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "executeTai": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Tag"
+                    }
+                },
+                "taskId": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "usedTime": {
+                    "type": "integer",
+                    "format": "int64"
+                }
+            }
+        },
+        "models.TaskHistory": {
+            "title": "TaskHistory",
+            "type": "object",
+            "properties": {
+                "accountAddress": {
+                    "type": "string"
+                },
+                "accountNum": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "changeLog": {
+                    "type": "string"
+                },
+                "concurrentNum": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "expDeliverTime": {
+                    "$ref": "#/definitions/models.Time"
+                },
+                "expEndTime": {
+                    "$ref": "#/definitions/models.Time"
+                },
+                "extReq": {
+                    "type": "string"
+                },
+                "instanceMv": {
+                    "type": "string"
+                },
+                "instanceTxt": {
+                    "type": "string"
+                },
+                "phoneNum": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "pkgAddress": {
+                    "type": "string"
+                },
+                "reUse": {
+                    "type": "string"
+                },
+                "reqPhone": {
+                    "type": "string"
+                },
+                "testAccountType": {
+                    "type": "string"
+                },
+                "testExtInfo": {
+                    "type": "string"
+                },
+                "testType": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                },
+                "whiteList": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.TaskLog": {
+            "title": "TaskLog",
+            "type": "object",
+            "properties": {
+                "createTime": {
+                    "$ref": "#/definitions/models.Time"
+                },
+                "desc": {
+                    "type": "string"
+                },
+                "history": {
+                    "$ref": "#/definitions/models.TaskHistory"
+                },
+                "id": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Time": {
+            "type": "object"
+        },
+        "models.User": {
+            "title": "User",
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "leaderId": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "session": {
+                    "type": "string"
+                },
+                "userType": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "wx": {
+                    "type": "string"
+                }
+            }
+        },
+        "oa.Department": {
+            "title": "Department",
+            "type": "object",
+            "properties": {
+                "children": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/oa.Department"
+                    }
+                },
+                "department_leader_id": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "department_name": {
+                    "type": "string"
+                },
+                "leader": {
+                    "$ref": "#/definitions/models.User"
+                }
+            }
+        },
+        "oa.Employee": {
+            "title": "Employee",
+            "type": "object",
+            "properties": {
+                "age": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "annual": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "create_time": {
+                    "$ref": "#/definitions/models.Time"
+                },
+                "department": {
+                    "$ref": "#/definitions/oa.Department"
+                },
+                "department_id": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "emp_no": {
+                    "type": "string"
+                },
+                "employee_basic": {
+                    "$ref": "#/definitions/oa.EmployeeBasic"
+                },
+                "entry_date": {
+                    "$ref": "#/definitions/models.Time"
+                },
+                "gender": {
+                    "type": "string"
+                },
+                "id_card": {
+                    "type": "string"
+                },
+                "interview_comment": {
+                    "type": "string"
+                },
+                "level": {
+                    "$ref": "#/definitions/oa.Level"
+                },
+                "level_id": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "mobile": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "nation": {
+                    "type": "string"
+                },
+                "personal_email": {
+                    "type": "string"
+                },
+                "plan_date": {
+                    "$ref": "#/definitions/models.Time"
+                },
+                "politic_status": {
+                    "type": "string"
+                },
+                "position": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "req_user": {
+                    "type": "string"
+                },
+                "resignation_date": {
+                    "$ref": "#/definitions/models.Time"
+                },
+                "resume": {
+                    "type": "string"
+                },
+                "service_line": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "tapd": {
+                    "type": "string"
+                },
+                "wx_work": {
+                    "type": "string"
+                }
+            }
+        },
+        "oa.EmployeeBasic": {
+            "title": "EmployeeBasic",
+            "type": "object",
+            "properties": {
+                "birthday": {
+                    "$ref": "#/definitions/models.Time"
+                },
+                "birthplace": {
+                    "type": "string"
+                },
+                "children": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "contacts": {
+                    "type": "string"
+                },
+                "debit_card1": {
+                    "type": "string"
+                },
+                "debit_card1_front": {
+                    "type": "string"
+                },
+                "debit_card2": {
+                    "type": "string"
+                },
+                "debit_card2_front": {
+                    "type": "string"
+                },
+                "degree": {
+                    "type": "string"
+                },
+                "degree_certification_copy": {
+                    "type": "string"
+                },
+                "degree_property": {
+                    "type": "string"
+                },
+                "degree_verification": {
+                    "type": "string"
+                },
+                "employee_id": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "en_skill": {
+                    "type": "string"
+                },
+                "graduation_school": {
+                    "type": "string"
+                },
+                "huji_type": {
+                    "type": "string"
+                },
+                "id_card_back": {
+                    "type": "string"
+                },
+                "id_card_front": {
+                    "type": "string"
+                },
+                "inhabited_address": {
+                    "type": "string"
+                },
+                "inhabited_city": {
+                    "type": "string"
+                },
+                "inhabited_district": {
+                    "type": "string"
+                },
+                "issuing_bank1": {
+                    "type": "string"
+                },
+                "issuing_bank1_detail": {
+                    "type": "string"
+                },
+                "issuing_bank2": {
+                    "type": "string"
+                },
+                "issuing_bank2_detail": {
+                    "type": "string"
+                },
+                "major": {
+                    "type": "string"
+                },
+                "marriage": {
+                    "type": "string"
+                },
+                "other_language_skill": {
+                    "type": "string"
+                },
+                "public_fund": {
+                    "type": "string"
+                },
+                "relations": {
+                    "type": "string"
+                },
+                "social_security": {
+                    "type": "string"
+                }
+            }
+        },
+        "oa.Expense": {
+            "title": "Expense",
+            "type": "object",
+            "properties": {
+                "application_date": {
+                    "type": "string",
+                    "format": "datetime"
+                },
+                "e_name": {
+                    "type": "string"
+                },
+                "emp_id": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "employee": {
+                    "$ref": "#/definitions/oa.Employee"
+                },
+                "engagement_code": {
+                    "type": "string"
+                },
+                "expense_details": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/oa.ExpenseDetail"
+                    }
+                },
+                "expense_summary": {
+                    "type": "number",
+                    "format": "double"
+                },
+                "import_file": {
+                    "type": "string"
+                },
+                "leader_id": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "payment_date": {
+                    "type": "string",
+                    "format": "datetime"
+                },
+                "project": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "oa.ExpenseAccount": {
+            "title": "ExpenseAccount",
+            "type": "object",
+            "properties": {
+                "expense_account_code": {
+                    "type": "string"
+                },
+                "expense_account_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "oa.ExpenseDetail": {
+            "title": "ExpenseDetail",
+            "type": "object",
+            "properties": {
+                "expense_account": {
+                    "$ref": "#/definitions/oa.ExpenseAccount"
+                },
+                "expense_account_code": {
+                    "type": "string"
+                },
+                "expense_amount": {
+                    "type": "number",
+                    "format": "double"
+                },
+                "expense_id": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "ocurred_date": {
+                    "$ref": "#/definitions/models.Date"
+                },
+                "remarks1": {
+                    "type": "string"
+                },
+                "remarks2": {
+                    "type": "string"
+                },
+                "remarks3": {
+                    "type": "string"
+                }
+            }
+        },
+        "oa.Level": {
+            "title": "Level",
+            "type": "object",
+            "properties": {
+                "cc_rate": {
+                    "type": "number",
+                    "format": "float"
+                },
+                "department_id": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "level_name": {
+                    "type": "string"
+                },
+                "oc_rate": {
+                    "type": "number",
+                    "format": "float"
+                }
+            }
+        },
+        "oa.ProjectDelivery": {
+            "title": "ProjectDelivery",
+            "type": "object",
+            "properties": {
+                "engagement_code": {
+                    "type": "string"
+                },
+                "main_service_amount": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "period_time": {
+                    "type": "string"
+                },
+                "project_category_code": {
+                    "type": "string"
+                },
+                "project_delivery_value": {
+                    "type": "number",
+                    "format": "double"
+                },
+                "project_id": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "project_name": {
+                    "type": "string"
+                },
+                "sub_service_amount": {
+                    "type": "integer",
+                    "format": "int64"
+                }
+            }
         }
     }
 }
