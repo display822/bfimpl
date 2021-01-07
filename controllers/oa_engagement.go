@@ -26,6 +26,9 @@ type EngagementController struct {
 
 // @Title 人员管理周数据列表
 // @Description 人员管理周数据列表
+// @Param	pagenum	    query	int	false	"分页"
+// @Param	pagesize	query	int	false	"分页"
+// @Param	period_time	query	string	false	"周期时间"
 // @Success 200 {string} ""
 // @Failure 500 server internal err
 // @router /period [get]
@@ -44,6 +47,7 @@ func (e *EngagementController) PeriodList() {
 
 // @Title 人员管理周数据详细
 // @Description 人员管理周数据详细
+// @Param	period_time	query	string	true	"周期时间"
 // @Success 200 {string} ""
 // @Failure 500 server internal err
 // @router /period/detail [get]
@@ -100,6 +104,7 @@ func (e *EngagementController) List() {
 
 // @Title 创建人员管理
 // @Description 创建人员管理
+// @Param  file form-data binary true "文件"
 // @Success 200 {string} ""
 // @Failure 500 server internal err
 // @router / [post]
@@ -120,15 +125,24 @@ func (e *EngagementController) Create() {
 	}
 	f, err := excelize.OpenReader(mf)
 	if err != nil {
-		fmt.Println(err)
 		e.ErrorOK(err.Error())
 	}
 
 	res, err := EngagementDetailFile(f, userID)
 	if err != nil {
-		fmt.Println(err)
 		e.ErrorOK(err.Error())
 	}
+
+	var eng []oa.Engagement
+	err = services.Slave().Where("period_time = ?", res[0].PeriodTime).Where("department_id = ?", userID).Find(&eng).Error
+	if err == nil {
+		log.GLogger.Info("Exist")
+		err = services.Slave().Delete(&eng).Error
+		if err != nil {
+			e.ErrorOK(MsgServerErr)
+		}
+	}
+
 	err = oa.BatchEngagementCreate(services.Slave(), res)
 	if err != nil {
 		e.ErrorOK(MsgServerErr)
@@ -140,7 +154,7 @@ func (e *EngagementController) Create() {
 // @Title 解析人员管理内容的excel文件
 // @Description 解析人员管理内容的excel文件
 // @Param  file form-data binary true "文件"
-// @Success 200 {object}
+// @Success 200 {object} ""
 // @Failure 500 server internal err
 // @router /details [post]
 func (e *EngagementController) ParseEngagementDetailFile() {
@@ -160,13 +174,11 @@ func (e *EngagementController) ParseEngagementDetailFile() {
 	}
 	f, err := excelize.OpenReader(mf)
 	if err != nil {
-		fmt.Println(err)
 		e.ErrorOK(err.Error())
 	}
 
 	res, err := EngagementDetailFile(f, userID)
 	if err != nil {
-		fmt.Println(err)
 		e.ErrorOK(err.Error())
 	}
 
@@ -208,7 +220,7 @@ func EngagementDetailFile(f *excelize.File, departmentID int) ([]*oa.Engagement,
 	if len(rows) < 2 {
 		return nil, errors.New("无数据")
 	}
-	fmt.Println(len(rows[0]))
+	log.GLogger.Info("len(rows[0]): %d", len(rows[0]))
 
 	if len(rows[0]) < 9 {
 		return nil, errors.New("首行表头字段有误, 无法识别")
@@ -233,7 +245,6 @@ func EngagementDetailFile(f *excelize.File, departmentID int) ([]*oa.Engagement,
 	}
 
 	for _, v := range rows[0][3:9] {
-		fmt.Println(v)
 		index, err := time.Parse("01-02-06", v)
 		if err != nil {
 			return nil, errors.New("时间无法识别")
@@ -242,14 +253,12 @@ func EngagementDetailFile(f *excelize.File, departmentID int) ([]*oa.Engagement,
 		if !index.Equal(workTimeIndex) {
 			return nil, errors.New("时间不连续")
 		}
-
-		fmt.Println(index)
 	}
 
-	// TODO 判断是否重复
+	// 重复map
+	existMap := make(map[string][]int)
 
 	log.GLogger.Info("workTimeIndex", workTimeIndex)
-
 	log.GLogger.Info("startTime", workStartTime)
 	log.GLogger.Info("endTime", workTimeIndex)
 	var phs []oa.PublicHoliday
@@ -289,6 +298,16 @@ func EngagementDetailFile(f *excelize.File, departmentID int) ([]*oa.Engagement,
 		if employee.ID == 0 {
 			errorArray = append(errorArray, fmt.Sprintf("第%d行员工未找到", x))
 		}
+
+		// 计算重复
+		v, ok := existMap[colList[0]+colList[1]]
+		if ok {
+			existMap[colList[0]+colList[1]] = append(v, x)
+		} else {
+			l := []int{x}
+			existMap[colList[0]+colList[1]] = l
+		}
+
 		for k, col := range colList[2:9] {
 			workTime, _ := time.Parse("01-02-06", rows[0][k+2])
 
@@ -328,6 +347,17 @@ func EngagementDetailFile(f *excelize.File, departmentID int) ([]*oa.Engagement,
 				EngagementCost: engagementCost,
 			}
 			res = append(res, em)
+		}
+
+		// 检测重复
+		for _, v := range existMap {
+			if len(v) > 1 {
+				var msg []string
+				for _, index := range v {
+					msg = append(msg, fmt.Sprintf("第%d行", index))
+				}
+				errorArray = append(errorArray, fmt.Sprintf("%s重复", strings.Join(msg, ",")))
+			}
 		}
 	}
 

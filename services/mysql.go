@@ -1,6 +1,8 @@
 package services
 
 import (
+	"bfimpl/models"
+	"bfimpl/models/oa"
 	"bfimpl/services/log"
 
 	"github.com/astaxie/beego"
@@ -36,44 +38,44 @@ func DBInit() {
 	db.DB().SetMaxIdleConns(10)
 	SetDbConnection(db)
 
-	// db.AutoMigrate(
-	// 	&models.User{},
-	// 	&models.Client{},
-	// 	&models.Amount{},
-	// 	&models.AmountLog{},
-	// 	&models.Service{},
-	// 	&models.Task{},
-	// 	&models.TaskDetail{},
-	// 	&models.TaskExeInfo{},
-	// 	&models.TaskComment{},
-	// 	&models.Tag{},
-	// 	&models.TaskLog{},
-	// 	&models.TaskHistory{},
-	//
-	// 	&oa.WorkflowDefinition{},
-	// 	&oa.Workflow{},
-	// 	&oa.WorkflowNode{},
-	// 	&oa.WorkflowFormElement{},
-	// 	&oa.WorkflowFormElementDef{},
-	// 	&oa.Employee{},
-	// 	&oa.Department{},
-	// 	&oa.Level{},
-	// 	&oa.QuitFlowInfo{},
-	// 	&oa.EmployeeBasic{},
-	// 	&oa.EmployeeContract{},
-	// 	&oa.Overtime{},
-	// 	&oa.Leave{},
-	// 	&oa.EngagementCode{},
-	// 	&oa.Attendance{},
-	// 	&oa.AttendanceTmp{},
-	// 	&oa.SocialSecurity{},
-	// 	&oa.PublicHoliday{},
-	// 	&oa.LeaveBalance{},
-	// 	&oa.ProjectCategory{},
-	// 	&oa.ProjectDelivery{},
-	// 	&oa.Expense{},
-	// 	&oa.ExpenseDetail{},
-	// 	&oa.ExpenseAccount{},
-	// 	&oa.Engagement{},
-	// )
+	db.AutoMigrate(
+		&models.User{},
+		&models.Client{},
+		&models.Amount{},
+		&models.AmountLog{},
+		&models.Service{},
+		&models.Task{},
+		&models.TaskDetail{},
+		&models.TaskExeInfo{},
+		&models.TaskComment{},
+		&models.Tag{},
+		&models.TaskLog{},
+		&models.TaskHistory{},
+
+		&oa.WorkflowDefinition{},
+		&oa.Workflow{},
+		&oa.WorkflowNode{},
+		&oa.WorkflowFormElement{},
+		&oa.WorkflowFormElementDef{},
+		&oa.Employee{},
+		&oa.Department{},
+		&oa.Level{},
+		&oa.QuitFlowInfo{},
+		&oa.EmployeeBasic{},
+		&oa.EmployeeContract{},
+		&oa.Overtime{},
+		&oa.Leave{},
+		&oa.EngagementCode{},
+		&oa.Attendance{},
+		&oa.AttendanceTmp{},
+		&oa.SocialSecurity{},
+		&oa.PublicHoliday{},
+		&oa.LeaveBalance{},
+		&oa.ProjectCategory{},
+		&oa.ProjectDelivery{},
+		&oa.Expense{},
+		&oa.ExpenseDetail{},
+		&oa.ExpenseAccount{},
+		&oa.Engagement{},
+	)
 }
