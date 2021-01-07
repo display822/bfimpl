@@ -229,9 +229,15 @@ func ReqOvertime(db *gorm.DB, overTimeID, uID, leaderID, hrID int) error {
 		Name:           eleDef[2].ElementName,
 		WorkflowID:     workflow.ID,
 	}
+	ele4 := oa.WorkflowFormElement{
+		WfElementDefID: int(eleDef[2].ID),
+		Name:           eleDef[2].ElementName,
+		WorkflowID:     workflow.ID,
+	}
 	err = db.Create(&ele1).Error
 	err = db.Create(&ele2).Error
 	err = db.Create(&ele3).Error
+	err = db.Create(&ele4).Error
 	if err != nil {
 		return err
 	}
@@ -273,6 +279,16 @@ func ReqOvertime(db *gorm.DB, overTimeID, uID, leaderID, hrID int) error {
 	if err != nil {
 		return err
 	}
+	nodeFront := oa.WorkflowNode{
+		WorkflowID: int(workflow.ID),
+		NodeSeq:    3,
+		OperatorID: int(mUsers[models.UserFront].ID),
+		Status:     models.FlowNA,
+	}
+	err = db.Create(&nodeFront).Error
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -311,12 +327,18 @@ func ReqLeave(db *gorm.DB, leaveID, uID, leaderID, hrID int, others ...int) erro
 		Name:           eleDef[2].ElementName,
 		WorkflowID:     workflow.ID,
 	}
+	ele4 := oa.WorkflowFormElement{
+		WfElementDefID: int(eleDef[2].ID),
+		Name:           eleDef[2].ElementName,
+		WorkflowID:     workflow.ID,
+	}
 	err = db.Create(&ele1).Error
 	if leaderID != 0 {
 		//部门负责人，不用创建2节点
 		err = db.Create(&ele2).Error
 	}
 	err = db.Create(&ele3).Error
+	err = db.Create(&ele4).Error
 	if err != nil {
 		return err
 	}
@@ -389,6 +411,17 @@ func ReqLeave(db *gorm.DB, leaveID, uID, leaderID, hrID int, others ...int) erro
 		nodeHR.Status = models.FlowProcessing
 	}
 	err = db.Create(&nodeHR).Error
+	if err != nil {
+		return err
+	}
+
+	nodeFront := oa.WorkflowNode{
+		WorkflowID: int(workflow.ID),
+		NodeSeq:    3,
+		OperatorID: int(mUsers[models.UserFront].ID),
+		Status:     models.FlowNA,
+	}
+	err = db.Create(&nodeFront).Error
 	if err != nil {
 		return err
 	}
