@@ -84,22 +84,81 @@ func (e *EngagementController) PeriodDetail() {
 	e.Correct(data)
 }
 
-// @Title 人员管理列表
-// @Description 人员管理列表
+// @Title 人员管理信息
+// @Description 人员管理信息
+// @Param	engagement_codes query string	false	"项目编号"
+// @Param	begin_time query string	false	"开始时间"
+// @Param	end_time query string	false	"结束时间"
 // @Success 200 {string} ""
 // @Failure 500 server internal err
-// @router / [post]
+// @router / [get]
 func (e *EngagementController) List() {
 	engagementCodes := e.GetString("engagement_codes")
+	if engagementCodes == "" {
+		e.ErrorOK("need engagement_codes")
+	}
 	beginTime := e.GetString("begin_time")
+	if beginTime == "" {
+		e.ErrorOK("need begin_time")
+	}
 	endTime := e.GetString("end_time")
+	if endTime == "" {
+		e.ErrorOK("need end_time")
+	}
+
 	ecs := strings.Split(engagementCodes, ",")
+	fmt.Println(ecs)
+	var ers forms.EngagementResult
+	for _, ec := range ecs {
+		var ee forms.E
+		fmt.Println(ec)
 
-	var es []oa.Engagement
-	services.Slave().Where("engagement_date>=?", beginTime).Where("engagement_date<=?", endTime).
-		Where("engagement_code in (?)", ecs).Find(&es)
+		var es []oa.Engagement
+		services.Slave().Debug().Where("engagement_date >= ?", beginTime).Where("engagement_date <=?", endTime).
+			Where("engagement_code = ?", ec).Find(&es)
+		if len(es) == 0 {
+			fmt.Println("0")
+			continue
+		}
 
-	e.Correct(es)
+		for _, item := range es {
+			ee.CostSummary += item.EngagementCost
+			ee.HourSummary += item.EngagementHour
+		}
+
+		m := make(map[string]map[string]int)
+		for _, item := range es {
+			_, ok := m[item.EngagementCode+"-"+item.EmployeeName]
+			if !ok {
+				mmm := make(map[string]int)
+				mmm[item.EngagementDate.Format("2006/01/02")] = item.EngagementHour
+				m[item.EngagementCode+"-"+item.EmployeeName] = mmm
+			} else {
+				m[item.EngagementCode+"-"+item.EmployeeName][item.EngagementDate.Format("2006/01/02")] = item.EngagementHour
+			}
+		}
+
+		var data []forms.Engagement
+		for k, v := range m {
+			l := strings.Split(k, "-")
+			eng := forms.Engagement{
+				EmployeeName:   l[1],
+				EngagementCode: l[0],
+				DateField:      v,
+			}
+			data = append(data, eng)
+		}
+		ee.EngagementCode = ec
+		ee.EmployeeNums = len(data)
+		ee.EngagementList = data
+
+		ers.CostSummary += ee.CostSummary
+		ers.HourSummary += ee.HourSummary
+		ers.EmployeeNums += ee.EmployeeNums
+		ers.List = append(ers.List, ee)
+	}
+
+	e.Correct(ers)
 }
 
 // @Title 创建人员管理
@@ -287,6 +346,7 @@ func EngagementDetailFile(f *excelize.File, departmentID int) ([]*oa.Engagement,
 		services.Slave().Model(oa.EngagementCode{}).Where("engagement_code = ?", colList[0]).First(engagementCode)
 		if engagementCode.ID == 0 {
 			errorArray = append(errorArray, fmt.Sprintf("第%d行项目名称未找到", x))
+			break
 		}
 		// 校验员工
 		employee := new(oa.Employee)
@@ -297,6 +357,7 @@ func EngagementDetailFile(f *excelize.File, departmentID int) ([]*oa.Engagement,
 
 		if employee.ID == 0 {
 			errorArray = append(errorArray, fmt.Sprintf("第%d行员工未找到", x))
+			break
 		}
 
 		// 计算重复
