@@ -1051,4 +1051,14 @@ func init() {
 			MethodParams:     param.Make(),
 			Filters:          nil,
 			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:EngagementController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:EngagementController"],
+		beego.ControllerComments{
+			Method:           "Project",
+			Router:           `/project`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
 }

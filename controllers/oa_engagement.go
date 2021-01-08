@@ -24,6 +24,17 @@ type EngagementController struct {
 	BaseController
 }
 
+// @Title 人员管理项目列表
+// @Description 人员管理项目列表
+// @Success 200 {string} ""
+// @Failure 500 server internal err
+// @router /project [get]
+func (e *EngagementController) Project() {
+	var ec []oa.EngagementCode
+	services.Slave().Find(&ec)
+	e.Correct(ec)
+}
+
 // @Title 人员管理周数据列表
 // @Description 人员管理周数据列表
 // @Param	pagenum	    query	int	false	"分页"
