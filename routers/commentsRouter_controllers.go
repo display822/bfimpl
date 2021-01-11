@@ -1070,7 +1070,25 @@ func init() {
 			Filters:          nil,
 			Params:           nil})
 
+	beego.GlobalControllerRouter["bfimpl/controllers:DeviceController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:DeviceController"],
+		beego.ControllerComments{
+			Method:           "Create",
+			Router:           `/`,
+			AllowHTTPMethods: []string{"post"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
 	beego.GlobalControllerRouter["bfimpl/controllers:LowPriceArticleController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:LowPriceArticleController"],
+		beego.ControllerComments{
+			Method:           "List",
+			Router:           `/`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:DeviceController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:DeviceController"],
 		beego.ControllerComments{
 			Method:           "List",
 			Router:           `/`,
@@ -1124,6 +1142,15 @@ func init() {
 			Filters:          nil,
 			Params:           nil})
 
+	beego.GlobalControllerRouter["bfimpl/controllers:DeviceController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:DeviceController"],
+		beego.ControllerComments{
+			Method:           "Put",
+			Router:           `/`,
+			AllowHTTPMethods: []string{"put"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
 	beego.GlobalControllerRouter["bfimpl/controllers:LowPriceArticleRequisitionController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:LowPriceArticleRequisitionController"],
 		beego.ControllerComments{
 			Method:           "BatchReturn",
@@ -1138,6 +1165,15 @@ func init() {
 			Method:           "Scorp",
 			Router:           `/scorp`,
 			AllowHTTPMethods: []string{"post"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:DeviceController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:DeviceController"],
+		beego.ControllerComments{
+			Method:           "Get",
+			Router:           `/:id`,
+			AllowHTTPMethods: []string{"get"},
 			MethodParams:     param.Make(),
 			Filters:          nil,
 			Params:           nil})

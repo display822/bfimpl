@@ -24,6 +24,10 @@
                         "name": "clientId",
                         "description": "客户id",
                         "required": true,
+                        "schema": {
+                            "format": "int64",
+                            "type": "integer"
+                        },
                         "type": "integer",
                         "format": "int64"
                     },
@@ -32,6 +36,10 @@
                         "name": "serviceId",
                         "description": "服务id",
                         "required": true,
+                        "schema": {
+                            "format": "int64",
+                            "type": "integer"
+                        },
                         "type": "integer",
                         "format": "int64"
                     },
@@ -40,6 +48,10 @@
                         "name": "amount",
                         "description": "额度",
                         "required": true,
+                        "schema": {
+                            "format": "int64",
+                            "type": "integer"
+                        },
                         "type": "integer",
                         "format": "int64"
                     },
@@ -48,6 +60,9 @@
                         "name": "deadline",
                         "description": "到期日期",
                         "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
                         "type": "string"
                     },
                     {
@@ -55,6 +70,9 @@
                         "name": "orderNumber",
                         "description": "订单编号",
                         "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
                         "type": "string"
                     },
                     {
@@ -62,6 +80,9 @@
                         "name": "remark",
                         "description": "备注说明",
                         "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
                         "type": "string"
                     }
                 ],
@@ -99,6 +120,9 @@
                         "name": "deadline",
                         "description": "重新设置的过期时间",
                         "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
                         "type": "string"
                     },
                     {
@@ -106,6 +130,9 @@
                         "name": "remark",
                         "description": "备注",
                         "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
                         "type": "string"
                     }
                 ],
@@ -444,6 +471,9 @@
                         "name": "name",
                         "description": "客户名称",
                         "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
                         "type": "string"
                     },
                     {
@@ -451,6 +481,9 @@
                         "name": "number",
                         "description": "编号",
                         "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
                         "type": "string"
                     },
                     {
@@ -458,6 +491,10 @@
                         "name": "type",
                         "description": "0内部1外部",
                         "required": true,
+                        "schema": {
+                            "format": "int64",
+                            "type": "integer"
+                        },
                         "type": "integer",
                         "format": "int64"
                     },
@@ -466,6 +503,9 @@
                         "name": "level",
                         "description": "S,A,B",
                         "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
                         "type": "string"
                     },
                     {
@@ -473,6 +513,10 @@
                         "name": "saleId",
                         "description": "销售id",
                         "required": true,
+                        "schema": {
+                            "format": "int64",
+                            "type": "integer"
+                        },
                         "type": "integer",
                         "format": "int64"
                     },
@@ -481,6 +525,10 @@
                         "name": "mainManageId",
                         "description": "主客户服务经理id",
                         "required": true,
+                        "schema": {
+                            "format": "int64",
+                            "type": "integer"
+                        },
                         "type": "integer",
                         "format": "int64"
                     },
@@ -489,6 +537,10 @@
                         "name": "subManageId",
                         "description": "副客户服务经理id",
                         "required": true,
+                        "schema": {
+                            "format": "int64",
+                            "type": "integer"
+                        },
                         "type": "integer",
                         "format": "int64"
                     }
@@ -583,6 +635,9 @@
                         "name": "name",
                         "description": "客户名称",
                         "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
                         "type": "string"
                     },
                     {
@@ -590,6 +645,9 @@
                         "name": "number",
                         "description": "编号",
                         "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
                         "type": "string"
                     },
                     {
@@ -597,6 +655,10 @@
                         "name": "type",
                         "description": "0内部1外部",
                         "required": true,
+                        "schema": {
+                            "format": "int64",
+                            "type": "integer"
+                        },
                         "type": "integer",
                         "format": "int64"
                     },
@@ -605,6 +667,9 @@
                         "name": "level",
                         "description": "S,A,B",
                         "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
                         "type": "string"
                     },
                     {
@@ -612,6 +677,10 @@
                         "name": "saleId",
                         "description": "销售id",
                         "required": true,
+                        "schema": {
+                            "format": "int64",
+                            "type": "integer"
+                        },
                         "type": "integer",
                         "format": "int64"
                     },
@@ -620,6 +689,10 @@
                         "name": "mainManageId",
                         "description": "主客户服务经理id",
                         "required": true,
+                        "schema": {
+                            "format": "int64",
+                            "type": "integer"
+                        },
                         "type": "integer",
                         "format": "int64"
                     },
@@ -628,6 +701,10 @@
                         "name": "subManageId",
                         "description": "副客户服务经理id",
                         "required": true,
+                        "schema": {
+                            "format": "int64",
+                            "type": "integer"
+                        },
                         "type": "integer",
                         "format": "int64"
                     }
@@ -690,6 +767,227 @@
                     },
                     "500": {
                         "description": "server err"
+                    }
+                }
+            }
+        },
+        "/department/service/{id}": {
+            "get": {
+                "tags": [
+                    "department"
+                ],
+                "description": "部门下服务线",
+                "operationId": "DepartmentController.部门下服务线",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "description": "部门id",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{string} \"success\""
+                    },
+                    "500": {
+                        "description": "server err"
+                    }
+                }
+            }
+        },
+        "/device/": {
+            "get": {
+                "tags": [
+                    "device"
+                ],
+                "description": "设备详情",
+                "operationId": "DeviceController.设备详情",
+                "responses": {
+                    "200": {
+                        "description": "{string} \"\""
+                    },
+                    "500": {
+                        "description": "server internal err"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "device"
+                ],
+                "description": "设备更新",
+                "operationId": "DeviceController.设备更新",
+                "responses": {
+                    "200": {
+                        "description": "{string} \"\""
+                    },
+                    "500": {
+                        "description": "server internal err"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "device"
+                ],
+                "description": "创建设备",
+                "operationId": "DeviceController.创建设备",
+                "responses": {
+                    "200": {
+                        "description": "{string} \"\""
+                    },
+                    "500": {
+                        "description": "server internal err"
+                    }
+                }
+            }
+        },
+        "/device/apply": {
+            "get": {
+                "tags": [
+                    "device"
+                ],
+                "description": "申请设备列表",
+                "operationId": "DeviceController.申请设备列表",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "设备",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/oa.Device"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/oa.Device"
+                        }
+                    },
+                    "500": {
+                        "description": "server internal err"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "device"
+                ],
+                "description": "设备借出",
+                "operationId": "DeviceController.设备借出",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "true",
+                        "schema": {
+                            "$ref": "#/definitions/oa.Device"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{string} \"success\""
+                    },
+                    "500": {
+                        "description": "server err"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "device"
+                ],
+                "description": "申请设备",
+                "operationId": "DeviceController.申请设备",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "设备",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/oa.Device"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/oa.Device"
+                        }
+                    },
+                    "500": {
+                        "description": "server internal err"
+                    }
+                }
+            }
+        },
+        "/device/apply/employee": {
+            "get": {
+                "tags": [
+                    "device"
+                ],
+                "description": "已申请员工",
+                "operationId": "DeviceController.已申请员工",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "设备",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/oa.Device"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/oa.Device"
+                        }
+                    },
+                    "500": {
+                        "description": "server internal err"
+                    }
+                }
+            }
+        },
+        "/device/apply/info": {
+            "get": {
+                "tags": [
+                    "device"
+                ],
+                "description": "申请设备基本信息",
+                "operationId": "DeviceController.申请设备基本信息",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "设备",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/oa.Device"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/oa.Device"
+                        }
+                    },
+                    "500": {
+                        "description": "server internal err"
                     }
                 }
             }
@@ -1048,6 +1346,9 @@
                         "name": "json",
                         "description": "离职员工信息",
                         "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
                         "type": "string"
                     }
                 ],
@@ -1074,6 +1375,9 @@
                         "name": "json",
                         "description": "入职员工信息",
                         "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
                         "type": "string"
                     }
                 ],
@@ -1100,6 +1404,9 @@
                         "name": "json",
                         "description": "员工所有信息",
                         "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
                         "type": "string"
                     }
                 ],
@@ -1207,6 +1514,41 @@
             }
         },
         "/engagement/": {
+            "get": {
+                "tags": [
+                    "engagement"
+                ],
+                "description": "人员管理信息",
+                "operationId": "EngagementController.人员管理信息",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "engagement_codes",
+                        "description": "项目编号",
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "begin_time",
+                        "description": "开始时间",
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "end_time",
+                        "description": "结束时间",
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{string} \"\""
+                    },
+                    "500": {
+                        "description": "server internal err"
+                    }
+                }
+            },
             "post": {
                 "tags": [
                     "engagement"
@@ -1220,7 +1562,7 @@
                         "description": "文件",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/.binary"
+                            "$ref": "#/definitions/binary"
                         }
                     }
                 ],
@@ -1248,7 +1590,7 @@
                         "description": "文件",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/.binary"
+                            "$ref": "#/definitions/binary"
                         }
                     }
                 ],
@@ -1256,7 +1598,7 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/.\"\""
+                            "$ref": "#/definitions/\"\""
                         }
                     },
                     "500": {
@@ -1320,6 +1662,23 @@
                         "type": "string"
                     }
                 ],
+                "responses": {
+                    "200": {
+                        "description": "{string} \"\""
+                    },
+                    "500": {
+                        "description": "server internal err"
+                    }
+                }
+            }
+        },
+        "/engagement/project": {
+            "get": {
+                "tags": [
+                    "engagement"
+                ],
+                "description": "人员管理项目列表",
+                "operationId": "EngagementController.人员管理项目列表",
                 "responses": {
                     "200": {
                         "description": "{string} \"\""
@@ -1504,7 +1863,7 @@
                         "description": "文件",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/.binary"
+                            "$ref": "#/definitions/binary"
                         }
                     }
                 ],
@@ -1674,7 +2033,7 @@
                         "description": "文件",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/.binary"
+                            "$ref": "#/definitions/binary"
                         }
                     }
                 ],
@@ -1701,6 +2060,9 @@
                         "name": "username",
                         "description": "用户名",
                         "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
                         "type": "string"
                     },
                     {
@@ -1708,6 +2070,9 @@
                         "name": "password",
                         "description": "密码",
                         "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
                         "type": "string"
                     }
                 ],
@@ -1755,7 +2120,7 @@
                         "description": "文件",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/.binary"
+                            "$ref": "#/definitions/binary"
                         }
                     }
                 ],
@@ -1805,6 +2170,9 @@
                         "name": "serviceName",
                         "description": "服务名",
                         "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
                         "type": "string"
                     },
                     {
@@ -1812,6 +2180,9 @@
                         "name": "state",
                         "description": "0启用1禁用",
                         "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
                         "type": "string"
                     },
                     {
@@ -1819,6 +2190,9 @@
                         "name": "use",
                         "description": "1可实施2可转换",
                         "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
                         "type": "string"
                     }
                 ],
@@ -1897,6 +2271,9 @@
                         "name": "serviceName",
                         "description": "服务名",
                         "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
                         "type": "string"
                     },
                     {
@@ -1904,6 +2281,9 @@
                         "name": "state",
                         "description": "0启用1禁用",
                         "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
                         "type": "string"
                     },
                     {
@@ -1911,6 +2291,9 @@
                         "name": "use",
                         "description": "1可实施2可转换",
                         "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
                         "type": "string"
                     }
                 ],
@@ -1937,6 +2320,10 @@
                         "name": "clientId",
                         "description": "客户id",
                         "required": true,
+                        "schema": {
+                            "format": "int64",
+                            "type": "integer"
+                        },
                         "type": "integer",
                         "format": "int64"
                     },
@@ -1945,6 +2332,9 @@
                         "name": "appName",
                         "description": "应用名称",
                         "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
                         "type": "string"
                     },
                     {
@@ -1952,6 +2342,10 @@
                         "name": "serviceId",
                         "description": "服务id",
                         "required": true,
+                        "schema": {
+                            "format": "int64",
+                            "type": "integer"
+                        },
                         "type": "integer",
                         "format": "int64"
                     },
@@ -1960,6 +2354,10 @@
                         "name": "preAmount",
                         "description": "预计额度",
                         "required": true,
+                        "schema": {
+                            "format": "int64",
+                            "type": "integer"
+                        },
                         "type": "integer",
                         "format": "int64"
                     },
@@ -1968,12 +2366,19 @@
                         "name": "preDate",
                         "description": "预计测试日期",
                         "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
                         "type": "string"
                     },
                     {
                         "in": "body",
                         "name": "expEndDate",
                         "description": "期望结单日期",
+                        "schema": {
+                            "format": "int64",
+                            "type": "integer"
+                        },
                         "type": "integer",
                         "format": "int64"
                     },
@@ -1982,6 +2387,10 @@
                         "name": "manageId",
                         "description": "客户服务经理id",
                         "required": true,
+                        "schema": {
+                            "format": "int64",
+                            "type": "integer"
+                        },
                         "type": "integer",
                         "format": "int64"
                     }
@@ -2092,6 +2501,10 @@
                         "name": "userId",
                         "description": "操作人id",
                         "required": true,
+                        "schema": {
+                            "format": "int64",
+                            "type": "integer"
+                        },
                         "type": "integer",
                         "format": "int64"
                     },
@@ -2100,6 +2513,9 @@
                         "name": "reason",
                         "description": "取消原因",
                         "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
                         "type": "string"
                     }
                 ],
@@ -2668,6 +3084,9 @@
                         "name": "name",
                         "description": "姓名",
                         "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
                         "type": "string"
                     },
                     {
@@ -2675,6 +3094,9 @@
                         "name": "email",
                         "description": "邮箱",
                         "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
                         "type": "string"
                     },
                     {
@@ -2682,6 +3104,9 @@
                         "name": "wx",
                         "description": "企业微信",
                         "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
                         "type": "string"
                     },
                     {
@@ -2689,6 +3114,9 @@
                         "name": "phone",
                         "description": "手机",
                         "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
                         "type": "string"
                     },
                     {
@@ -2696,6 +3124,10 @@
                         "name": "userType",
                         "description": "用户类型",
                         "required": true,
+                        "schema": {
+                            "format": "int64",
+                            "type": "integer"
+                        },
                         "type": "integer",
                         "format": "int64"
                     },
@@ -2703,6 +3135,10 @@
                         "in": "body",
                         "name": "leaderId",
                         "description": "组长id",
+                        "schema": {
+                            "format": "int64",
+                            "type": "integer"
+                        },
                         "type": "integer",
                         "format": "int64"
                     }
@@ -2825,6 +3261,91 @@
                 }
             }
         },
+        "/user/{id}": {
+            "put": {
+                "tags": [
+                    "user"
+                ],
+                "description": "新增用户",
+                "operationId": "UserController.新增用户",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "name",
+                        "description": "姓名",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "email",
+                        "description": "邮箱",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "wx",
+                        "description": "企业微信",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "phone",
+                        "description": "手机",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "userType",
+                        "description": "用户类型",
+                        "required": true,
+                        "schema": {
+                            "format": "int64",
+                            "type": "integer"
+                        },
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "in": "body",
+                        "name": "leaderId",
+                        "description": "组长id",
+                        "schema": {
+                            "format": "int64",
+                            "type": "integer"
+                        },
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    },
+                    "500": {
+                        "description": "server err"
+                    }
+                }
+            }
+        },
         "/work/approvals": {
             "get": {
                 "tags": [
@@ -2892,7 +3413,7 @@
                         "description": "考勤数据",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/.json"
+                            "$ref": "#/definitions/json"
                         }
                     }
                 ],
@@ -2917,6 +3438,9 @@
                         "name": "name",
                         "description": "姓名数组",
                         "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
                         "type": "string"
                     }
                 ],
@@ -3134,7 +3658,7 @@
                         "description": "excel文件",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/.binary"
+                            "$ref": "#/definitions/binary"
                         }
                     }
                 ],
@@ -3236,6 +3760,10 @@
                         "name": "id",
                         "description": "请假id",
                         "required": true,
+                        "schema": {
+                            "format": "int64",
+                            "type": "integer"
+                        },
                         "type": "integer",
                         "format": "int64"
                     },
@@ -3244,6 +3772,9 @@
                         "name": "comment",
                         "description": "审批意见",
                         "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
                         "type": "string"
                     }
                 ],
@@ -3268,6 +3799,9 @@
                         "name": "json",
                         "description": "请假信息",
                         "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
                         "type": "string"
                     }
                 ],
@@ -3330,8 +3864,8 @@
                 "tags": [
                     "work"
                 ],
-                "description": "审批申请加班",
-                "operationId": "WorkController.审批申请加班",
+                "description": "请假时长校验",
+                "operationId": "WorkController.请假时长校验",
                 "parameters": [
                     {
                         "in": "path",
@@ -3460,6 +3994,10 @@
                         "name": "id",
                         "description": "加班id",
                         "required": true,
+                        "schema": {
+                            "format": "int64",
+                            "type": "integer"
+                        },
                         "type": "integer",
                         "format": "int64"
                     },
@@ -3468,6 +4006,9 @@
                         "name": "comment",
                         "description": "审批意见",
                         "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
                         "type": "string"
                     }
                 ],
@@ -3492,6 +4033,9 @@
                         "name": "json",
                         "description": "加班信息",
                         "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
                         "type": "string"
                     }
                 ],
@@ -3602,16 +4146,12 @@
         }
     },
     "definitions": {
-        ".\"\"": {
+        "\"\"": {
+            "title": "\"\"",
             "type": "object"
         },
-        ".Model": {
-            "type": "object"
-        },
-        ".binary": {
-            "type": "object"
-        },
-        ".json": {
+        "binary": {
+            "title": "binary",
             "type": "object"
         },
         "forms.ParseExpenseDetailResponse": {
@@ -3821,6 +4361,14 @@
                 }
             }
         },
+        "gorm.Model": {
+            "title": "Model",
+            "type": "object"
+        },
+        "json": {
+            "title": "json",
+            "type": "object"
+        },
         "models.Amount": {
             "title": "Amount",
             "type": "object",
@@ -3947,6 +4495,7 @@
             }
         },
         "models.Date": {
+            "title": "Date",
             "type": "object"
         },
         "models.RspAmount": {
@@ -4404,6 +4953,7 @@
             }
         },
         "models.Time": {
+            "title": "Time",
             "type": "object"
         },
         "models.User": {
@@ -4454,6 +5004,130 @@
                 },
                 "leader": {
                     "$ref": "#/definitions/models.User"
+                }
+            }
+        },
+        "oa.Device": {
+            "title": "Device",
+            "type": "object",
+            "properties": {
+                "aspect_ratio": {
+                    "type": "string"
+                },
+                "brand": {
+                    "type": "string"
+                },
+                "core": {
+                    "type": "string"
+                },
+                "cpu": {
+                    "type": "string"
+                },
+                "device_category": {
+                    "type": "string"
+                },
+                "device_logs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/oa.DeviceLog"
+                    }
+                },
+                "device_model": {
+                    "type": "string"
+                },
+                "device_name": {
+                    "type": "string"
+                },
+                "device_num": {
+                    "type": "string"
+                },
+                "device_status": {
+                    "type": "string"
+                },
+                "gpu": {
+                    "type": "string"
+                },
+                "ingoing_operator_id": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "ingoing_time": {
+                    "$ref": "#/definitions/models.Time"
+                },
+                "is_apply": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "mac_address_1": {
+                    "type": "string"
+                },
+                "mac_address_2": {
+                    "type": "string"
+                },
+                "mem": {
+                    "type": "string"
+                },
+                "os": {
+                    "type": "string"
+                },
+                "purchase_date": {
+                    "$ref": "#/definitions/models.Time"
+                },
+                "purchase_price": {
+                    "type": "number",
+                    "format": "float"
+                },
+                "resolution": {
+                    "type": "string"
+                },
+                "retailer": {
+                    "type": "string"
+                },
+                "screen_size": {
+                    "type": "string"
+                },
+                "shared_device": {
+                    "type": "string"
+                },
+                "site": {
+                    "type": "string"
+                },
+                "vat": {
+                    "type": "number",
+                    "format": "float"
+                },
+                "version": {
+                    "type": "string"
+                },
+                "volume": {
+                    "type": "string"
+                },
+                "warranty_period": {
+                    "type": "integer",
+                    "format": "int64"
+                }
+            }
+        },
+        "oa.DeviceLog": {
+            "title": "DeviceLog",
+            "type": "object",
+            "properties": {
+                "comment": {
+                    "type": "string"
+                },
+                "device_id": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "operator_id": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
                 }
             }
         },

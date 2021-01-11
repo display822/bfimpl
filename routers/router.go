@@ -34,6 +34,7 @@ func init() {
 		beego.NSNamespace("/engagement", beego.NSInclude(&controllers.EngagementController{})),
 		beego.NSNamespace("/low_price_article", beego.NSInclude(&controllers.LowPriceArticleController{})),
 		beego.NSNamespace("/low_price_article_requisition", beego.NSInclude(&controllers.LowPriceArticleRequisitionController{})),
+		beego.NSNamespace("/device", beego.NSInclude(&controllers.DeviceController{})),
 	)
 
 	ips := beego.AppConfig.Strings("bkcors")

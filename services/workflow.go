@@ -22,6 +22,7 @@ const (
 	Overtime      = "Overtime"
 	Leave         = "Leave"
 	Expense       = "Expense"
+	Device        = "Device"
 )
 
 var WorkFlowDef map[string]int
@@ -522,6 +523,72 @@ func ReqExpense(db *gorm.DB, expenseID, uID, leaderID, financeID int) error {
 		OperatorID: financeID,
 	}
 	err = db.Create(&nodeFinancePaid).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// 设备工作流
+func ReqDeviceApply(db *gorm.DB, deviceID, uID, leaderID int) error {
+	//工作流
+	workflow := oa.Workflow{
+		WorkflowDefinitionID: WorkFlowDef[Device],
+		Status:               oa.Processing,
+		EntityID:             deviceID,
+	}
+	err := db.Create(&workflow).Error
+	if err != nil {
+		return err
+	}
+	//查询elements
+	eleDef := make([]*oa.WorkflowFormElementDef, 0)
+	db.Model(oa.WorkflowFormElementDef{}).Where("workflow_definition_id = ?", WorkFlowDef[Device]).Find(&eleDef)
+	log.GLogger.Info("eleDef", eleDef)
+	if len(eleDef) != 2 {
+		return errors.New("wrong workflow elements")
+	}
+	//元素填写
+	ele1 := oa.WorkflowFormElement{
+		WfElementDefID: int(eleDef[0].ID),
+		Name:           eleDef[0].ElementName,
+		WorkflowID:     workflow.ID,
+	}
+	ele2 := oa.WorkflowFormElement{
+		WfElementDefID: int(eleDef[1].ID),
+		Name:           eleDef[1].ElementName,
+		WorkflowID:     workflow.ID,
+	}
+
+	err = db.Create(&ele1).Error
+	err = db.Create(&ele2).Error
+
+	if err != nil {
+		return err
+	}
+	//节点1，自己录入
+	nodeSelf := oa.WorkflowNode{
+		WorkflowID: int(workflow.ID),
+		NodeSeq:    1,
+		OperatorID: uID,
+		Status:     models.FlowCompleted,
+	}
+	err = db.Create(&nodeSelf).Error
+	if err != nil {
+		return err
+	}
+	//节点2，负责人审批
+	nodeLeader := oa.WorkflowNode{
+		WorkflowID: int(workflow.ID),
+		NodeSeq:    2,
+		OperatorID: leaderID,
+		Status:     models.FlowProcessing,
+	}
+	if leaderID == uID {
+		nodeLeader.Status = models.FlowCompleted
+	}
+	err = db.Create(&nodeLeader).Error
 	if err != nil {
 		return err
 	}
