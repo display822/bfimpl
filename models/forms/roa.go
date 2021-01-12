@@ -19,3 +19,10 @@ type ReqApprovalExpense struct {
 	Status  int    `json:"status"`
 	Comment string `json:"comment"`
 }
+
+// 设备审批信息
+type ReqApprovalDevice struct {
+	Id      int    `json:"id"`
+	Status  int    `json:"status"`
+	Comment string `json:"comment"`
+}

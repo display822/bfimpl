@@ -1162,8 +1162,8 @@ func init() {
 
 	beego.GlobalControllerRouter["bfimpl/controllers:LowPriceArticleRequisitionController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:LowPriceArticleRequisitionController"],
 		beego.ControllerComments{
-			Method:           "Scorp",
-			Router:           `/scorp`,
+			Method:           "Scrap",
+			Router:           `/scrap`,
 			AllowHTTPMethods: []string{"post"},
 			MethodParams:     param.Make(),
 			Filters:          nil,
@@ -1174,6 +1174,42 @@ func init() {
 			Method:           "Get",
 			Router:           `/:id`,
 			AllowHTTPMethods: []string{"get"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:DeviceController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:DeviceController"],
+		beego.ControllerComments{
+			Method:           "ReqDevice",
+			Router:           `/apply`,
+			AllowHTTPMethods: []string{"post"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:DeviceController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:DeviceController"],
+		beego.ControllerComments{
+			Method:           "ApplyList",
+			Router:           `/apply`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:DeviceController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:DeviceController"],
+		beego.ControllerComments{
+			Method:           "ApprovalDevice",
+			Router:           `/apply`,
+			AllowHTTPMethods: []string{"put"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:DeviceController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:DeviceController"],
+		beego.ControllerComments{
+			Method:           "RecallDevice",
+			Router:           `/apply/:id/recall`,
+			AllowHTTPMethods: []string{"post"},
 			MethodParams:     param.Make(),
 			Filters:          nil,
 			Params:           nil})

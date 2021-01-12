@@ -585,9 +585,9 @@ func ReqDeviceApply(db *gorm.DB, deviceID, uID, leaderID int) error {
 		OperatorID: leaderID,
 		Status:     models.FlowProcessing,
 	}
-	if leaderID == uID {
-		nodeLeader.Status = models.FlowCompleted
-	}
+	//if leaderID == uID {
+	//	nodeLeader.Status = models.FlowCompleted
+	//}
 	err = db.Create(&nodeLeader).Error
 	if err != nil {
 		return err

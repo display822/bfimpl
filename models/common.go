@@ -52,6 +52,8 @@ const (
 	FlowUnpaid = "Unpaid"
 	FlowPaid   = "Paid"
 
+	FlowRecalled   = "Recalled"
+	FlowHide       = "Hide"
 	DeviceIngoing  = "Ingoing"  // 入库
 	DeviceOutgoing = "Outgoing" // 出库
 	DeviceFix      = "Fix"      // 维修

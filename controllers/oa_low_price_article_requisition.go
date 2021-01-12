@@ -294,8 +294,8 @@ func (l *LowPriceArticleRequisitionController) BatchReturn() {
 // @Description 易耗品报废
 // @Success 200 {string} ""
 // @Failure 500 server internal err
-// @router /scorp [post]
-func (l *LowPriceArticleRequisitionController) Scorp() {
+// @router /scrap [post]
+func (l *LowPriceArticleRequisitionController) Scrap() {
 	// 添加一条归还记录
 	uID, _ := l.GetInt("userID", 0)
 	lpar := new(oa.LowPriceArticleRequisition)
