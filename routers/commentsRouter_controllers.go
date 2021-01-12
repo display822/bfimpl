@@ -1061,4 +1061,85 @@ func init() {
 			Filters:          nil,
 			Params:           nil})
 
+	beego.GlobalControllerRouter["bfimpl/controllers:LowPriceArticleController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:LowPriceArticleController"],
+		beego.ControllerComments{
+			Method:           "Create",
+			Router:           `/`,
+			AllowHTTPMethods: []string{"post"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:LowPriceArticleController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:LowPriceArticleController"],
+		beego.ControllerComments{
+			Method:           "List",
+			Router:           `/`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:LowPriceArticleController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:LowPriceArticleController"],
+		beego.ControllerComments{
+			Method:           "Get",
+			Router:           `/:id`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:LowPriceArticleController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:LowPriceArticleController"],
+		beego.ControllerComments{
+			Method:           "ListOutgoingByEmployee",
+			Router:           `/employee/outgoing`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:LowPriceArticleRequisitionController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:LowPriceArticleRequisitionController"],
+		beego.ControllerComments{
+			Method:           "List",
+			Router:           `/`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:LowPriceArticleRequisitionController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:LowPriceArticleRequisitionController"],
+		beego.ControllerComments{
+			Method:           "Outgoing",
+			Router:           `/outgoing`,
+			AllowHTTPMethods: []string{"post"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:LowPriceArticleRequisitionController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:LowPriceArticleRequisitionController"],
+		beego.ControllerComments{
+			Method:           "Return",
+			Router:           `/return`,
+			AllowHTTPMethods: []string{"post"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:LowPriceArticleRequisitionController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:LowPriceArticleRequisitionController"],
+		beego.ControllerComments{
+			Method:           "BatchReturn",
+			Router:           `/return/batch`,
+			AllowHTTPMethods: []string{"post"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:LowPriceArticleRequisitionController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:LowPriceArticleRequisitionController"],
+		beego.ControllerComments{
+			Method:           "Scorp",
+			Router:           `/scorp`,
+			AllowHTTPMethods: []string{"post"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
 }

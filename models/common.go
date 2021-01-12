@@ -51,6 +51,12 @@ const (
 
 	FlowUnpaid = "Unpaid"
 	FlowPaid   = "Paid"
+
+	DeviceIngoing  = "Ingoing"  // 入库
+	DeviceOutgoing = "Outgoing" // 出库
+	DeviceFix      = "Fix"      // 维修
+	DeviceScrap    = "Scrap"    // 报废
+	DeviceReturn   = "Return"   // 归还
 )
 
 var Months = []int{31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}
