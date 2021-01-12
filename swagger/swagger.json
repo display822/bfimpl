@@ -803,11 +803,51 @@
                 "tags": [
                     "device"
                 ],
-                "description": "设备详情",
-                "operationId": "DeviceController.设备详情",
+                "description": "设备列表",
+                "operationId": "DeviceController.设备列表",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "pagenum",
+                        "description": "页码",
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "in": "query",
+                        "name": "pagesize",
+                        "description": "页数",
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "in": "query",
+                        "name": "device_category",
+                        "description": "设备分类",
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "device_status",
+                        "description": "设备状态",
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "keyword",
+                        "description": "搜索关键词",
+                        "type": "string"
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "{string} \"\""
+                        "description": "",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/oa.Device"
+                            }
+                        }
                     },
                     "500": {
                         "description": "server internal err"
@@ -820,6 +860,17 @@
                 ],
                 "description": "设备更新",
                 "operationId": "DeviceController.设备更新",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "设备",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/oa.Device"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "{string} \"\""
@@ -835,23 +886,6 @@
                 ],
                 "description": "创建设备",
                 "operationId": "DeviceController.创建设备",
-                "responses": {
-                    "200": {
-                        "description": "{string} \"\""
-                    },
-                    "500": {
-                        "description": "server internal err"
-                    }
-                }
-            }
-        },
-        "/device/apply": {
-            "get": {
-                "tags": [
-                    "device"
-                ],
-                "description": "申请设备列表",
-                "operationId": "DeviceController.申请设备列表",
                 "parameters": [
                     {
                         "in": "body",
@@ -874,6 +908,64 @@
                         "description": "server internal err"
                     }
                 }
+            }
+        },
+        "/device/apply": {
+            "get": {
+                "tags": [
+                    "device"
+                ],
+                "description": "申请设备列表",
+                "operationId": "DeviceController.申请设备列表",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "pagenum",
+                        "description": "页码",
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "in": "query",
+                        "name": "pagesize",
+                        "description": "页数",
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "in": "query",
+                        "name": "myreq",
+                        "description": "我的报销",
+                        "type": "boolean"
+                    },
+                    {
+                        "in": "query",
+                        "name": "mytodo",
+                        "description": "我的审核",
+                        "type": "boolean"
+                    },
+                    {
+                        "in": "query",
+                        "name": "status",
+                        "description": "状态",
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/oa.DeviceApply"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "server internal err"
+                    }
+                }
             },
             "put": {
                 "tags": [
@@ -881,16 +973,6 @@
                 ],
                 "description": "设备借出",
                 "operationId": "DeviceController.设备借出",
-                "parameters": [
-                    {
-                        "in": "body",
-                        "name": "body",
-                        "description": "true",
-                        "schema": {
-                            "$ref": "#/definitions/oa.Device"
-                        }
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "{string} \"success\""
@@ -910,10 +992,10 @@
                     {
                         "in": "body",
                         "name": "body",
-                        "description": "设备",
+                        "description": "设备申请",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/oa.Device"
+                            "$ref": "#/definitions/oa.DeviceApply"
                         }
                     }
                 ],
@@ -921,7 +1003,7 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/oa.Device"
+                            "$ref": "#/definitions/ooa.DeviceApply"
                         }
                     },
                     "500": {
@@ -937,17 +1019,6 @@
                 ],
                 "description": "已申请员工",
                 "operationId": "DeviceController.已申请员工",
-                "parameters": [
-                    {
-                        "in": "body",
-                        "name": "body",
-                        "description": "设备",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/oa.Device"
-                        }
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "",
@@ -968,17 +1039,60 @@
                 ],
                 "description": "申请设备基本信息",
                 "operationId": "DeviceController.申请设备基本信息",
-                "parameters": [
-                    {
-                        "in": "body",
-                        "name": "body",
-                        "description": "设备",
-                        "required": true,
+                "responses": {
+                    "200": {
+                        "description": "",
                         "schema": {
                             "$ref": "#/definitions/oa.Device"
                         }
+                    },
+                    "500": {
+                        "description": "server internal err"
                     }
+                }
+            }
+        },
+        "/device/apply/{id}/recall": {
+            "post": {
+                "tags": [
+                    "device"
                 ],
+                "description": "撤回申请设备",
+                "operationId": "DeviceController.撤回申请设备",
+                "responses": {
+                    "200": {
+                        "description": "{string} \"success\""
+                    },
+                    "500": {
+                        "description": "server err"
+                    }
+                }
+            }
+        },
+        "/device/projects": {
+            "get": {
+                "tags": [
+                    "device"
+                ],
+                "description": "申请设备项目",
+                "operationId": "DeviceController.申请设备项目",
+                "responses": {
+                    "200": {
+                        "description": "{string} \"success\""
+                    },
+                    "500": {
+                        "description": "server err"
+                    }
+                }
+            }
+        },
+        "/device/{id}": {
+            "get": {
+                "tags": [
+                    "device"
+                ],
+                "description": "设备详情",
+                "operationId": "DeviceController.设备详情",
                 "responses": {
                     "200": {
                         "description": "",
@@ -2085,6 +2199,308 @@
                     },
                     "500": {
                         "description": "server err"
+                    }
+                }
+            }
+        },
+        "/low_price_article/": {
+            "get": {
+                "tags": [
+                    "low_price_article"
+                ],
+                "description": "易耗品列表",
+                "operationId": "LowPriceArticleController.易耗品列表",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "pagenum",
+                        "description": "页码",
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "in": "query",
+                        "name": "pagesize",
+                        "description": "页数",
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "in": "query",
+                        "name": "category",
+                        "description": "类别",
+                        "type": "boolean"
+                    },
+                    {
+                        "in": "query",
+                        "name": "keyword",
+                        "description": "关键词",
+                        "type": "boolean"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/oa.LowPriceArticle"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "server internal err"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "low_price_article"
+                ],
+                "description": "创建易耗品",
+                "operationId": "LowPriceArticleController.创建易耗品",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "易耗品",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/oa.LowPriceArticle"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/oa.LowPriceArticle"
+                        }
+                    },
+                    "500": {
+                        "description": "server internal err"
+                    }
+                }
+            }
+        },
+        "/low_price_article/employee/outgoing": {
+            "get": {
+                "tags": [
+                    "low_price_article"
+                ],
+                "description": "易耗品借出列表",
+                "operationId": "LowPriceArticleController.员工下易耗品借出列表",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "pagenum",
+                        "description": "页码",
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "in": "query",
+                        "name": "pagesize",
+                        "description": "页数",
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/oa.LowPriceArticle"
+                        }
+                    },
+                    "500": {
+                        "description": "server internal err"
+                    }
+                }
+            }
+        },
+        "/low_price_article/{id}": {
+            "get": {
+                "tags": [
+                    "low_price_article"
+                ],
+                "description": "易耗品详情",
+                "operationId": "LowPriceArticleController.易耗品详情",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/oa.LowPriceArticle"
+                        }
+                    },
+                    "500": {
+                        "description": "server internal err"
+                    }
+                }
+            }
+        },
+        "/low_price_article_requisition/": {
+            "get": {
+                "tags": [
+                    "low_price_article_requisition"
+                ],
+                "description": "易耗品列表",
+                "operationId": "LowPriceArticleRequisitionController.易耗品操作记录列表",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "pagenum",
+                        "description": "页码",
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "in": "query",
+                        "name": "pagesize",
+                        "description": "页数",
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "in": "query",
+                        "name": "low_price_article_id",
+                        "description": "易耗品id",
+                        "type": "boolean"
+                    },
+                    {
+                        "in": "query",
+                        "name": "employee_name",
+                        "description": "员工姓名",
+                        "type": "boolean"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/oa.LowPriceArticleRequisition"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "server internal err"
+                    }
+                }
+            }
+        },
+        "/low_price_article_requisition/outgoing": {
+            "post": {
+                "tags": [
+                    "low_price_article_requisition"
+                ],
+                "description": "易耗品借出",
+                "operationId": "LowPriceArticleRequisitionController.易耗品借出",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "易耗品记录",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/oa.LowPriceArticleRequisition"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{string} \"\""
+                    },
+                    "500": {
+                        "description": "server internal err"
+                    }
+                }
+            }
+        },
+        "/low_price_article_requisition/return": {
+            "post": {
+                "tags": [
+                    "low_price_article_requisition"
+                ],
+                "description": "易耗品归还",
+                "operationId": "LowPriceArticleRequisitionController.易耗品归还",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "id",
+                        "description": "需归还易耗品id",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "status",
+                        "description": "归还状态(ok,scrap)",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{string} \"\""
+                    },
+                    "500": {
+                        "description": "server internal err"
+                    }
+                }
+            }
+        },
+        "/low_price_article_requisition/return/batch": {
+            "post": {
+                "tags": [
+                    "low_price_article_requisition"
+                ],
+                "description": "易耗品批量归还",
+                "operationId": "LowPriceArticleRequisitionController.易耗品批量归还",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "ids",
+                        "description": "需归还易耗品ids",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{string} \"\""
+                    },
+                    "500": {
+                        "description": "server internal err"
+                    }
+                }
+            }
+        },
+        "/low_price_article_requisition/scrap": {
+            "post": {
+                "tags": [
+                    "low_price_article_requisition"
+                ],
+                "description": "易耗品报废",
+                "operationId": "LowPriceArticleRequisitionController.易耗品报废",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "易耗品记录",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/oa.LowPriceArticleRequisition"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{string} \"\""
+                    },
+                    "500": {
+                        "description": "server internal err"
                     }
                 }
             }
@@ -4169,6 +4585,23 @@
                 }
             }
         },
+        "forms.ReqApprovalDevice": {
+            "title": "ReqApprovalDevice",
+            "type": "object",
+            "properties": {
+                "comment": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "status": {
+                    "type": "integer",
+                    "format": "int64"
+                }
+            }
+        },
         "forms.ReqApprovalExpense": {
             "title": "ReqApprovalExpense",
             "type": "object",
@@ -5023,14 +5456,18 @@
                 "cpu": {
                     "type": "string"
                 },
+                "device_apply": {
+                    "$ref": "#/definitions/oa.DeviceApply"
+                },
+                "device_apply_id": {
+                    "type": "integer",
+                    "format": "int64"
+                },
                 "device_category": {
                     "type": "string"
                 },
-                "device_logs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/oa.DeviceLog"
-                    }
+                "device_code": {
+                    "type": "string"
                 },
                 "device_model": {
                     "type": "string"
@@ -5038,8 +5475,11 @@
                 "device_name": {
                     "type": "string"
                 },
-                "device_num": {
-                    "type": "string"
+                "device_requisitions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/oa.DeviceRequisition"
+                    }
                 },
                 "device_status": {
                     "type": "string"
@@ -5075,7 +5515,7 @@
                 },
                 "purchase_price": {
                     "type": "number",
-                    "format": "float"
+                    "format": "double"
                 },
                 "resolution": {
                     "type": "string"
@@ -5094,7 +5534,7 @@
                 },
                 "vat": {
                     "type": "number",
-                    "format": "float"
+                    "format": "double"
                 },
                 "version": {
                     "type": "string"
@@ -5108,25 +5548,79 @@
                 }
             }
         },
-        "oa.DeviceLog": {
-            "title": "DeviceLog",
+        "oa.DeviceApply": {
+            "title": "DeviceApply",
             "type": "object",
             "properties": {
-                "comment": {
-                    "type": "string"
+                "application_date": {
+                    "type": "string",
+                    "format": "datetime"
+                },
+                "device": {
+                    "$ref": "#/definitions/oa.Device"
                 },
                 "device_id": {
                     "type": "integer",
                     "format": "int64"
                 },
-                "operator_id": {
+                "e_name": {
+                    "type": "string"
+                },
+                "emp_id": {
                     "type": "integer",
                     "format": "int64"
                 },
-                "type": {
+                "employee": {
+                    "$ref": "#/definitions/oa.Employee"
+                },
+                "engagement_code": {
                     "type": "string"
                 },
-                "user_id": {
+                "is_return": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "leader_id": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "project": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "oa.DeviceRequisition": {
+            "title": "DeviceRequisition",
+            "type": "object",
+            "properties": {
+                "associate_employee_id": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "associate_employee_name": {
+                    "type": "string"
+                },
+                "comment": {
+                    "type": "string"
+                },
+                "device": {
+                    "$ref": "#/definitions/oa.Device"
+                },
+                "device_id": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "operator_category": {
+                    "type": "string"
+                },
+                "outgoing_operator_id": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "outgoing_operator_name": {
                     "type": "string"
                 }
             }
@@ -5445,6 +5939,101 @@
                 }
             }
         },
+        "oa.LowPriceArticle": {
+            "title": "LowPriceArticle",
+            "type": "object",
+            "properties": {
+                "brand": {
+                    "type": "string"
+                },
+                "comment": {
+                    "type": "string"
+                },
+                "ingoing_operator_id": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "ingoing_time": {
+                    "$ref": "#/definitions/models.Time"
+                },
+                "low_price_article_category": {
+                    "type": "string"
+                },
+                "low_price_article_name": {
+                    "type": "string"
+                },
+                "low_price_article_requisitions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/oa.LowPriceArticleRequisition"
+                    }
+                },
+                "need_return": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "outgoing_quantity": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "purchase_price": {
+                    "type": "number",
+                    "format": "double"
+                },
+                "retailer": {
+                    "type": "string"
+                },
+                "scrap_quantity": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "site": {
+                    "type": "string"
+                },
+                "total_quantity": {
+                    "type": "integer",
+                    "format": "int64"
+                }
+            }
+        },
+        "oa.LowPriceArticleRequisition": {
+            "title": "LowPriceArticleRequisition",
+            "type": "object",
+            "properties": {
+                "associate_employee_id": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "associate_employee_name": {
+                    "type": "string"
+                },
+                "comment": {
+                    "type": "string"
+                },
+                "is_return": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "low_price_article": {
+                    "$ref": "#/definitions/oa.LowPriceArticle"
+                },
+                "low_price_article_id": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "operator_category": {
+                    "type": "string"
+                },
+                "operator_id": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "quantity": {
+                    "type": "integer",
+                    "format": "int64"
+                }
+            }
+        },
         "oa.ProjectDelivery": {
             "title": "ProjectDelivery",
             "type": "object",
@@ -5478,6 +6067,10 @@
                     "format": "int64"
                 }
             }
+        },
+        "ooa.DeviceApply": {
+            "title": "DeviceApply",
+            "type": "object"
         }
     }
 }

@@ -22,7 +22,8 @@ type LowPriceArticleController struct {
 
 // @Title 创建易耗品
 // @Description 创建易耗品
-// @Success 200 {string} ""
+// @Param	body body oa.LowPriceArticle true "易耗品"
+// @Success 200 {object} oa.LowPriceArticle
 // @Failure 500 server internal err
 // @router / [post]
 func (l *LowPriceArticleController) Create() {
@@ -68,7 +69,11 @@ func (l *LowPriceArticleController) Create() {
 
 // @Title 易耗品列表
 // @Description 易耗品列表
-// @Success 200 {string} ""
+// @Param	pagenum	    query	int	false	"页码"
+// @Param	pagesize	query	int	false	"页数"
+// @Param	category	query	bool	false	"类别"
+// @Param	keyword	query	bool	false	"关键词"
+// @Success 200 {object} []oa.LowPriceArticle
 // @Failure 500 server internal err
 // @router / [get]
 func (l *LowPriceArticleController) List() {
@@ -89,7 +94,7 @@ func (l *LowPriceArticleController) List() {
 
 // @Title 易耗品详情
 // @Description 易耗品详情
-// @Success 200 {string} ""
+// @Success 200 {object} oa.LowPriceArticle
 // @Failure 500 server internal err
 // @router /:id [get]
 func (l *LowPriceArticleController) Get() {
@@ -102,21 +107,21 @@ func (l *LowPriceArticleController) Get() {
 
 // @Title 员工下易耗品借出列表
 // @Description 易耗品借出列表
-// @Success 200 {string} ""
+// @Param	pagenum	    query	int	false	"页码"
+// @Param	pagesize	query	int	false	"页数"
+// @Success 200 {object} oa.LowPriceArticle
 // @Failure 500 server internal err
 // @router /employee/outgoing [get]
 func (l *LowPriceArticleController) ListOutgoingByEmployee() {
-	eId := l.GetString("eid")
-	if eId == "" {
-		l.ErrorOK("need eid")
-	}
-	log.GLogger.Info("eId:%d", eId)
+	uID, _ := l.GetInt("userID")
+
+	log.GLogger.Info("uID:%d", uID)
 
 	// 先获取易耗品id
 	var articleRequisitions []*oa.LowPriceArticleRequisition
 	services.Slave().Where("operator_category = ?", models.DeviceOutgoing).
 		Where("is_return = ?", 0).
-		Where("associate_employee_id = ?", eId).
+		Where("associate_employee_id = ?", uID).
 		Find(&articleRequisitions)
 
 	var ids []int
@@ -130,7 +135,7 @@ func (l *LowPriceArticleController) ListOutgoingByEmployee() {
 		Preload("LowPriceArticleRequisitions", func(db *gorm.DB) *gorm.DB {
 			return db.Where("operator_category = ?", models.DeviceOutgoing).
 				Where("is_return = ?", 0).
-				Where("associate_employee_id = ?", eId).Order("created_at desc")
+				Where("associate_employee_id = ?", uID).Order("created_at desc")
 			// return db.
 		}).
 		Find(&articles)

@@ -21,7 +21,11 @@ type LowPriceArticleRequisitionController struct {
 
 // @Title 易耗品操作记录列表
 // @Description 易耗品列表
-// @Success 200 {string} ""
+// @Param	pagenum	    query	int	false	"页码"
+// @Param	pagesize	query	int	false	"页数"
+// @Param	low_price_article_id	query	bool	false	"易耗品id"
+// @Param	employee_name	query	bool	false	"员工姓名"
+// @Success 200 {object} []oa.LowPriceArticleRequisition
 // @Failure 500 server internal err
 // @router / [get]
 func (l *LowPriceArticleRequisitionController) List() {
@@ -49,6 +53,7 @@ func (l *LowPriceArticleRequisitionController) List() {
 
 // @Title 易耗品借出
 // @Description 易耗品借出
+// @Param	body body oa.LowPriceArticleRequisition true "易耗品记录"
 // @Success 200 {string} ""
 // @Failure 500 server internal err
 // @router /outgoing [post]
@@ -105,6 +110,8 @@ func (l *LowPriceArticleRequisitionController) Outgoing() {
 
 // @Title 易耗品归还
 // @Description 易耗品归还
+// @Param	id	    query	string	true	"需归还易耗品id"
+// @Param	status	query	string	true	"归还状态(ok,scrap)"
 // @Success 200 {string} ""
 // @Failure 500 server internal err
 // @router /return [post]
@@ -213,6 +220,7 @@ func (l *LowPriceArticleRequisitionController) Return() {
 
 // @Title 易耗品批量归还
 // @Description 易耗品批量归还
+// @Param	ids	    query	string	true	"需归还易耗品ids"
 // @Success 200 {string} ""
 // @Failure 500 server internal err
 // @router /return/batch [post]
@@ -292,6 +300,7 @@ func (l *LowPriceArticleRequisitionController) BatchReturn() {
 
 // @Title 易耗品报废
 // @Description 易耗品报废
+// @Param	body body oa.LowPriceArticleRequisition true "易耗品记录"
 // @Success 200 {string} ""
 // @Failure 500 server internal err
 // @router /scrap [post]

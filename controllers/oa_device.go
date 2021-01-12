@@ -24,7 +24,8 @@ type DeviceController struct {
 
 // @Title 创建设备
 // @Description 创建设备
-// @Success 200 {string} ""
+// @Param	body body oa.Device true "设备"
+// @Success 200 {object} oa.Device
 // @Failure 500 server internal err
 // @router / [post]
 func (d *DeviceController) Create() {
@@ -56,7 +57,6 @@ func (d *DeviceController) Create() {
 		d.ErrorOK(MsgServerErr)
 	}
 
-	// TODO 添加活动记录
 	deviceRequisition := oa.DeviceRequisition{
 		DeviceID:         int(param.ID),
 		OperatorCategory: models.DeviceIngoing,
@@ -81,7 +81,7 @@ func (d *DeviceController) Create() {
 // @Param	device_category	query	string	false	"设备分类"
 // @Param	device_status	query	string	false	"设备状态"
 // @Param	keyword	query	string	false	"搜索关键词"
-// @Success 200 {string} ""
+// @Success 200 {object} []oa.Device
 // @Failure 500 server internal err
 // @router / [get]
 func (d *DeviceController) List() {
@@ -121,9 +121,9 @@ func (d *DeviceController) List() {
 
 // @Title 设备详情
 // @Description 设备详情
-// @Success 200 {string} ""
+// @Success 200 {object} oa.Device
 // @Failure 500 server internal err
-// @router / [get]
+// @router /:id [get]
 func (d *DeviceController) Get() {
 	dID, _ := d.GetInt(":id", 0)
 	var device oa.Device
@@ -135,6 +135,7 @@ func (d *DeviceController) Get() {
 
 // @Title 设备更新
 // @Description 设备更新
+// @Param	body body oa.Device true "设备"
 // @Success 200 {string} ""
 // @Failure 500 server internal err
 // @router / [put]
@@ -198,8 +199,12 @@ func (d *DeviceController) GetProjects() {
 
 // @Title 申请设备列表
 // @Description 申请设备列表
-// @Param	body	    body	oa.Device	true	"设备"
-// @Success 200 {object} oa.Device
+// @Param	pagenum	    query	int	false	"页码"
+// @Param	pagesize	query	int	false	"页数"
+// @Param	myreq	query	bool	false	"我的报销"
+// @Param	mytodo	query	bool	false	"我的审核"
+// @Param	status	query	int	false	"状态"
+// @Success 200 {object} []oa.DeviceApply
 // @Failure 500 server internal err
 // @router /apply [get]
 func (d *DeviceController) ApplyList() {
@@ -277,7 +282,6 @@ func (d *DeviceController) ApplyList() {
 
 // @Title 已申请员工
 // @Description 已申请员工
-// @Param	body	    body	oa.Device	true	"设备"
 // @Success 200 {object} oa.Device
 // @Failure 500 server internal err
 // @router /apply/employee [get]
@@ -287,7 +291,6 @@ func (d *DeviceController) ApplyEmployee() {
 
 // @Title 撤回申请设备
 // @Description 撤回申请设备
-// @Param	body	body	oa.Device	true
 // @Success 200 {string} "success"
 // @Failure 500 server err
 // @router /apply/:id/recall [post]
@@ -328,7 +331,7 @@ func (d *DeviceController) RecallDevice() {
 
 // @Title 审批申请设备
 // @Description 审批申请设备
-// @Param	body	body	oa.Device	true
+// @Param	body	body	forms.ReqApprovalDevice	true
 // @Success 200 {string} "success"
 // @Failure 500 server err
 // @router /apply [put]
@@ -388,7 +391,6 @@ func (d *DeviceController) ApprovalDevice() {
 
 // @Title 设备借出
 // @Description 设备借出
-// @Param	body	body	oa.Device	true
 // @Success 200 {string} "success"
 // @Failure 500 server err
 // @router /apply [put]
@@ -404,7 +406,6 @@ func (d *DeviceController) BorrowDevice() {
 
 // @Title 申请设备基本信息
 // @Description 申请设备基本信息
-// @Param	body	    body	oa.Device	true	"设备"
 // @Success 200 {object} oa.Device
 // @Failure 500 server internal err
 // @router /apply/info [get]
@@ -437,8 +438,8 @@ func (d *DeviceController) ApplyInfo() {
 
 // @Title 申请设备
 // @Description 申请设备
-// @Param	body	    body	oa.Device	true	"设备"
-// @Success 200 {object} oa.Device
+// @Param	body	    body	oa.DeviceApply	true	"设备申请"
+// @Success 200 {object} ooa.DeviceApply
 // @Failure 500 server internal err
 // @router /apply [post]
 func (d *DeviceController) ReqDevice() {
