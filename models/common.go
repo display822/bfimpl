@@ -52,13 +52,19 @@ const (
 	FlowUnpaid = "Unpaid"
 	FlowPaid   = "Paid"
 
-	FlowRecalled   = "Recalled"
-	FlowHide       = "Hide"
-	DeviceIngoing  = "Ingoing"  // 入库
-	DeviceOutgoing = "Outgoing" // 出库
-	DeviceFix      = "Fix"      // 维修
-	DeviceScrap    = "Scrap"    // 报废
-	DeviceReturn   = "Return"   // 归还
+	DeviceFree      = "Free"      // 空闲
+	DevicePossessed = "Possessed" // 占有
+	DeviceFixing    = "Fixing"    // 维修
+	DeviceIngoing   = "Ingoing"   // 入库
+	DeviceOutgoing  = "Outgoing"  // 出库
+	DeviceScrap     = "Scrap"     // 报废
+	DeviceReturn    = "Return"    // 归还
+
+	FlowHide        = "Hide"        // 隐藏
+	FlowReceived    = "Received"    // 已领用
+	FlowDistributed = "Distributed" // 已分配
+	FlowRevoked     = "Revoked"     // 已撤销
+
 )
 
 var Months = []int{31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}

@@ -14,8 +14,9 @@ import (
 	"bfimpl/services/log"
 	"encoding/json"
 	"fmt"
-	"github.com/jinzhu/gorm"
 	"time"
+
+	"github.com/jinzhu/gorm"
 )
 
 type DeviceController struct {
@@ -320,10 +321,10 @@ func (d *DeviceController) RecallDevice() {
 		workflow.Nodes[1].Status = models.FlowHide
 	}
 
-	workflow.Status = models.FlowRecalled
+	workflow.Status = models.FlowRevoked
 	services.Slave().Save(workflow)
 	services.Slave().Model(oa.DeviceApply{}).Where("id = ?", id).Updates(map[string]interface{}{
-		"status": models.FlowRecalled,
+		"status": models.FlowRevoked,
 	})
 
 	d.Correct("")

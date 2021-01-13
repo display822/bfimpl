@@ -12,6 +12,11 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
+var LowPriceArticleMap = map[string]struct{}{
+	"Office": {},
+	"IT":     {},
+}
+
 // LowPriceArticle 低值易耗品表
 type LowPriceArticle struct {
 	gorm.Model

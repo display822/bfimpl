@@ -12,6 +12,7 @@ import (
 	"bfimpl/services"
 	"bfimpl/services/log"
 	"encoding/json"
+	"time"
 
 	"github.com/jinzhu/gorm"
 )
@@ -41,6 +42,13 @@ func (l *LowPriceArticleController) Create() {
 		l.ErrorOK(MsgInvalidParam)
 	}
 	log.GLogger.Info("param :%+v", param)
+	param.IngoingOperatorID = userID
+	param.IngoingTime = models.Time(time.Now())
+
+	_, ok := oa.LowPriceArticleMap[param.LowPriceArticleCategory]
+	if !ok {
+		l.ErrorOK("param low_price_article_category error")
+	}
 
 	tx := services.Slave().Begin()
 	err = tx.Create(&param).Error
@@ -53,9 +61,10 @@ func (l *LowPriceArticleController) Create() {
 	requisition := oa.LowPriceArticleRequisition{
 		LowPriceArticleID: int(param.ID),
 		OperatorID:        userID,
-		OperatorCategory:  "StockIn",
+		OperatorCategory:  models.DeviceIngoing,
 		Quantity:          param.TotalQuantity,
 	}
+
 	err = tx.Create(&requisition).Error
 	if err != nil {
 		log.GLogger.Error("create low_price_article_requisition err:%s", err.Error())
