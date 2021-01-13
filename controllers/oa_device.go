@@ -14,6 +14,7 @@ import (
 	"bfimpl/services/log"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -72,7 +73,7 @@ func (d *DeviceController) Create() {
 	}
 	tx.Commit()
 
-	d.Correct("")
+	d.Correct(param)
 }
 
 // @Title 设备列表
@@ -111,9 +112,10 @@ func (d *DeviceController) List() {
 		List  []*oa.Device `json:"list"`
 	}
 	db.Limit(pageSize).Offset((pageNum-1)*pageSize).Order("created_at desc").
-		Preload("DeviceApply", func(db *gorm.DB) *gorm.DB {
-			return db.Where("status = ?", "")
+		Preload("DeviceApplys", func(db *gorm.DB) *gorm.DB {
+			return db.Where("status = ?", models.FlowApproved).Or("status =?", models.FlowNA)
 		}).
+		Preload("DeviceApply").
 		Find(&list).Limit(-1).Offset(-1).Count(&resp.Total)
 	resp.List = list
 
@@ -154,6 +156,17 @@ func (d *DeviceController) Put() {
 	}
 	log.GLogger.Info("param :%+v", param)
 
+	var device oa.Device
+	err = services.Slave().Where("id = ?", param.ID).Find(&device).Error
+	if err != nil {
+		log.GLogger.Error("get device err:%s", err.Error())
+		d.ErrorOK(MsgServerErr)
+	}
+
+	// 占用中不能改
+	if device.DeviceStatus == models.DevicePossessed {
+		d.ErrorOK("设备占用中")
+	}
 	services.Slave().Save(param)
 
 	d.Correct("")
@@ -208,7 +221,7 @@ func (d *DeviceController) GetProjects() {
 // @Success 200 {object} []oa.DeviceApply
 // @Failure 500 server internal err
 // @router /apply [get]
-func (d *DeviceController) ApplyList() {
+func (d *DeviceController) ListApply() {
 	pageSize, _ := d.GetInt("pagesize", 10)
 	pageNum, _ := d.GetInt("pagenum", 1)
 	userType, _ := d.GetInt("userType", 0)
@@ -238,9 +251,6 @@ func (d *DeviceController) ApplyList() {
 	if status != "" {
 		query = query.Where("status = ?", status)
 	}
-	//if applicationDateBegin != "" && applicationDateEnd != "" {
-	//	query = query.Where("application_date > ?", applicationDateBegin).Where("application_date <= ?", applicationDateEnd)
-	//}
 
 	var resp struct {
 		Total int               `json:"total"`
@@ -281,21 +291,53 @@ func (d *DeviceController) ApplyList() {
 	d.Correct(resp)
 }
 
-// @Title 已申请员工
-// @Description 已申请员工
+// @Title 申请设备列表
+// @Description 申请设备列表
+// @Success 200 {object} oa.DeviceApply
+// @Failure 500 server internal err
+// @router /apply/:id [get]
+func (d *DeviceController) GetApply() {
+	id, _ := d.GetInt(":id", 0)
+	deviceApply := new(oa.DeviceApply)
+	services.Slave().Debug().Preload("Device").Take(deviceApply, "id = ?", id)
+	// oID 查询 workflow
+	workflow := new(oa.Workflow)
+	services.Slave().Model(oa.Workflow{}).Where("workflow_definition_id = ? and entity_id = ?",
+		services.GetFlowDefID(services.Device), id).Preload("Nodes").Preload("Nodes.User").
+		Preload("Elements").First(workflow)
+	log.GLogger.Info("workflow", workflow)
+	if len(workflow.Nodes) != 2 {
+		d.ErrorOK("工作流配置错误")
+	}
+	var resp struct {
+		Info     *oa.DeviceApply `json:"info"`
+		WorkFlow *oa.Workflow    `json:"work_flow"`
+	}
+	resp.Info = deviceApply
+	resp.WorkFlow = workflow
+
+	d.Correct(resp)
+}
+
+// @Title 设备已申请列表
+// @Description 设备已申请列表
 // @Success 200 {object} oa.Device
 // @Failure 500 server internal err
-// @router /apply/employee [get]
-func (d *DeviceController) ApplyEmployee() {
-	//dID := d.GetString("did")
+// @router /:id/apply [get]
+func (d *DeviceController) ListDeviceApply() {
+	id, _ := d.GetInt(":id")
+	var deviceApplys []*oa.DeviceApply
+	services.Slave().Where("device_id = ?", id).Where("status = ?", models.FlowApproved).
+		Find(&deviceApplys)
+	d.Correct(deviceApplys)
 }
 
 // @Title 撤回申请设备
 // @Description 撤回申请设备
 // @Success 200 {string} "success"
 // @Failure 500 server err
-// @router /apply/:id/recall [post]
-func (d *DeviceController) RecallDevice() {
+// @router /apply/:id/revoke [put]
+func (d *DeviceController) RevokeDevice() {
 	id, _ := d.GetInt(":id")
 	userID, _ := d.GetInt("userID")
 	deviceApply := new(oa.DeviceApply)
@@ -335,7 +377,7 @@ func (d *DeviceController) RecallDevice() {
 // @Param	body	body	forms.ReqApprovalDevice	true
 // @Success 200 {string} "success"
 // @Failure 500 server err
-// @router /apply [put]
+// @router /apply/approval [put]
 func (d *DeviceController) ApprovalDevice() {
 	param := new(forms.ReqApprovalDevice)
 	err := json.Unmarshal(d.Ctx.Input.RequestBody, param)
@@ -390,19 +432,208 @@ func (d *DeviceController) ApprovalDevice() {
 	d.Correct("")
 }
 
+// @Title 设备领用
+// @Description 设备领用
+// @Success 200 {string} "success"
+// @Failure 500 server err
+// @router /:id/receive [put]
+func (d *DeviceController) ReceiveDevice() {
+	userID, _ := d.GetInt("userID")
+	userName := d.GetString("userName")
+	id, _ := d.GetInt(":id")
+	tx := services.Slave().Begin()
+	var device oa.Device
+	err := tx.Where("id = ?", id).Preload("DeviceApply").Find(&device).Error
+	if err != nil {
+		log.GLogger.Error("get device err:%s", err.Error())
+		tx.Rollback()
+		d.ErrorOK(MsgServerErr)
+	}
+	log.GLogger.Info("device", device)
+	if device.DeviceApply.EmpID != userID {
+		d.ErrorOK("没有领用权限")
+	}
+
+	if device.DeviceApply.Status == models.FlowReceived {
+		d.ErrorOK("已领用")
+	}
+
+	device.DeviceStatus = models.DevicePossessed
+	device.DeviceApply.Status = models.FlowReceived
+	device.DeviceApply.ReceiveDate = time.Now()
+
+	err = tx.Save(&device).Error
+	if err != nil {
+		log.GLogger.Error("save device err:%s", err.Error())
+		tx.Rollback()
+		d.ErrorOK(MsgServerErr)
+	}
+
+	// 添加记录
+	deviceRequisition := oa.DeviceRequisition{
+		DeviceID:              id,
+		AssociateEmployeeID:   userID,
+		AssociateEmployeeName: userName,
+		OperatorCategory:      models.DeviceOutgoing,
+		OperatorID:            device.DeviceApply.OutgoingOperatorID,
+		OperatorName:          device.DeviceApply.OutgoingOperatorName,
+		Comment:               "",
+	}
+	err = tx.Create(&deviceRequisition).Error
+	if err != nil {
+		log.GLogger.Error("create deviceRequisition err:%s", err.Error())
+		tx.Rollback()
+		d.ErrorOK(MsgServerErr)
+	}
+
+	tx.Commit()
+	d.Correct("")
+}
+
+// @Title 设备分配
+// @Description 设备分配
+// @Success 200 {string} "success"
+// @Failure 500 server err
+// @router /:id/distribution [put]
+func (d *DeviceController) DistributionDevice() {
+	userID, _ := d.GetInt("userID")
+	userName := d.GetString("userName")
+	userType, _ := d.GetInt("userType")
+	id, _ := d.GetInt(":id")
+
+	employeeID, _ := d.GetInt("employee_id")
+	employeeName := d.GetString("employee_name")
+	engagementCode := d.GetString("engagement_code")
+	project := d.GetString("project")
+	if employeeID <= 0 {
+		d.ErrorOK("need employee_id")
+	}
+	if employeeName == "" {
+		d.ErrorOK("need employee_name")
+	}
+	if engagementCode == "" {
+		d.ErrorOK("need engagement_code")
+	}
+	if project == "" {
+		d.ErrorOK("need project")
+	}
+	if userType != models.UserIT && userType != models.UserFront && userType != models.UserFinance {
+		d.ErrorOK("没有权限")
+	}
+	tx := services.Slave().Begin()
+
+	var device oa.Device
+	err := tx.Where("id = ?", id).Find(&device).Error
+	if err != nil {
+		log.GLogger.Error("get device err:%s", err.Error())
+		tx.Rollback()
+		d.ErrorOK(MsgServerErr)
+	}
+	if device.DeviceStatus != models.DeviceFree {
+		d.ErrorOK("设备不为空闲，不可借出")
+	}
+
+	if device.DeviceApplyID != 0 {
+		d.ErrorOK("不可重复借出")
+	}
+
+	// 创建申请单
+	deviceApply := oa.DeviceApply{
+		DeviceID:             id,
+		EngagementCode:       engagementCode,
+		EmpID:                employeeID,
+		EName:                employeeName,
+		Status:               models.FlowDistributed,
+		Project:              project,
+		ApplicationDate:      time.Now(),
+		OutgoingOperatorID:   userID,
+		OutgoingOperatorName: userName,
+		OutgoingTime:         models.Time(time.Now()),
+	}
+
+	err = tx.Create(&deviceApply).Error
+	if err != nil {
+		log.GLogger.Error("create device_apply err:%s", err.Error())
+		tx.Rollback()
+		d.ErrorOK(MsgServerErr)
+	}
+
+	device.DeviceApplyID = int(deviceApply.ID)
+
+	err = tx.Save(&device).Error
+	if err != nil {
+		log.GLogger.Error("save device err:%s", err.Error())
+		tx.Rollback()
+		d.ErrorOK(MsgServerErr)
+	}
+
+	tx.Commit()
+	d.Correct("")
+}
+
 // @Title 设备借出
 // @Description 设备借出
 // @Success 200 {string} "success"
 // @Failure 500 server err
-// @router /apply [put]
-func (d *DeviceController) BorrowDevice() {
+// @router /:id/outgoing [put]
+func (d *DeviceController) OutgoingDevice() {
+	userID, _ := d.GetInt("userID")
+	userName := d.GetString("userName")
 	userType, _ := d.GetInt("userType")
 	if userType != models.UserIT && userType != models.UserFront && userType != models.UserFinance {
 		d.ErrorOK("没有权限")
 	}
-	//dID := d.GetString("did")
-	//eID := d.GetString("eid")
+	id, _ := d.GetInt(":id")
+	deviceApplyID, _ := d.GetInt("device_apply_id")
 
+	if deviceApplyID <= 0 {
+		d.ErrorOK("need device_apply_id")
+	}
+
+	// 判断设备状态
+	tx := services.Slave().Begin()
+	var device oa.Device
+	err := tx.Where("id = ?", id).Find(&device).Error
+	if err != nil {
+		log.GLogger.Error("get device err:%s", err.Error())
+		tx.Rollback()
+		d.ErrorOK(MsgServerErr)
+	}
+	if device.DeviceStatus != models.DeviceFree {
+		d.ErrorOK("设备不为空闲，不可借出")
+	}
+
+	if device.DeviceApplyID != 0 {
+		d.ErrorOK("不可重复借出")
+	}
+	// 自己申请 将设备关联申请单
+	device.DeviceApplyID = deviceApplyID
+
+	err = tx.Save(&device).Error
+	if err != nil {
+		log.GLogger.Error("get device err:%s", err.Error())
+		tx.Rollback()
+		d.ErrorOK(MsgServerErr)
+	}
+
+	var deviceApply oa.DeviceApply
+	err = tx.Where("id = ?", deviceApplyID).Find(&deviceApply).Error
+	if err != nil {
+		log.GLogger.Error("get device err:%s", err.Error())
+		tx.Rollback()
+		d.ErrorOK(MsgServerErr)
+	}
+	deviceApply.OutgoingOperatorID = userID
+	deviceApply.OutgoingOperatorName = userName
+	deviceApply.OutgoingTime = models.Time(time.Now())
+	err = tx.Save(&deviceApply).Error
+	if err != nil {
+		log.GLogger.Error("get device err:%s", err.Error())
+		tx.Rollback()
+		d.ErrorOK(MsgServerErr)
+	}
+	tx.Commit()
+	d.Correct("")
 }
 
 // @Title 申请设备基本信息
@@ -412,26 +643,35 @@ func (d *DeviceController) BorrowDevice() {
 // @router /apply/info [get]
 func (d *DeviceController) ApplyInfo() {
 	uID, _ := d.GetInt("userID", 0)
-	uEmail := d.GetString("userEmail")
-	dID := d.GetString("id")
-	log.GLogger.Info("ReqExpense query: %d, %s", uID, uEmail)
+	deviceID, _ := d.GetInt("device_id")
+	employeeID, _ := d.GetInt("employee_id")
+	log.GLogger.Info("ReqExpense query: %d, %d", uID, employeeID)
 	// 获取emp_info
 	employee := new(oa.Employee)
-	services.Slave().Preload("Department").Take(employee, "email = ?", uEmail)
+	services.Slave().Preload("Department").Take(employee, "id = ?", employeeID)
 	if employee.ID == 0 {
 		d.ErrorOK("未找到员工信息")
 	}
 
 	device := new(oa.Device)
-	services.Slave().Where("id =?", dID).Find(device)
+	services.Slave().Where("id =?", deviceID).Find(device)
 
-	var collectDevices []*oa.Device
-	//services.Slave().Where("id =?", dID).Find(device)
+	var deviceApplys []*oa.DeviceApply
+	services.Slave().Where("status =?", models.FlowReceived).
+		Where("emp_id =?", employeeID).
+		Preload("Device").
+		Find(&deviceApplys)
 
+	var collectDevices []string
+	for _, item := range deviceApplys {
+		if item.Device != nil {
+			collectDevices = append(collectDevices, item.Device.DeviceName)
+		}
+	}
 	res := oa.DeviceApplyInfo{
 		Employee:       employee,
 		Device:         device,
-		CollectDevices: collectDevices,
+		CollectDevices: strings.Join(collectDevices, ","),
 	}
 
 	d.Correct(res)
@@ -498,4 +738,24 @@ func (d *DeviceController) ReqDevice() {
 	}
 	tx.Commit()
 	d.Correct(param)
+}
+
+// @Title 员工下设备借出列表
+// @Description 易耗品借出列表
+// @Param	pagenum	    query	int	false	"页码"
+// @Param	pagesize	query	int	false	"页数"
+// @Success 200 {object} oa.Device
+// @Failure 500 server internal err
+// @router /employee/outgoing [get]
+func (d *DeviceController) ListOutgoingByEmployee() {
+	uID, _ := d.GetInt("userID")
+	log.GLogger.Info("uID:%d", uID)
+
+	var deviceApplys []*oa.DeviceApply
+	services.Slave().Where("status =?", models.FlowReceived).
+		Where("emp_id =?", uID).
+		Preload("Device").
+		Find(&deviceApplys)
+
+	d.Correct(deviceApplys)
 }

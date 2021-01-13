@@ -114,10 +114,10 @@ func (l *LowPriceArticleRequisitionController) Outgoing() {
 // @Param	status	query	string	true	"归还状态(ok,scrap)"
 // @Success 200 {string} ""
 // @Failure 500 server internal err
-// @router /return [post]
+// @router /:id/return [post]
 func (l *LowPriceArticleRequisitionController) Return() {
 	uID, _ := l.GetInt("userID", 0)
-	id := l.GetString("id")
+	id := l.GetString(":id")
 	if id == "" {
 		l.ErrorOK("need id")
 	}

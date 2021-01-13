@@ -37,10 +37,10 @@ func init() {
 		beego.NSNamespace("/device", beego.NSInclude(&controllers.DeviceController{})),
 	)
 
-	ips := beego.AppConfig.Strings("bkcors")
+	// ips := beego.AppConfig.Strings("bkcors")
 	beego.InsertFilter("*", beego.BeforeRouter, cors.Allow(&cors.Options{
-		// AllowAllOrigins:  true,
-		AllowOrigins: ips,
+		AllowAllOrigins: true,
+		// AllowOrigins: ips,
 		AllowMethods: []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders: []string{"Origin", "Authorization", "Access-Control-Allow-Origin",
 			"Access-Control-Allow-Headers", "Content-Type", "x-csrf-token", "x-requested-with", "projectId"},

@@ -77,5 +77,12 @@ func DBInit() {
 		&oa.ExpenseDetail{},
 		&oa.ExpenseAccount{},
 		&oa.Engagement{},
+
+		&oa.LowPriceArticle{},
+		&oa.LowPriceArticleRequisition{},
+
+		&oa.Device{},
+		&oa.DeviceApply{},
+		&oa.DeviceRequisition{},
 	)
 }

@@ -88,15 +88,22 @@ func (l *LowPriceArticleController) Create() {
 func (l *LowPriceArticleController) List() {
 	pageNum, _ := l.GetInt("pagenum", 1)
 	pageSize, _ := l.GetInt("pagesize", 10)
-	category, _ := l.GetInt("category")
+	category := l.GetString("category")
 	keyword := l.GetString("keyword")
 	log.GLogger.Info("category:%d;keyword:%s", category, keyword)
 	var resp struct {
 		Total int                   `json:"total"`
 		List  []*oa.LowPriceArticle `json:"list"`
 	}
+	db := services.Slave()
+	if category != "" {
+		db = db.Where("low_price_article_category = ?", category)
+	}
+	if keyword != "" {
+
+	}
 	var lpa []*oa.LowPriceArticle
-	services.Slave().Limit(pageSize).Offset((pageNum - 1) * pageSize).Order("created_at desc").Find(&lpa).Limit(-1).Offset(-1).Count(&resp.Total)
+	db.Limit(pageSize).Offset((pageNum - 1) * pageSize).Order("created_at desc").Find(&lpa).Limit(-1).Offset(-1).Count(&resp.Total)
 	resp.List = lpa
 	l.Correct(resp)
 }

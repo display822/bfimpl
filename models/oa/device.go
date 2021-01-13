@@ -8,8 +8,9 @@ package oa
 
 import (
 	"bfimpl/models"
-	"github.com/jinzhu/gorm"
 	"time"
+
+	"github.com/jinzhu/gorm"
 )
 
 // Device 设备表
@@ -46,40 +47,32 @@ type Device struct {
 	DeviceApply        *DeviceApply         `json:"device_apply"`
 	IsApply            int                  `gorm:"size:10;not null;comment:'是否可申领'" json:"is_apply"`
 	DeviceRequisitions []*DeviceRequisition `json:"device_requisitions"`
+	DeviceApplys       []*DeviceApply       `json:"device_applys"`
 }
-
-//// DeviceLog 设备活动记录
-//type DeviceLog struct {
-//	gorm.Model
-//	DeviceID   int    `gorm:"size:50;not null;comment:'设备ID'" json:"device_id"`
-//	OperatorID int    `gorm:"size:10;not null;comment:'操作人id'" json:"operator_id"`
-//	Type       string `gorm:"size:10;not null;comment:'(入库,借出,归还)'" json:"type"`
-//	EID        int    `gorm:"size:10;not null;comment:'关联员工'" json:"eid"`
-//	EName      string `gorm:"size:10;not null;comment:'关联员工'" json:"ename"`
-//	Comment    string `gorm:"size:10;not null;comment:'备注'" json:"comment"`
-//}
 
 // DeviceApply 设备申请表
 type DeviceApply struct {
 	gorm.Model
-	DeviceID        int       `gorm:"size:50;not null;comment:'设备ID'" json:"device_id"`
-	Device          *Device   `gorm:"ForeignKey:DeviceID" json:"device"`
-	EngagementCode  string    `gorm:"size:64;comment:'任务指派编码'" json:"engagement_code"`
-	EmpID           int       `gorm:"comment:'报销申请人id'" json:"emp_id"`
-	Employee        *Employee `gorm:"ForeignKey:EmpID" json:"employee"`
-	EName           string    `gorm:"size:30;comment:'员工姓名'" json:"e_name"`
-	Status          string    `gorm:"size:20;comment:'申请状态'" json:"status"`
-	Project         string    `gorm:"size:64;comment:'项目'" json:"project"`
-	ApplicationDate time.Time `gorm:"type:date;comment:'申请日期'" json:"application_date"`
-	IsReturn        int       `gorm:"not null;comment:'是否归还'" json:"is_return"`
-	//OutgoingOperatorID int         `gorm:"not null;comment:'出库操作人ID，关联EmployeeID'" json:"outgoing_operator_id"`
-	//OutgoingTime       models.Time `gorm:"type:datetime;comment:'出库时间'" json:"outgoing_time"`
-	LeaderId int `gorm:"-" json:"leader_id"`
+	DeviceID             int         `gorm:"size:50;not null;comment:'设备ID'" json:"device_id"`
+	Device               *Device     `gorm:"ForeignKey:DeviceID" json:"device"`
+	EngagementCode       string      `gorm:"size:64;comment:'任务指派编码'" json:"engagement_code"`
+	EmpID                int         `gorm:"comment:'报销申请人id'" json:"emp_id"`
+	Employee             *Employee   `gorm:"ForeignKey:EmpID" json:"employee"`
+	EName                string      `gorm:"size:30;comment:'员工姓名'" json:"e_name"`
+	Status               string      `gorm:"size:20;comment:'申请状态'" json:"status"`
+	Project              string      `gorm:"size:64;comment:'项目'" json:"project"`
+	ApplicationDate      time.Time   `gorm:"type:date;comment:'申请日期'" json:"application_date"`
+	ReceiveDate          time.Time   `gorm:"type:date;comment:'领用日期'" json:"receive_date"`
+	IsReturn             int         `gorm:"not null;comment:'是否归还'" json:"is_return"`
+	OutgoingOperatorID   int         `gorm:"not null;comment:'出库操作人ID，关联EmployeeID'" json:"outgoing_operator_id"`
+	OutgoingOperatorName string      `gorm:"not null;comment:'出库操作人Name，关联EmployeeName'" json:"outgoing_operator_name"`
+	OutgoingTime         models.Time `gorm:"type:datetime;comment:'出库时间'" json:"outgoing_time"`
+	LeaderId             int         `gorm:"-" json:"leader_id"`
 }
 
 // DeviceApplyInfo 申请设备基本信息
 type DeviceApplyInfo struct {
-	Employee       *Employee
-	Device         *Device
-	CollectDevices []*Device
+	Employee       *Employee `json:"employee"`
+	Device         *Device   `json:"device"`
+	CollectDevices string    `json:"collect_devices"`
 }

@@ -1136,7 +1136,7 @@ func init() {
 	beego.GlobalControllerRouter["bfimpl/controllers:LowPriceArticleRequisitionController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:LowPriceArticleRequisitionController"],
 		beego.ControllerComments{
 			Method:           "Return",
-			Router:           `/return`,
+			Router:           `/:id/return`,
 			AllowHTTPMethods: []string{"post"},
 			MethodParams:     param.Make(),
 			Filters:          nil,
@@ -1189,7 +1189,7 @@ func init() {
 
 	beego.GlobalControllerRouter["bfimpl/controllers:DeviceController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:DeviceController"],
 		beego.ControllerComments{
-			Method:           "ApplyList",
+			Method:           "ListApply",
 			Router:           `/apply`,
 			AllowHTTPMethods: []string{"get"},
 			MethodParams:     param.Make(),
@@ -1199,7 +1199,7 @@ func init() {
 	beego.GlobalControllerRouter["bfimpl/controllers:DeviceController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:DeviceController"],
 		beego.ControllerComments{
 			Method:           "ApprovalDevice",
-			Router:           `/apply`,
+			Router:           `/apply/approval`,
 			AllowHTTPMethods: []string{"put"},
 			MethodParams:     param.Make(),
 			Filters:          nil,
@@ -1207,9 +1207,45 @@ func init() {
 
 	beego.GlobalControllerRouter["bfimpl/controllers:DeviceController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:DeviceController"],
 		beego.ControllerComments{
-			Method:           "RecallDevice",
-			Router:           `/apply/:id/recall`,
-			AllowHTTPMethods: []string{"post"},
+			Method:           "RevokeDevice",
+			Router:           `/apply/:id/revoke`,
+			AllowHTTPMethods: []string{"put"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:DeviceController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:DeviceController"],
+		beego.ControllerComments{
+			Method:           "ListDeviceApply",
+			Router:           `/:id/apply`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:DeviceController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:DeviceController"],
+		beego.ControllerComments{
+			Method:           "ReceiveDevice",
+			Router:           `/:id/receive`,
+			AllowHTTPMethods: []string{"put"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:DeviceController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:DeviceController"],
+		beego.ControllerComments{
+			Method:           "GetApply",
+			Router:           `/:id`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:DeviceController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:DeviceController"],
+		beego.ControllerComments{
+			Method:           "ApplyInfo",
+			Router:           `/apply/info`,
+			AllowHTTPMethods: []string{"get"},
 			MethodParams:     param.Make(),
 			Filters:          nil,
 			Params:           nil})
