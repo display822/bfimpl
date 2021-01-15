@@ -542,6 +542,10 @@ func (e *ExpenseController) GetProjects() {
 	if employee.ID == 0 {
 		e.ErrorOK("未找到员工信息")
 	}
+	if employee.Department == nil {
+		e.Correct(projects)
+	}
+
 	if employee.Department.ID == 0 {
 		e.Correct(projects)
 	}
