@@ -84,8 +84,9 @@ func (e *ExpenseController) List() {
 
 	if myReq {
 		query = query.Where("emp_id = ?", employee.ID)
-		query.Limit(pageSize).Offset((pageNum - 1) * pageSize).Order("created_at desc").Find(&expenses).Limit(-1).Offset(-1).Count(&resp.Total)
 	}
+
+	eIDs := make([]int, 0)
 
 	if myTodo {
 		userID, _ := e.GetInt("userID", 0)
@@ -112,17 +113,20 @@ func (e *ExpenseController) List() {
 				" and wn.node_seq != 1 order by w.entity_id desc", services.GetFlowDefID(services.Expense), userID, s).Scan(&ids)
 		}
 
-		resp.Total = len(ids)
-		log.GLogger.Info("resp.Total: %d", len(ids))
-		log.GLogger.Info("ids", ids)
-		start, end := getPage(resp.Total, pageSize, pageNum)
-		eIDs := make([]int, 0)
-		for _, eID := range ids[start:end] {
+		// resp.Total = len(ids)
+		// log.GLogger.Info("resp.Total: %d", len(ids))
+		// log.GLogger.Info("ids", ids)
+		// start, end := getPage(resp.Total, pageSize, pageNum)
+		// eIDs := make([]int, 0)
+		for _, eID := range ids {
 			eIDs = append(eIDs, eID.EntityID)
 		}
-		services.Slave().Model(oa.Expense{}).Preload("ExpenseDetails").Order("created_at desc").Where(eIDs).Find(&expenses)
+		// services.Slave().Model(oa.Expense{}).Preload("ExpenseDetails").Order("created_at desc").Where(eIDs).Find(&expenses)
 	}
-
+	if len(eIDs) != 0 {
+		query = query.Where(eIDs)
+	}
+	query.Limit(pageSize).Offset((pageNum - 1) * pageSize).Order("created_at desc").Find(&expenses).Limit(-1).Offset(-1).Count(&resp.Total)
 	resp.List = expenses
 	e.Correct(resp)
 }
@@ -503,7 +507,7 @@ func Read(f *excelize.File) ([]*oa.ExpenseDetail, error) {
 		vList := oa.ExpenseAccountValidMap[expenseAccount.ExpenseAccountName]
 		for _, v := range vList {
 			if colList[v] == "" {
-				errorArray = append(errorArray, fmt.Sprintf("第%d行备注%d未填写", x, v))
+				errorArray = append(errorArray, fmt.Sprintf("第%d行备注%d未填写", x, v-2))
 			}
 		}
 
