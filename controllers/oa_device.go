@@ -374,12 +374,17 @@ func (d *DeviceController) RevokeDevice() {
 	id, _ := d.GetInt(":id")
 	userID, _ := d.GetInt("userID")
 	deviceApply := new(oa.DeviceApply)
-	services.Slave().Debug().Preload("Employee").Take(deviceApply, "id = ?", id)
+	services.Slave().Debug().Preload("Device").Preload("Employee").Take(deviceApply, "id = ?", id)
 	log.GLogger.Info("deviceApply:%+v", deviceApply)
 
 	if deviceApply.EmpID != userID {
 		d.ErrorOK("没有权限")
 	}
+
+	if deviceApply.Status != models.FlowNA && deviceApply.Status != models.FlowApproved {
+		d.ErrorOK("不可撤销")
+	}
+
 	//oID 查询 workflow
 	workflow := new(oa.Workflow)
 	services.Slave().Model(oa.Workflow{}).Where("workflow_definition_id = ? and entity_id = ?",
