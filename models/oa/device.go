@@ -58,6 +58,7 @@ type Device struct {
 	IsApply            int                  `gorm:"size:10;not null;comment:'是否可申领'" json:"is_apply"`
 	DeviceRequisitions []*DeviceRequisition `json:"device_requisitions"`
 	DeviceApplys       []*DeviceApply       `json:"device_applys"`
+	CanApply           bool                 `json:"can_apply"`
 }
 
 // DeviceApply 设备申请表

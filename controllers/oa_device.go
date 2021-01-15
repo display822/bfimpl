@@ -122,6 +122,29 @@ func (d *DeviceController) List() {
 		}).
 		Preload("DeviceApply").
 		Find(&list).Limit(-1).Offset(-1).Count(&resp.Total)
+
+	for _, item := range list {
+		if item.DeviceStatus != models.DeviceFree {
+			item.CanApply = false
+			break
+		}
+
+		for _, a := range item.DeviceApplys {
+			if a.Status != models.FlowReceived && a.Status != models.FlowRevoked {
+				item.CanApply = false
+				break
+			}
+		}
+
+		var deviceApplys []*oa.DeviceApply
+		for _, a := range item.DeviceApplys {
+			if a.Status == models.FlowApproved || a.Status == models.FlowNA {
+				deviceApplys = append(deviceApplys, a)
+			}
+		}
+
+		item.DeviceApplys = deviceApplys
+	}
 	resp.List = list
 
 	d.Correct(resp)

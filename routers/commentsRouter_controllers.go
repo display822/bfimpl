@@ -1235,7 +1235,7 @@ func init() {
 	beego.GlobalControllerRouter["bfimpl/controllers:DeviceController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:DeviceController"],
 		beego.ControllerComments{
 			Method:           "GetApply",
-			Router:           `/:id`,
+			Router:           `/apply/:id`,
 			AllowHTTPMethods: []string{"get"},
 			MethodParams:     param.Make(),
 			Filters:          nil,
