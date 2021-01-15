@@ -13,6 +13,16 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
+var DeviceCategoryMap = map[string]struct{}{
+	"PC":      {},
+	"Laptop":  {},
+	"iMac":    {},
+	"Mobile":  {},
+	"Pad":     {},
+	"Monitor": {},
+	"Network": {},
+}
+
 // Device 设备表
 type Device struct {
 	gorm.Model
@@ -39,7 +49,7 @@ type Device struct {
 	MACAddress2        string               `grom:"size:80;comment:'MAC地址2'" json:"mac_address_2"`
 	Retailer           string               `gorm:"size:100;not null;comment:'零售商'" json:"retailer"`
 	PurchasePrice      float64              `gorm:"type:decimal(10,2);not null;comment:'购买价格'" json:"purchase_price"`
-	PurchaseDate       models.Time          `gorm:"type:datetime;not null;comment:'购买日期'" json:"purchase_date"`
+	PurchaseDate       models.Time          `gorm:"type:datetime;comment:'购买日期'" json:"purchase_date"`
 	VAT                float64              `gorm:"type:decimal(10,2);not null;comment:'增值税金额'" json:"vat"`
 	WarrantyPeriod     int                  `gorm:"not null;comment:'保修期限'" json:"warranty_period"`
 	Site               string               `gorm:"size:100;not null;comment:'位置'" json:"site"`

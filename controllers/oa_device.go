@@ -46,6 +46,11 @@ func (d *DeviceController) Create() {
 		d.ErrorOK(MsgInvalidParam)
 	}
 
+	_, ok := oa.DeviceCategoryMap[param.DeviceCategory]
+	if !ok {
+		d.ErrorOK("param device_category error")
+	}
+
 	param.IngoingOperatorID = userID
 	param.IngoingTime = models.Time(time.Now())
 
@@ -155,6 +160,11 @@ func (d *DeviceController) Put() {
 		d.ErrorOK(MsgInvalidParam)
 	}
 	log.GLogger.Info("param :%+v", param)
+
+	_, ok := oa.DeviceCategoryMap[param.DeviceCategory]
+	if !ok {
+		d.ErrorOK("param device_category error")
+	}
 
 	var device oa.Device
 	err = services.Slave().Where("id = ?", param.ID).Find(&device).Error
