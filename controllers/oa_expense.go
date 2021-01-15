@@ -534,14 +534,18 @@ func Read(f *excelize.File) ([]*oa.ExpenseDetail, error) {
 func (e *ExpenseController) GetProjects() {
 	desc := e.GetString("desc")
 	uEmail := e.GetString("userEmail")
+	//查询部门下项目list
+	projects := make([]*oa.EngagementCode, 0)
 	//获取emp_info
 	employee := new(oa.Employee)
 	services.Slave().Preload("Department").Preload("Department.Leader").Take(employee, "email = ?", uEmail)
 	if employee.ID == 0 {
 		e.ErrorOK("未找到员工信息")
 	}
-	//查询部门下项目list
-	projects := make([]*oa.EngagementCode, 0)
+	if employee.Department.ID == 0 {
+		e.Correct(projects)
+	}
+
 	query := services.Slave().Model(oa.EngagementCode{}).Preload("Owner").Where("department_id = ?", employee.Department.ID)
 	if desc != "" {
 		query = query.Where("engagement_code_desc like ?", "%"+desc+"%")
