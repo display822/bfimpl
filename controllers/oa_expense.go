@@ -70,7 +70,9 @@ func (e *ExpenseController) List() {
 	if name != "" {
 		query = query.Where("e_name like ?", "%"+name+"%")
 	}
-
+	if status != "" {
+		query = query.Where("status = ?", status)
+	}
 	if applicationDateBegin != "" && applicationDateEnd != "" {
 		query = query.Where("application_date > ?", applicationDateBegin).Where("application_date <= ?", applicationDateEnd)
 	}
@@ -81,9 +83,6 @@ func (e *ExpenseController) List() {
 	}
 
 	if myReq {
-		if status != "" {
-			query = query.Where("status = ?", status)
-		}
 		query = query.Where("emp_id = ?", employee.ID)
 	}
 
@@ -94,7 +93,7 @@ func (e *ExpenseController) List() {
 		log.GLogger.Info("userID：%d", userID)
 		ids := make([]oa.EntityID, 0)
 		var s []string
-		if status == "" && e.GetString("todostatus") != "" {
+		if e.GetString("todostatus") != "" {
 			if userType == models.UserFinance {
 				s = oa.TodoStatusFinanceMap[e.GetString("todostatus")]
 			} else {
