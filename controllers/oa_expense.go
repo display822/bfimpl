@@ -105,7 +105,6 @@ func (e *ExpenseController) List() {
 			services.Slave().Debug().Raw("select w.entity_id from workflows w,workflow_nodes wn where w.id = "+
 				"wn.workflow_id and w.workflow_definition_id = ? and operator_id = ?"+
 				" and wn.node_seq != 1 order by w.entity_id desc", services.GetFlowDefID(services.Expense), userID).Scan(&ids)
-			fmt.Println("111111111111111")
 			// services.Slave().Debug().Raw("select w.entity_id from workflows w,workflow_nodes wn where w.id = "+
 			// 	"wn.workflow_id and w.workflow_definition_id = ? and operator_id = ?"+
 			// 	" and wn.node_seq != 1 order by w.entity_id desc", services.GetFlowDefID(services.Expense), userID).Scan(&ids)
@@ -123,17 +122,19 @@ func (e *ExpenseController) List() {
 		for _, eID := range ids {
 			eIDs = append(eIDs, eID.EntityID)
 		}
+		if len(eIDs) != 0 {
+			query = query.Where(eIDs)
+		}
 		// services.Slave().Model(oa.Expense{}).Preload("ExpenseDetails").Order("created_at desc").Where(eIDs).Find(&expenses)
 	}
-	if len(eIDs) != 0 {
-		query = query.Where(eIDs)
-	} else {
-		var resp struct {
-			Total int           `json:"total"`
-			List  []*oa.Expense `json:"list"`
-		}
-		e.Correct(resp)
-	}
+
+	// } else {
+	// 	var resp struct {
+	// 		Total int           `json:"total"`
+	// 		List  []*oa.Expense `json:"list"`
+	// 	}
+	// 	e.Correct(resp)
+	// }
 	query.Limit(pageSize).Offset((pageNum - 1) * pageSize).Order("created_at desc").Find(&expenses).Limit(-1).Offset(-1).Count(&resp.Total)
 	resp.List = expenses
 	e.Correct(resp)

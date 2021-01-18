@@ -811,6 +811,15 @@ func init() {
 
 	beego.GlobalControllerRouter["bfimpl/controllers:AttendanceController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:AttendanceController"],
 		beego.ControllerComments{
+			Method:           "GetUserAttendanceTmpByDay",
+			Router:           `/attendance/tmp/day`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:AttendanceController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:AttendanceController"],
+		beego.ControllerComments{
 			Method:           "GetUserAttendanceByMonth",
 			Router:           `/attendance`,
 			AllowHTTPMethods: []string{"get"},

@@ -274,6 +274,35 @@ func (a *AttendanceController) CreateAttendanceTmp() {
 	a.Correct(param)
 }
 
+// @Title 查询考勤临时数据天
+// @Description 查询考勤
+// @Param	name	query	string	true	"姓名"
+// @Param	data	query	string	false	"时间"
+// @Success 200 {string} "success"
+// @Failure 500 server err
+// @router /attendance/tmp/day [get]
+func (a *AttendanceController) GetUserAttendanceTmpByDay() {
+	name := a.GetString("name")
+	if name == "" {
+		a.ErrorOK("请选择员工姓名")
+	}
+	date := a.GetString("date")
+	if date == "" {
+		a.ErrorOK("need date")
+	}
+
+	tmpData := make([]*oa.AttendanceTmp, 0)
+	services.Slave().Model(oa.AttendanceTmp{}).Where("name = ? and attendance_date = ?",
+		name, date).Find(&tmpData)
+
+	result := &oa.UserAttendanceTmp{
+		Date: date,
+		Tmps: tmpData,
+	}
+
+	a.Correct(result)
+}
+
 // @Title 查询考勤临时数据
 // @Description 查询考勤
 // @Param	name	query	string	true	"姓名"
