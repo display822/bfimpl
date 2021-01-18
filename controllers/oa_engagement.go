@@ -206,6 +206,7 @@ func (e *EngagementController) Create() {
 	var eng []oa.Engagement
 	log.GLogger.Info("res[0].PeriodTime", res[0].PeriodTime)
 	err = services.Slave().Where("period_time = ?", res[0].PeriodTime).Where("department_id = ?", userID).Find(&eng).Error
+	log.GLogger.Info("len(eng)", len(eng))
 	if err == nil {
 		log.GLogger.Info("Exist")
 		err = services.Slave().Delete(&eng).Error
