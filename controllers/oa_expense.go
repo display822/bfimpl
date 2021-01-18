@@ -335,6 +335,56 @@ func (e *ExpenseController) ApprovalExpense() {
 	e.Correct("")
 }
 
+// @Title 批量支付报销
+// @Description 批量支付报销
+// @Param	ids	path	string	true	"报销ids"
+// @Success 200 {string} "success"
+// @Failure 500 server err
+// @router /paid/batch [put]
+func (e *ExpenseController) BatchPaidExpense() {
+	ids := e.GetString("ids")
+	idList := strings.Split(ids, ",")
+	for _, id := range idList {
+		expense := new(oa.Expense)
+		services.Slave().Debug().Preload("Employee").Take(expense, "id = ?", id)
+		log.GLogger.Info("expense:%+v", expense)
+		log.GLogger.Info("expense.Employee.Email:%s", expense.Employee.Email)
+
+		//oID 查询 workflow
+		workflow := new(oa.Workflow)
+		services.Slave().Model(oa.Workflow{}).Where("workflow_definition_id = ? and entity_id = ?",
+			services.GetFlowDefID(services.Expense), id).Preload("Nodes").Preload("Nodes.User").
+			Preload("Elements").First(workflow)
+		if workflow.Nodes == nil || len(workflow.Nodes) != 4 {
+			e.ErrorOK("工作流配置错误")
+		}
+		userID, _ := e.GetInt("userID", 0)
+
+		if workflow.Nodes[len(workflow.Nodes)-1].OperatorID != userID {
+			e.ErrorOK("您不是当前审批人")
+		}
+
+		var paymentDate *time.Time
+
+		status := models.FlowPaid
+		t := time.Now()
+		paymentDate = &t
+		paidCardInfo := e.GetDebitCard(expense.EmpID)
+		go services.EmailExpensePaid(expense.Employee.Email, expense.Employee.Name, expense.ExpenseSummary, paidCardInfo.CardID, expense.ApplicationDate)
+
+		workflow.Status = status
+		services.Slave().Model(oa.Expense{}).Where("id = ?", id).Updates(map[string]interface{}{
+			"status":       status,
+			"payment_date": paymentDate,
+		})
+
+		workflow.Nodes[len(workflow.Nodes)-1].Status = status
+		services.Slave().Save(workflow)
+	}
+
+	e.Correct("")
+}
+
 // @Title 支付报销
 // @Description 支付报销
 // @Param	body	body	forms.ReqApprovalExpense	true
