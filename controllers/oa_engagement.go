@@ -292,9 +292,9 @@ func EngagementDetailFile(f *excelize.File, departmentID int) ([]*oa.Engagement,
 	}
 	log.GLogger.Info("len(rows[0]): %d", len(rows[0]))
 
-	if len(rows[0]) < 9 {
-		return nil, errors.New("首行表头字段有误, 无法识别")
-	}
+	// if len(rows[0]) < 9 {
+	// 	return nil, errors.New("首行表头字段有误, 无法识别")
+	// }
 
 	projectCodeIndex := rows[0][0]
 	if projectCodeIndex != "项目编号" {
@@ -303,6 +303,11 @@ func EngagementDetailFile(f *excelize.File, departmentID int) ([]*oa.Engagement,
 	empNameIndex := rows[0][1]
 	if empNameIndex != "员工" {
 		return nil, errors.New("首行表头字段有误, 无法识别")
+	}
+
+	fmt.Println("rows[0][1:]", len(rows[0][2:]))
+	if len(rows[0][2:]) != 7 {
+		return nil, errors.New("日期数据有误 请保证上传的是一周数据")
 	}
 
 	workTimeIndex, err := time.Parse("01-02-06", rows[0][2])
