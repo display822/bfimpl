@@ -1115,6 +1115,15 @@ func init() {
 			Filters:          nil,
 			Params:           nil})
 
+	beego.GlobalControllerRouter["bfimpl/controllers:DeviceController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:DeviceController"],
+		beego.ControllerComments{
+			Method:           "ListOutgoingByEmployee",
+			Router:           `/employee/outgoing`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
 	beego.GlobalControllerRouter["bfimpl/controllers:LowPriceArticleController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:LowPriceArticleController"],
 		beego.ControllerComments{
 			Method:           "Get",
