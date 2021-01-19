@@ -72,8 +72,8 @@ type DeviceApply struct {
 	EName                string      `gorm:"size:30;comment:'员工姓名'" json:"e_name"`
 	Status               string      `gorm:"size:20;comment:'申请状态'" json:"status"`
 	Project              string      `gorm:"size:64;comment:'项目'" json:"project"`
-	ApplicationDate      time.Time   `gorm:"type:date;comment:'申请日期'" json:"application_date"`
-	ReceiveDate          time.Time   `gorm:"type:date;comment:'领用日期'" json:"receive_date"`
+	ApplicationDate      time.Time   `gorm:"type:datetime;comment:'申请日期'" json:"application_date"`
+	ReceiveDate          time.Time   `gorm:"type:datetime;comment:'领用日期'" json:"receive_date"`
 	IsReturn             int         `gorm:"not null;comment:'是否归还'" json:"is_return"`
 	OutgoingOperatorID   int         `gorm:"not null;comment:'出库操作人ID，关联EmployeeID'" json:"outgoing_operator_id"`
 	OutgoingOperatorName string      `gorm:"not null;comment:'出库操作人Name，关联EmployeeName'" json:"outgoing_operator_name"`

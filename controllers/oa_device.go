@@ -14,6 +14,7 @@ import (
 	"bfimpl/services/log"
 	"encoding/json"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -801,4 +802,52 @@ func (d *DeviceController) ListOutgoingByEmployee() {
 		Find(&deviceApplys)
 
 	d.Correct(deviceApplys)
+}
+
+// @Title 员工下归还列表
+// @Description 员工下归还列表
+// @Success 200 {string} ""
+// @Failure 500 server internal err
+// @router /employee/return [get]
+func (d *DeviceController) ListReturnByEmployee() {
+	uID, _ := d.GetInt("userID")
+	log.GLogger.Info("uID:%d", uID)
+	var returns []*forms.Return
+
+	// 先获取易耗品id
+	var deviceApplys []*oa.DeviceApply
+	services.Slave().Where("status = ?", models.DeviceReturn).
+		Where("emp_id = ?", uID).
+		Preload("Device").
+		Find(&deviceApplys)
+
+	log.GLogger.Info("deviceApplys:%d", deviceApplys)
+	for _, a := range deviceApplys {
+		returns = append(returns, &forms.Return{
+			ID:        a.DeviceID,
+			Name:      a.Device.DeviceName,
+			CreatedAt: a.CreatedAt,
+		})
+	}
+
+	// 先获取易耗品id
+	var articleRequisitions []*oa.LowPriceArticleRequisition
+	services.Slave().Where("operator_category = ?", models.DeviceReturn).
+		Where("associate_employee_id = ?", uID).
+		Preload("LowPriceArticle").
+		Find(&articleRequisitions)
+
+	log.GLogger.Info("articleRequisitions:%d", articleRequisitions)
+
+	for _, a := range articleRequisitions {
+		returns = append(returns, &forms.Return{
+			ID:        a.LowPriceArticleID,
+			Name:      a.LowPriceArticle.LowPriceArticleName,
+			CreatedAt: a.CreatedAt,
+		})
+	}
+
+	sort.Sort(forms.ReturnByCreatedAt(returns))
+
+	d.Correct(returns)
 }

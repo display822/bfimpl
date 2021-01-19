@@ -152,43 +152,8 @@ func (l *LowPriceArticleController) ListOutgoingByEmployee() {
 			return db.Where("operator_category = ?", models.DeviceOutgoing).
 				Where("is_return = ?", 0).
 				Where("associate_employee_id = ?", uID).Order("created_at desc")
-			// return db.
 		}).
 		Find(&articles)
 
 	l.Correct(articles)
 }
-
-// // @Title 员工下易耗品归还列表
-// // @Description 员工下易耗品归还列表
-// // @Success 200 {string} ""
-// // @Failure 500 server internal err
-// // @router /employee/return [get]
-// func (l *LowPriceArticleController) ListReturnByEmployee() {
-// 	eId := l.GetString("eid")
-// 	if eId == "" {
-// 		l.ErrorOK("need eid")
-// 	}
-// 	log.GLogger.Info("eId:%d", eId)
-//
-// 	// 先获取易耗品id
-// 	var articleRequisitions []*oa.LowPriceArticleRequisition
-// 	var returns []*forms.Return
-// 	services.Slave().Where("operator_category = ?", models.DeviceReturn).
-// 		Where("associate_employee_id = ?", eId).
-// 		Preload("LowPriceArticle").
-// 		Find(&articleRequisitions)
-//
-// 	log.GLogger.Info("articleRequisitions:%d", articleRequisitions)
-//
-// 	for _, a := range articleRequisitions {
-// 		returns = append(returns, &forms.Return{
-// 			LowPriceArticleID:   a.LowPriceArticleID,
-// 			LowPriceArticleName: a.LowPriceArticle.LowPriceArticleName,
-// 			CreatedAt:           a.CreatedAt,
-// 		})
-// 	}
-// 	sort.Sort(forms.ReturnByCreatedAt(returns))
-//
-// 	l.Correct(returns)
-// }
