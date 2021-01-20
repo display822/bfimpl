@@ -83,11 +83,12 @@ func (l *LowPriceArticleRequisitionController) Outgoing() {
 		l.ErrorOK("数量不足")
 	}
 
-	log.GLogger.Info("low_price_article_requisition :%+v", lpar)
+	lpar.OperatorID = uID
+	lpar.OperatorName =
+
+		log.GLogger.Info("low_price_article_requisition :%+v", lpar)
 	var lpars []*oa.LowPriceArticleRequisition
 	for i := 0; i < lpar.Quantity; i++ {
-		lpar.OperatorID = uID
-		lpar.OperatorName = uName
 		lpars = append(lpars, lpar)
 	}
 	// 添加借出记录
