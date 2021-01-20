@@ -121,7 +121,9 @@ func (d *DeviceController) List() {
 		Preload("DeviceApplys", func(db *gorm.DB) *gorm.DB {
 			return db.Where("status = ?", models.FlowApproved).Or("status =?", models.FlowNA)
 		}).
-		Preload("DeviceApply").
+		Preload("DeviceApply", func(db *gorm.DB) *gorm.DB {
+			return db.Where("status = ?", models.FlowReceived)
+		}).
 		Find(&list).Limit(-1).Offset(-1).Count(&resp.Total)
 
 	for _, item := range list {
