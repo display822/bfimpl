@@ -33,19 +33,19 @@ type LowPriceArticleRequisition struct {
 func BatchRequisitionOutGoing(db *gorm.DB, lpars []*LowPriceArticleRequisition) error {
 	var buffer bytes.Buffer
 	sql := "insert into `low_price_article_requisitions` (`created_at`,`updated_at`,`low_price_article_id`,`operator_id`," +
-		"`associate_employee_id`,`associate_employee_name`, `operator_category`,`quantity`,`comment`) values"
+		"`operator_name`, `associate_employee_id`,`associate_employee_name`, `operator_category`,`quantity`,`comment`) values"
 	if _, err := buffer.WriteString(sql); err != nil {
 		return err
 	}
 	for i, lpar := range lpars {
 		if i == len(lpars)-1 {
-			buffer.WriteString(fmt.Sprintf("('%s','%s',%d, %d, %d,'%s','%s',%d,'%s');", time.Now(),
-				time.Now(), lpar.LowPriceArticleID, lpar.OperatorID, lpar.AssociateEmployeeID, lpar.AssociateEmployeeName,
+			buffer.WriteString(fmt.Sprintf("('%s','%s',%d, %d, '%s', %d,'%s','%s',%d,'%s');", time.Now(),
+				time.Now(), lpar.LowPriceArticleID, lpar.OperatorID, lpar.OperatorName, lpar.AssociateEmployeeID, lpar.AssociateEmployeeName,
 				models.DeviceOutgoing, 1, lpar.Comment,
 			))
 		} else {
-			buffer.WriteString(fmt.Sprintf("('%s','%s',%d, %d, %d,'%s','%s',%d,'%s'),", time.Now(),
-				time.Now(), lpar.LowPriceArticleID, lpar.OperatorID, lpar.AssociateEmployeeID, lpar.AssociateEmployeeName,
+			buffer.WriteString(fmt.Sprintf("('%s','%s',%d, %d, '%s', %d,'%s','%s',%d,'%s'),", time.Now(),
+				time.Now(), lpar.LowPriceArticleID, lpar.OperatorID, lpar.OperatorName, lpar.AssociateEmployeeID, lpar.AssociateEmployeeName,
 				models.DeviceOutgoing, 1, lpar.Comment,
 			))
 		}
