@@ -11,7 +11,7 @@ func (p ReturnByCreatedAt) Less(i, j int) bool { return p[i].CreatedAt.After(p[j
 func (p ReturnByCreatedAt) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
 type Return struct {
-	ID        int       `json:"id"`
-	Name      string    `json:"_name"`
+	ID        string    `json:"id"`
+	Name      string    `json:"name"`
 	CreatedAt time.Time `json:"created_at"`
 }

@@ -15,6 +15,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -828,7 +829,7 @@ func (d *DeviceController) ListReturnByEmployee() {
 	log.GLogger.Info("deviceApplys:%d", deviceApplys)
 	for _, a := range deviceApplys {
 		returns = append(returns, &forms.Return{
-			ID:        a.DeviceID,
+			ID:        a.Device.DeviceCode,
 			Name:      a.Device.DeviceName,
 			CreatedAt: a.CreatedAt,
 		})
@@ -845,7 +846,7 @@ func (d *DeviceController) ListReturnByEmployee() {
 
 	for _, a := range articleRequisitions {
 		returns = append(returns, &forms.Return{
-			ID:        a.LowPriceArticleID,
+			ID:        strconv.Itoa(a.LowPriceArticleID),
 			Name:      a.LowPriceArticle.LowPriceArticleName,
 			CreatedAt: a.CreatedAt,
 		})
