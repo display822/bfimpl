@@ -12,6 +12,7 @@ import (
 	"bfimpl/services"
 	"bfimpl/services/log"
 	"encoding/json"
+	"fmt"
 	"strings"
 )
 
@@ -44,7 +45,7 @@ func (l *LowPriceArticleRequisitionController) List() {
 		db = db.Where("operator_category = ?", category)
 	}
 	if employeeName != "" {
-		db = db.Where("associate_employee_name = ?", employeeName)
+		db = db.Where("associate_employee_name like ?", fmt.Sprintf("%%%s%%", employeeName))
 	}
 	db.Where("low_price_article_id =?", lowPriceArticleID).Limit(pageSize).Offset((pageNum - 1) * pageSize).Order("created_at desc").Find(&lpar).Limit(-1).Offset(-1).Count(&resp.Total)
 	resp.List = lpar
