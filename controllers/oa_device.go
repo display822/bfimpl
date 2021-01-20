@@ -280,10 +280,14 @@ func (d *DeviceController) ListApply() {
 	log.GLogger.Info("employee: %+v", employee)
 
 	deviceApplys := make([]*oa.DeviceApply, 0)
-	query := services.Slave().Debug().Model(oa.DeviceApply{})
+	query := services.Slave().Debug().Select("device_applies.*").
+		Joins("LEFT JOIN devices ON device_applies.device_id = devices.id and devices.deleted_at is NULL")
 
 	if len(statusList) != 0 {
 		for k, status := range statusList {
+			if status == "" {
+				continue
+			}
 			if k == 0 {
 				query = query.Where("status = ?", status)
 			} else {
@@ -293,7 +297,7 @@ func (d *DeviceController) ListApply() {
 	}
 
 	if category != "" {
-		query = query.Where("category = ?", category)
+		query = query.Where("devices.device_category = ?", category)
 	}
 
 	var resp struct {
@@ -302,7 +306,7 @@ func (d *DeviceController) ListApply() {
 	}
 
 	if myReq {
-		query = query.Where("emp_id = ?", employee.ID)
+		query = query.Where("device_applies.emp_id = ?", employee.ID)
 	}
 
 	eIDs := make([]int, 0)
@@ -327,7 +331,7 @@ func (d *DeviceController) ListApply() {
 			query = query.Where(eIDs)
 		}
 	}
-	query.Limit(pageSize).Offset((pageNum - 1) * pageSize).Preload("device").Order("created_at desc").Find(&deviceApplys).Limit(-1).Offset(-1).Count(&resp.Total)
+	query.Limit(pageSize).Offset((pageNum - 1) * pageSize).Preload("Device").Order("device_applies.created_at desc").Find(&deviceApplys).Limit(-1).Offset(-1).Count(&resp.Total)
 
 	resp.List = deviceApplys
 	d.Correct(resp)
