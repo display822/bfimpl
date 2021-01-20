@@ -84,9 +84,7 @@ func (l *LowPriceArticleRequisitionController) Outgoing() {
 	}
 
 	lpar.OperatorID = uID
-	lpar.OperatorName =
-
-		log.GLogger.Info("low_price_article_requisition :%+v", lpar)
+	lpar.OperatorName = uName
 	var lpars []*oa.LowPriceArticleRequisition
 	for i := 0; i < lpar.Quantity; i++ {
 		lpars = append(lpars, lpar)
