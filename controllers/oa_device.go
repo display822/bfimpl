@@ -802,7 +802,7 @@ func (d *DeviceController) ListOutgoingByEmployee() {
 	services.Slave().Where("status =?", models.FlowReceived).
 		Where("emp_id =?", uID).
 		Preload("Device").
-		Order("created_at desc").
+		Order("receive_date desc").
 		Find(&deviceApplys)
 
 	d.Correct(deviceApplys)
