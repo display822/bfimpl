@@ -267,16 +267,13 @@ func (d *DeviceController) ListApply() {
 	pageSize, _ := d.GetInt("pagesize", 10)
 	pageNum, _ := d.GetInt("pagenum", 1)
 	userType, _ := d.GetInt("userType", 0)
-	name := d.GetString("name")
 	myReq, _ := d.GetBool("myreq", false)
 	myTodo, _ := d.GetBool("mytodo", false)
 	status := d.GetString("status")
 	userEmail := d.GetString("userEmail")
-	searchID := d.GetString("searchid")
-	applicationDateBegin := d.GetString("application_date_begin")
-	applicationDateEnd := d.GetString("application_date_end")
-
-	log.GLogger.Info("params", userEmail, userType, name, myReq, status, searchID, pageNum, pageSize, applicationDateBegin, applicationDateEnd)
+	statusList := strings.Split(status, ",")
+	category := d.GetString("category")
+	log.GLogger.Info("params", userEmail, userType, myReq, statusList, pageNum, pageSize)
 
 	employee := new(oa.Employee)
 	services.Slave().Where("email = ?", userEmail).First(employee)
@@ -284,14 +281,19 @@ func (d *DeviceController) ListApply() {
 
 	deviceApplys := make([]*oa.DeviceApply, 0)
 	query := services.Slave().Debug().Model(oa.DeviceApply{})
-	//if searchID != "" {
-	//	query = query.Where("id like ?", fmt.Sprintf("%%%s%%", searchID))
-	//}
-	//if name != "" {
-	//	query = query.Where("e_name like ?", "%"+name+"%")
-	//}
-	if status != "" {
-		query = query.Where("status = ?", status)
+
+	if len(statusList) != 0 {
+		for k, status := range statusList {
+			if k == 0 {
+				query = query.Where("status = ?", status)
+			} else {
+				query = query.Or("status = ?", status)
+			}
+		}
+	}
+
+	if category != "" {
+		query = query.Where("category = ?", category)
 	}
 
 	var resp struct {
@@ -301,33 +303,31 @@ func (d *DeviceController) ListApply() {
 
 	if myReq {
 		query = query.Where("emp_id = ?", employee.ID)
-		query.Limit(pageSize).Offset((pageNum - 1) * pageSize).Preload("device").Order("created_at desc").Find(&deviceApplys).Limit(-1).Offset(-1).Count(&resp.Total)
 	}
+
+	eIDs := make([]int, 0)
 
 	if myTodo {
 		userID, _ := d.GetInt("userID", 0)
 		log.GLogger.Info("userID：%d", userID)
 		ids := make([]oa.EntityID, 0)
-		if status == "" {
+		if len(statusList) == 0 {
 			services.Slave().Debug().Raw("select w.entity_id from workflows w,workflow_nodes wn where w.id = "+
 				"wn.workflow_id and w.workflow_definition_id = ? and operator_id = ? and wn.status <> ?"+
 				" and wn.node_seq != 1 order by w.entity_id desc", services.GetFlowDefID(services.Device), userID, models.FlowHide).Scan(&ids)
 		} else {
 			services.Slave().Debug().Raw("select w.entity_id from workflows w,workflow_nodes wn where w.id = "+
 				"wn.workflow_id and w.workflow_definition_id = ? and operator_id = ? and wn.status = ?"+
-				" and wn.node_seq != 1 order by w.entity_id desc", services.GetFlowDefID(services.Device), userID, status).Scan(&ids)
+				" and wn.node_seq != 1 order by w.entity_id desc", services.GetFlowDefID(services.Device), userID, statusList).Scan(&ids)
 		}
-
-		resp.Total = len(ids)
-		log.GLogger.Info("resp.Total: %d", len(ids))
-		log.GLogger.Info("ids", ids)
-		start, end := getPage(resp.Total, pageSize, pageNum)
-		eIDs := make([]int, 0)
-		for _, eID := range ids[start:end] {
+		for _, eID := range ids {
 			eIDs = append(eIDs, eID.EntityID)
 		}
-		services.Slave().Debug().Model(&oa.DeviceApply{}).Preload("Device").Order("created_at desc").Where(eIDs).Find(&deviceApplys)
+		if len(eIDs) != 0 {
+			query = query.Where(eIDs)
+		}
 	}
+	query.Limit(pageSize).Offset((pageNum - 1) * pageSize).Preload("device").Order("created_at desc").Find(&deviceApplys).Limit(-1).Offset(-1).Count(&resp.Total)
 
 	resp.List = deviceApplys
 	d.Correct(resp)
