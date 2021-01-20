@@ -260,6 +260,8 @@ func (d *DeviceController) GetProjects() {
 // @Param	myreq	query	bool	false	"我的报销"
 // @Param	mytodo	query	bool	false	"我的审核"
 // @Param	status	query	int	false	"状态"
+// @Param	category	query	string	false	"类别"
+// @Param	search	query	string	false	"search"
 // @Success 200 {object} []oa.DeviceApply
 // @Failure 500 server internal err
 // @router /apply [get]
@@ -273,6 +275,7 @@ func (d *DeviceController) ListApply() {
 	userEmail := d.GetString("userEmail")
 	statusList := strings.Split(status, ",")
 	category := d.GetString("category")
+	search := d.GetString("search")
 	log.GLogger.Info("params", userEmail, userType, myReq, statusList, pageNum, pageSize)
 
 	employee := new(oa.Employee)
@@ -298,6 +301,15 @@ func (d *DeviceController) ListApply() {
 
 	if category != "" {
 		query = query.Where("devices.device_category = ?", category)
+	}
+
+	if search != "" {
+		query = query.Where("devices.device_category like ?", fmt.Sprintf("%%%s%%", search))
+		query = query.Or("devices.device_code like ?", fmt.Sprintf("%%%s%%", search))
+		query = query.Or("device_applies.id like ?", fmt.Sprintf("%%%s%%", search))
+		query = query.Or("devices.brand like ?", fmt.Sprintf("%%%s%%", search))
+		query = query.Or("devices.device_model like ?", fmt.Sprintf("%%%s%%", search))
+		query = query.Or("device_applies.project like ?", fmt.Sprintf("%%%s%%", search))
 	}
 
 	var resp struct {
