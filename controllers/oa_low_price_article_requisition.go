@@ -58,6 +58,8 @@ func (l *LowPriceArticleRequisitionController) List() {
 // @Failure 500 server internal err
 // @router /outgoing [post]
 func (l *LowPriceArticleRequisitionController) Outgoing() {
+	uID, _ := l.GetInt("userID", 0)
+	uName := l.GetString("userName")
 	lpar := new(oa.LowPriceArticleRequisition)
 	err := json.Unmarshal(l.Ctx.Input.RequestBody, lpar)
 	if err != nil {
@@ -84,6 +86,8 @@ func (l *LowPriceArticleRequisitionController) Outgoing() {
 	log.GLogger.Info("low_price_article_requisition :%+v", lpar)
 	var lpars []*oa.LowPriceArticleRequisition
 	for i := 0; i < lpar.Quantity; i++ {
+		lpar.OperatorID = uID
+		lpar.OperatorName = uName
 		lpars = append(lpars, lpar)
 	}
 	// 添加借出记录
@@ -117,6 +121,7 @@ func (l *LowPriceArticleRequisitionController) Outgoing() {
 // @router /:id/return [post]
 func (l *LowPriceArticleRequisitionController) Return() {
 	uID, _ := l.GetInt("userID", 0)
+	uName := l.GetString("userName")
 	id := l.GetString(":id")
 	if id == "" {
 		l.ErrorOK("need id")
@@ -159,10 +164,12 @@ func (l *LowPriceArticleRequisitionController) Return() {
 	newLowPriceArticleRequisition := &oa.LowPriceArticleRequisition{
 		LowPriceArticleID:     lpar.LowPriceArticleID,
 		OperatorID:            uID,
+		OperatorName:          uName,
 		AssociateEmployeeID:   lpar.AssociateEmployeeID,
 		AssociateEmployeeName: lpar.AssociateEmployeeName,
 		OperatorCategory:      models.DeviceReturn,
 		Quantity:              1,
+		Comment:               lpar.Comment,
 	}
 
 	// 添加一条归还记录
@@ -187,10 +194,10 @@ func (l *LowPriceArticleRequisitionController) Return() {
 		baofei := &oa.LowPriceArticleRequisition{
 			LowPriceArticleID: lpar.LowPriceArticleID,
 			OperatorID:        uID,
-			// AssociateEmployeeID:   lpar.AssociateEmployeeID,
-			// AssociateEmployeeName: lpar.AssociateEmployeeName,
-			OperatorCategory: models.DeviceScrap,
-			Quantity:         1,
+			OperatorName:      uName,
+			OperatorCategory:  models.DeviceScrap,
+			Quantity:          1,
+			Comment:           lpar.Comment,
 		}
 		// 添加一条报废记录
 		err = tx.Create(&baofei).Error
@@ -226,6 +233,7 @@ func (l *LowPriceArticleRequisitionController) Return() {
 // @router /return/batch [post]
 func (l *LowPriceArticleRequisitionController) BatchReturn() {
 	uID, _ := l.GetInt("userID", 0)
+	uName := l.GetString("userName")
 	ids := l.GetString("ids")
 	idList := strings.Split(ids, ",")
 	log.GLogger.Info("uID :%d", uID)
@@ -270,7 +278,7 @@ func (l *LowPriceArticleRequisitionController) BatchReturn() {
 	log.GLogger.Info("lpars", lpars)
 
 	// 批量插入归还记录
-	err := oa.BatchRequisitionReturn(tx, uID, lpars)
+	err := oa.BatchRequisitionReturn(tx, uID, uName, lpars)
 	if err != nil {
 		log.GLogger.Error("BatchRequisitionReturn err:%s", err.Error())
 		tx.Rollback()
@@ -278,7 +286,6 @@ func (l *LowPriceArticleRequisitionController) BatchReturn() {
 	}
 
 	// 批量更新为已归还
-
 	err = tx.Model(&oa.LowPriceArticleRequisition{}).Where("id in (?)", ids).Update("is_return", 1).Error
 	if err != nil {
 		log.GLogger.Error("update is_return err:%s", err.Error())
@@ -307,6 +314,7 @@ func (l *LowPriceArticleRequisitionController) BatchReturn() {
 func (l *LowPriceArticleRequisitionController) Scrap() {
 	// 添加一条归还记录
 	uID, _ := l.GetInt("userID", 0)
+	uName := l.GetString("userName")
 	lpar := new(oa.LowPriceArticleRequisition)
 	err := json.Unmarshal(l.Ctx.Input.RequestBody, lpar)
 	if err != nil {
@@ -330,19 +338,18 @@ func (l *LowPriceArticleRequisitionController) Scrap() {
 
 	log.GLogger.Info("lowPriceArticle", lowPriceArticle)
 
-	// 判断是否有需要归还的
-	if lowPriceArticle.NeedReturn == 0 {
-		l.ErrorOK("无需归还")
-	}
 	if lpar.Quantity > (lowPriceArticle.TotalQuantity - lowPriceArticle.OutgoingQuantity - lowPriceArticle.ScrapQuantity) {
 		l.ErrorOK("报废数量不足")
 	}
+
 	// 判断报废数量
 	newLowPriceArticleRequisition := &oa.LowPriceArticleRequisition{
 		LowPriceArticleID: lpar.LowPriceArticleID,
 		OperatorID:        uID,
+		OperatorName:      uName,
 		OperatorCategory:  models.DeviceScrap,
 		Quantity:          lpar.Quantity,
+		Comment:           lpar.Comment,
 	}
 
 	err = tx.Create(&newLowPriceArticleRequisition).Error
@@ -352,7 +359,7 @@ func (l *LowPriceArticleRequisitionController) Scrap() {
 		l.ErrorOK(MsgServerErr)
 	}
 
-	// 主题的借出数量-1
+	// 主体的报废数量
 	lowPriceArticle.ScrapQuantity += lpar.Quantity
 	err = tx.Save(&lowPriceArticle).Error
 	if err != nil {

@@ -62,6 +62,7 @@ const (
 
 	FlowHide        = "Hide"        // 隐藏
 	FlowReceived    = "Received"    // 已领用
+	FlowUnReceived  = "UnReceived"  // 已领用
 	FlowDistributed = "Distributed" // 已分配
 	FlowRevoked     = "Revoked"     // 已撤销
 

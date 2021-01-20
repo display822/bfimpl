@@ -670,6 +670,7 @@ func (d *DeviceController) OutgoingDevice() {
 	deviceApply.OutgoingOperatorID = userID
 	deviceApply.OutgoingOperatorName = userName
 	deviceApply.OutgoingTime = models.Time(time.Now())
+	deviceApply.Status = models.FlowUnReceived
 	err = tx.Save(&deviceApply).Error
 	if err != nil {
 		log.GLogger.Error("get device err:%s", err.Error())

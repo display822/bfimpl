@@ -30,6 +30,7 @@ type LowPriceArticleController struct {
 func (l *LowPriceArticleController) Create() {
 	// 验证员工身份 (7，8，9)
 	userID, _ := l.GetInt("userID")
+	userName := l.GetString("userName")
 	userType, _ := l.GetInt("userType")
 	if userType != models.UserIT && userType != models.UserFront && userType != models.UserFinance {
 		l.ErrorOK("没有权限")
@@ -61,6 +62,7 @@ func (l *LowPriceArticleController) Create() {
 	requisition := oa.LowPriceArticleRequisition{
 		LowPriceArticleID: int(param.ID),
 		OperatorID:        userID,
+		OperatorName:      userName,
 		OperatorCategory:  models.DeviceIngoing,
 		Quantity:          param.TotalQuantity,
 	}

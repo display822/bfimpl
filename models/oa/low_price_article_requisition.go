@@ -20,6 +20,7 @@ type LowPriceArticleRequisition struct {
 	LowPriceArticleID     int              `gorm:"not null;comment:'设备ID'" json:"low_price_article_id"`
 	LowPriceArticle       *LowPriceArticle `json:"low_price_article"`
 	OperatorID            int              `gorm:"not null;comment:'操作人ID，关联EmployeeID'" json:"operator_id"`
+	OperatorName          string           `gorm:"not null;comment:'操作人Name，关联EmployeeName'" json:"operator_name"`
 	AssociateEmployeeID   int              `gorm:"not null;comment:'关联EmployeeID'" json:"associate_employee_id"`
 	AssociateEmployeeName string           `gorm:"not null;comment:'关联EmployeeName'" json:"associate_employee_name"`
 	OperatorCategory      string           `gorm:"size:20;not null;comment:'操作类别(入库,报废,借出,归还)'" json:"operator_category"`
@@ -53,22 +54,22 @@ func BatchRequisitionOutGoing(db *gorm.DB, lpars []*LowPriceArticleRequisition) 
 }
 
 // BatchRequisitionReturn 批量插入数据
-func BatchRequisitionReturn(db *gorm.DB, operatorID int, lpars []*LowPriceArticleRequisition) error {
+func BatchRequisitionReturn(db *gorm.DB, operatorID int, operatorName string, lpars []*LowPriceArticleRequisition) error {
 	var buffer bytes.Buffer
 	sql := "insert into `low_price_article_requisitions` (`created_at`,`updated_at`,`low_price_article_id`,`operator_id`," +
-		"`associate_employee_id`,`associate_employee_name`, `operator_category`,`quantity`,`comment`) values"
+		"`operator_name`, `associate_employee_id`,`associate_employee_name`, `operator_category`,`quantity`,`comment`) values"
 	if _, err := buffer.WriteString(sql); err != nil {
 		return err
 	}
 	for i, lpar := range lpars {
 		if i == len(lpars)-1 {
-			buffer.WriteString(fmt.Sprintf("('%s','%s',%d, %d, %d,'%s','%s',%d,'%s');", time.Now(),
-				time.Now(), lpar.LowPriceArticleID, operatorID, lpar.AssociateEmployeeID, lpar.AssociateEmployeeName,
+			buffer.WriteString(fmt.Sprintf("('%s','%s',%d, %d, '%s', %d,'%s','%s',%d,'%s');", time.Now(),
+				time.Now(), lpar.LowPriceArticleID, operatorID, operatorName, lpar.AssociateEmployeeID, lpar.AssociateEmployeeName,
 				models.DeviceReturn, 1, "",
 			))
 		} else {
-			buffer.WriteString(fmt.Sprintf("('%s','%s',%d, %d, %d,'%s','%s',%d,'%s'),", time.Now(),
-				time.Now(), lpar.LowPriceArticleID, operatorID, lpar.AssociateEmployeeID, lpar.AssociateEmployeeName,
+			buffer.WriteString(fmt.Sprintf("('%s','%s',%d, %d, '%s', %d,'%s','%s',%d,'%s'),", time.Now(),
+				time.Now(), lpar.LowPriceArticleID, operatorID, operatorName, lpar.AssociateEmployeeID, lpar.AssociateEmployeeName,
 				models.DeviceReturn, 1, "",
 			))
 		}
