@@ -140,6 +140,7 @@ func (l *LowPriceArticleController) ListOutgoingByEmployee() {
 	services.Slave().Where("operator_category = ?", models.DeviceOutgoing).
 		Where("is_return = ?", 0).
 		Where("associate_employee_id = ?", uID).
+		Order("created_at desc").
 		Find(&articleRequisitions)
 
 	var ids []int
