@@ -93,7 +93,7 @@ func (m *FileController) SocialSecurityList() {
 //生成社保信息
 func GeneraSheBao() {
 	now := time.Now()
-	end := fmt.Sprintf("%d-%2d-15", now.Year(), now.Month())
+	end := fmt.Sprintf("%d-%02d-15", now.Year(), now.Month())
 	pre := now.AddDate(0, -1, 0)
 	start := fmt.Sprintf("%d-%02d-16", pre.Year(), pre.Month())
 	//生成excel
