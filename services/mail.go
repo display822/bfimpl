@@ -2,10 +2,11 @@ package services
 
 import (
 	"bytes"
-	"github.com/astaxie/beego"
-	"gopkg.in/gomail.v2"
 	"html/template"
 	"time"
+
+	"github.com/astaxie/beego"
+	"gopkg.in/gomail.v2"
 
 	"bfimpl/services/log"
 )
@@ -47,16 +48,18 @@ func EmailExpenseApproved(mailTo string, id uint, name string, time time.Time) {
 }
 
 // EmailExpenseRejectedUp 通过报销线上审批驳回通知
-func EmailExpenseRejectedUp(mailTo string, name string, time time.Time) {
+func EmailExpenseRejectedUp(mailTo string, name string, time time.Time, otp string) {
 	subject := "报销审核通知"
 	var body bytes.Buffer
 	t, _ := template.ParseFiles("static/mail/rejectedUp.html")
 	t.Execute(&body, struct {
 		Name string
 		Time string
+		OTP  string
 	}{
 		Name: name,
 		Time: time.Format("2006/01/02"),
+		OTP:  otp,
 	})
 	sendMail(mailTo, subject, body.String())
 }

@@ -137,7 +137,21 @@ func (e *ExpenseController) List() {
 func (e *ExpenseController) ReqExpense() {
 	uID, _ := e.GetInt("userID", 0)
 	uEmail := e.GetString("userEmail")
+	code := e.GetString("code")
 	log.GLogger.Info("ReqExpense query: %d, %s", uID, uEmail)
+	t := time.Now()
+	validBeginMonthTime := util.GetFirstDateOfMonth(t)
+	validEndMonthTime := util.GetLastDateOfMonth(t)
+	var otp oa.ExpenseOtp
+	if code != "" {
+		services.Slave().Where("code = ?", code).Where("emp_id=?", uID).
+			Where("created_at < ?", validEndMonthTime).Where("created_at >= ?", validBeginMonthTime).Find(&otp)
+		log.GLogger.Info("otp", otp)
+		if otp.ID == 0 {
+			e.ErrorOK("验证码错误")
+		}
+	}
+
 	// 获取emp_info
 	employee := new(oa.Employee)
 	services.Slave().Preload("Department").Preload("Department.Leader").Take(employee, "email = ?", uEmail)
@@ -216,6 +230,15 @@ func (e *ExpenseController) ReqExpense() {
 		tx.Rollback()
 		e.ErrorOK(MsgServerErr)
 	}
+
+	// 创建成功删除验证码
+	err = tx.Delete(&otp).Error
+	if err != nil {
+		log.GLogger.Error("services delete code err:%s", err.Error())
+		tx.Rollback()
+		e.ErrorOK(MsgServerErr)
+	}
+
 	tx.Commit()
 	e.Correct(param)
 }
@@ -529,19 +552,21 @@ func (e *ExpenseController) ParseDetailFile() {
 	defer mf.Close()
 
 	t := time.Now()
-	validBeginTime := util.GetFirstDateOfMonth(t)
-	validEndTime := util.GetLastDateOfMonth(t)
-
+	validBeginMonthTime := util.GetFirstDateOfMonth(t)
+	validEndMonthTime := util.GetLastDateOfMonth(t)
+	log.GLogger.Info("validBeginMonthTime", validBeginMonthTime)
 	otpCode := e.GetString("code")
 	uID, _ := e.GetInt("userID")
+	var validCode bool
 	if otpCode != "" {
 		var otp oa.ExpenseOtp
-		services.Slave().Where("code = ?", otpCode).Where("emp_id=?", uID).Find(&otp)
-		if otp.ID != 0 {
+		services.Slave().Debug().Where("code = ?", otpCode).Where("emp_id=?", uID).
+			Where("created_at < ?", validEndMonthTime).Where("created_at >= ?", validBeginMonthTime).Find(&otp)
+		log.GLogger.Info("otp", otp)
+		if otp.ID == 0 {
 			e.ErrorOK("验证码错误")
 		}
-		validBeginTime.AddDate(0, -1, 0)
-		validEndTime.AddDate(0, -1, 0)
+		validCode = true
 	}
 
 	fs := strings.Split(mfh.Filename, ".")
@@ -554,7 +579,7 @@ func (e *ExpenseController) ParseDetailFile() {
 		fmt.Println(err)
 		e.ErrorOK(err.Error())
 	}
-	res, err := Read(f)
+	res, err := Read(f, validCode)
 	if err != nil {
 		fmt.Println(err)
 		e.ErrorOK(err.Error())
@@ -573,7 +598,7 @@ func (e *ExpenseController) ParseDetailFile() {
 	e.Correct(data)
 }
 
-func Read(f *excelize.File) ([]*oa.ExpenseDetail, error) {
+func Read(f *excelize.File, validCode bool) ([]*oa.ExpenseDetail, error) {
 	rows, err := f.GetRows("Sheet1")
 	if err != nil {
 		return nil, err
@@ -606,6 +631,7 @@ func Read(f *excelize.File) ([]*oa.ExpenseDetail, error) {
 
 		// 校验费用发生日期
 		var ocurredDate models.Date
+
 		if colList[0] == "" {
 			errorArray = append(errorArray, fmt.Sprintf("第%d行费用发生日期未填写", x))
 		} else {
@@ -613,8 +639,23 @@ func Read(f *excelize.File) ([]*oa.ExpenseDetail, error) {
 			t, err := time.Parse(models.DateFormat, colList[0])
 			if err != nil {
 				errorArray = append(errorArray, fmt.Sprintf("第%d行费用发生日期格式不正确", x))
+				continue
 			}
 			log.GLogger.Info("ocurredDate: %s", ocurredDate)
+			nowTime := time.Now()
+			validBeginMonthTime := util.GetFirstDateOfMonth(nowTime)
+			log.GLogger.Info("day:%s", nowTime.Day())
+			if nowTime.Day() < 10 || validCode {
+				if !t.After(validBeginMonthTime.AddDate(0, -1, 0)) {
+					errorArray = append(errorArray, fmt.Sprintf("第%d行费用发生日期需要上月内", x))
+					continue
+				}
+			} else {
+				if !t.After(validBeginMonthTime) {
+					errorArray = append(errorArray, fmt.Sprintf("第%d行费用发生日期需在本月内", x))
+					continue
+				}
+			}
 			ocurredDate = models.Date(t)
 		}
 
@@ -759,19 +800,18 @@ func (e *ExpenseController) PaidInfo() {
 	}
 
 	t := time.Now().AddDate(0, -1, 0)
-	fmt.Println(t)
 
 	var ExpenseTotal res
-	var ExpensePaidTotal res
-	services.Slave().Debug().Raw("select sum(expense_summary) as sum from expenses where emp_id = ? and application_date >= ?;", userID, t).Scan(&ExpenseTotal)
-	services.Slave().Debug().Raw("select sum(expense_summary) as sum from expenses where emp_id = ? and application_date >= ? and status= ?;", userID, t, models.FlowPaid).Scan(&ExpensePaidTotal)
+	var LastPaidAmount res
+	services.Slave().Debug().Raw("select sum(expense_summary) as sum from expenses where emp_id = ? and application_date >= ? and status <> ?;", userID, t, models.FlowRejected).Scan(&ExpenseTotal)
+	services.Slave().Debug().Raw("select expenses.expense_summary as sum from expenses where emp_id = ? and status= ? order by created_at desc limit 1;", userID, models.FlowPaid).Scan(&LastPaidAmount)
 
 	data := struct {
-		ExpenseTotal     float64 `json:"expense_total"`
-		ExpensePaidTotal float64 `json:"expense_paid_total"`
+		ExpenseTotal   float64 `json:"expense_total"`
+		LastPaidAmount float64 `json:"last_paid_amount"`
 	}{
-		ExpenseTotal:     ExpenseTotal.Sum,
-		ExpensePaidTotal: ExpensePaidTotal.Sum,
+		ExpenseTotal:   ExpenseTotal.Sum,
+		LastPaidAmount: LastPaidAmount.Sum,
 	}
 	e.Correct(data)
 }
