@@ -85,3 +85,10 @@ type ExpenseAccount struct {
 	Code               string `gorm:"size:64;comment:'报销科目编码'" json:"expense_account_code"`
 	ExpenseAccountName string `gorm:"size:64;comment:'报销科目名称'" json:"expense_account_name"`
 }
+
+// ExpenseOtp 报销验证码表
+type ExpenseOtp struct {
+	gorm.Model
+	Code  string `gorm:"size:64;comment:'验证码'"`
+	EmpID int    `gorm:"size:64;comment:'员工ID'"`
+}

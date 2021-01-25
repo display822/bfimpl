@@ -12,6 +12,7 @@ import (
 	"bfimpl/models/oa"
 	"bfimpl/services"
 	"bfimpl/services/log"
+	"bfimpl/services/util"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -114,27 +115,14 @@ func (e *ExpenseController) List() {
 				" and wn.node_seq != 1 order by w.entity_id desc", services.GetFlowDefID(services.Expense), userID, s).Scan(&ids)
 		}
 
-		// resp.Total = len(ids)
-		// log.GLogger.Info("resp.Total: %d", len(ids))
-		// log.GLogger.Info("ids", ids)
-		// start, end := getPage(resp.Total, pageSize, pageNum)
-		// eIDs := make([]int, 0)
 		for _, eID := range ids {
 			eIDs = append(eIDs, eID.EntityID)
 		}
 		if len(eIDs) != 0 {
 			query = query.Where(eIDs)
 		}
-		// services.Slave().Model(oa.Expense{}).Preload("ExpenseDetails").Order("created_at desc").Where(eIDs).Find(&expenses)
 	}
 
-	// } else {
-	// 	var resp struct {
-	// 		Total int           `json:"total"`
-	// 		List  []*oa.Expense `json:"list"`
-	// 	}
-	// 	e.Correct(resp)
-	// }
 	query.Limit(pageSize).Offset((pageNum - 1) * pageSize).Order("created_at desc").Find(&expenses).Limit(-1).Offset(-1).Count(&resp.Total)
 	resp.List = expenses
 	e.Correct(resp)
@@ -149,7 +137,21 @@ func (e *ExpenseController) List() {
 func (e *ExpenseController) ReqExpense() {
 	uID, _ := e.GetInt("userID", 0)
 	uEmail := e.GetString("userEmail")
+	code := e.GetString("code")
 	log.GLogger.Info("ReqExpense query: %d, %s", uID, uEmail)
+	t := time.Now()
+	validBeginMonthTime := util.GetFirstDateOfMonth(t)
+	validEndMonthTime := util.GetLastDateOfMonth(t)
+	var otp oa.ExpenseOtp
+	if code != "" {
+		services.Slave().Where("code = ?", code).Where("emp_id=?", uID).
+			Where("created_at < ?", validEndMonthTime).Where("created_at >= ?", validBeginMonthTime).Find(&otp)
+		log.GLogger.Info("otp", otp)
+		if otp.ID == 0 {
+			e.ErrorOK("验证码错误")
+		}
+	}
+
 	// 获取emp_info
 	employee := new(oa.Employee)
 	services.Slave().Preload("Department").Preload("Department.Leader").Take(employee, "email = ?", uEmail)
@@ -228,6 +230,15 @@ func (e *ExpenseController) ReqExpense() {
 		tx.Rollback()
 		e.ErrorOK(MsgServerErr)
 	}
+
+	// 创建成功删除验证码
+	err = tx.Delete(&otp).Error
+	if err != nil {
+		log.GLogger.Error("services delete code err:%s", err.Error())
+		tx.Rollback()
+		e.ErrorOK(MsgServerErr)
+	}
+
 	tx.Commit()
 	e.Correct(param)
 }
@@ -309,7 +320,13 @@ func (e *ExpenseController) ApprovalExpense() {
 					"status": status,
 				})
 				if i == 2 {
-					go services.EmailExpenseRejectedUp(expense.Employee.Email, expense.Employee.Name, expense.ApplicationDate)
+					otp, _ := util.GenerateOTP(6)
+					expenseOtp := oa.ExpenseOtp{
+						Code:  otp,
+						EmpID: int(expense.Employee.ID),
+					}
+					services.Slave().Create(&expenseOtp)
+					go services.EmailExpenseRejectedUp(expense.Employee.Email, expense.Employee.Name, expense.ApplicationDate, otp)
 				}
 			} else {
 				var nextNodeStatus string
@@ -343,7 +360,83 @@ func (e *ExpenseController) ApprovalExpense() {
 // @router /paid/batch [put]
 func (e *ExpenseController) BatchPaidExpense() {
 	ids := e.GetString("ids")
-	idList := strings.Split(ids, ",")
+	var idList []string
+	if ids == "" {
+		userType, _ := e.GetInt("userType", 0)
+		name := e.GetString("name")
+		myReq, _ := e.GetBool("myreq", false)
+		myTodo, _ := e.GetBool("mytodo", false)
+		status := e.GetString("status")
+		userEmail := e.GetString("userEmail")
+		searchID := e.GetString("searchid")
+		applicationDateBegin := e.GetString("application_date_begin")
+		applicationDateEnd := e.GetString("application_date_end")
+
+		employee := new(oa.Employee)
+		services.Slave().Where("email = ?", userEmail).First(employee)
+		log.GLogger.Info("employee: %+v", employee)
+
+		expenses := make([]*oa.Expense, 0)
+		query := services.Slave().Debug().Model(oa.Expense{}).Preload("ExpenseDetails")
+		if searchID != "" {
+			query = query.Where("id like ?", fmt.Sprintf("%%%s%%", searchID))
+		}
+		if name != "" {
+			query = query.Where("e_name like ?", "%"+name+"%")
+		}
+		if status != "" {
+			query = query.Where("status = ?", status)
+		}
+		if applicationDateBegin != "" && applicationDateEnd != "" {
+			query = query.Where("application_date > ?", applicationDateBegin).Where("application_date <= ?", applicationDateEnd)
+		}
+
+		if myReq {
+			query = query.Where("emp_id = ?", employee.ID)
+		}
+
+		eIDs := make([]int, 0)
+
+		if myTodo {
+			userID, _ := e.GetInt("userID", 0)
+			log.GLogger.Info("userID：%d", userID)
+			ids := make([]oa.EntityID, 0)
+			var s []string
+			if e.GetString("todostatus") != "" {
+				if userType == models.UserFinance {
+					s = oa.TodoStatusFinanceMap[e.GetString("todostatus")]
+				} else {
+					s = oa.TodoStatusLeaderMap[e.GetString("todostatus")]
+				}
+			}
+
+			if len(s) == 0 {
+				services.Slave().Debug().Raw("select w.entity_id from workflows w,workflow_nodes wn where w.id = "+
+					"wn.workflow_id and w.workflow_definition_id = ? and operator_id = ? and wn.status <> ?"+
+					" and wn.node_seq != 1 order by w.entity_id desc", services.GetFlowDefID(services.Expense), userID, models.FlowNA).Scan(&ids)
+				// services.Slave().Debug().Raw("select w.entity_id from workflows w,workflow_nodes wn where w.id = "+
+				// 	"wn.workflow_id and w.workflow_definition_id = ? and operator_id = ?"+
+				// 	" and wn.node_seq != 1 order by w.entity_id desc", services.GetFlowDefID(services.Expense), userID).Scan(&ids)
+			} else {
+				services.Slave().Debug().Raw("select w.entity_id from workflows w,workflow_nodes wn where w.id = "+
+					"wn.workflow_id and w.workflow_definition_id = ? and operator_id = ? and wn.status in (?)"+
+					" and wn.node_seq != 1 order by w.entity_id desc", services.GetFlowDefID(services.Expense), userID, s).Scan(&ids)
+			}
+
+			for _, eID := range ids {
+				eIDs = append(eIDs, eID.EntityID)
+			}
+			if len(eIDs) != 0 {
+				query = query.Where(eIDs)
+			}
+		}
+
+		query.Limit(-1).Offset(-1).Order("created_at desc").Find(&expenses)
+		for _, expense := range expenses {
+			idList = append(idList, strconv.Itoa(int(expense.ID)))
+		}
+	}
+	idList = strings.Split(ids, ",")
 	for _, id := range idList {
 		expense := new(oa.Expense)
 		services.Slave().Debug().Preload("Employee").Take(expense, "id = ?", id)
@@ -458,6 +551,24 @@ func (e *ExpenseController) ParseDetailFile() {
 	}
 	defer mf.Close()
 
+	t := time.Now()
+	validBeginMonthTime := util.GetFirstDateOfMonth(t)
+	validEndMonthTime := util.GetLastDateOfMonth(t)
+	log.GLogger.Info("validBeginMonthTime", validBeginMonthTime)
+	otpCode := e.GetString("code")
+	uID, _ := e.GetInt("userID")
+	var validCode bool
+	if otpCode != "" {
+		var otp oa.ExpenseOtp
+		services.Slave().Debug().Where("code = ?", otpCode).Where("emp_id=?", uID).
+			Where("created_at < ?", validEndMonthTime).Where("created_at >= ?", validBeginMonthTime).Find(&otp)
+		log.GLogger.Info("otp", otp)
+		if otp.ID == 0 {
+			e.ErrorOK("验证码错误")
+		}
+		validCode = true
+	}
+
 	fs := strings.Split(mfh.Filename, ".")
 	ft := fs[len(fs)-1:][0]
 	if ft != "xlsx" {
@@ -468,7 +579,7 @@ func (e *ExpenseController) ParseDetailFile() {
 		fmt.Println(err)
 		e.ErrorOK(err.Error())
 	}
-	res, err := Read(f)
+	res, err := Read(f, validCode)
 	if err != nil {
 		fmt.Println(err)
 		e.ErrorOK(err.Error())
@@ -487,7 +598,7 @@ func (e *ExpenseController) ParseDetailFile() {
 	e.Correct(data)
 }
 
-func Read(f *excelize.File) ([]*oa.ExpenseDetail, error) {
+func Read(f *excelize.File, validCode bool) ([]*oa.ExpenseDetail, error) {
 	rows, err := f.GetRows("Sheet1")
 	if err != nil {
 		return nil, err
@@ -520,6 +631,7 @@ func Read(f *excelize.File) ([]*oa.ExpenseDetail, error) {
 
 		// 校验费用发生日期
 		var ocurredDate models.Date
+
 		if colList[0] == "" {
 			errorArray = append(errorArray, fmt.Sprintf("第%d行费用发生日期未填写", x))
 		} else {
@@ -527,8 +639,23 @@ func Read(f *excelize.File) ([]*oa.ExpenseDetail, error) {
 			t, err := time.Parse(models.DateFormat, colList[0])
 			if err != nil {
 				errorArray = append(errorArray, fmt.Sprintf("第%d行费用发生日期格式不正确", x))
+				continue
 			}
 			log.GLogger.Info("ocurredDate: %s", ocurredDate)
+			nowTime := time.Now()
+			validBeginMonthTime := util.GetFirstDateOfMonth(nowTime)
+			log.GLogger.Info("day:%s", nowTime.Day())
+			if nowTime.Day() < 10 || validCode {
+				if !t.After(validBeginMonthTime.AddDate(0, -1, 0)) {
+					errorArray = append(errorArray, fmt.Sprintf("第%d行费用发生日期需要上月内", x))
+					continue
+				}
+			} else {
+				if !t.After(validBeginMonthTime) {
+					errorArray = append(errorArray, fmt.Sprintf("第%d行费用发生日期需在本月内", x))
+					continue
+				}
+			}
 			ocurredDate = models.Date(t)
 		}
 
@@ -673,19 +800,18 @@ func (e *ExpenseController) PaidInfo() {
 	}
 
 	t := time.Now().AddDate(0, -1, 0)
-	fmt.Println(t)
 
 	var ExpenseTotal res
-	var ExpensePaidTotal res
-	services.Slave().Debug().Raw("select sum(expense_summary) as sum from expenses where emp_id = ? and application_date >= ?;", userID, t).Scan(&ExpenseTotal)
-	services.Slave().Debug().Raw("select sum(expense_summary) as sum from expenses where emp_id = ? and application_date >= ? and status= ?;", userID, t, models.FlowPaid).Scan(&ExpensePaidTotal)
+	var LastPaidAmount res
+	services.Slave().Debug().Raw("select sum(expense_summary) as sum from expenses where emp_id = ? and application_date >= ? and status <> ?;", userID, t, models.FlowRejected).Scan(&ExpenseTotal)
+	services.Slave().Debug().Raw("select expenses.expense_summary as sum from expenses where emp_id = ? and status= ? order by created_at desc limit 1;", userID, models.FlowPaid).Scan(&LastPaidAmount)
 
 	data := struct {
-		ExpenseTotal     float64 `json:"expense_total"`
-		ExpensePaidTotal float64 `json:"expense_paid_total"`
+		ExpenseTotal   float64 `json:"expense_total"`
+		LastPaidAmount float64 `json:"last_paid_amount"`
 	}{
-		ExpenseTotal:     ExpenseTotal.Sum,
-		ExpensePaidTotal: ExpensePaidTotal.Sum,
+		ExpenseTotal:   ExpenseTotal.Sum,
+		LastPaidAmount: LastPaidAmount.Sum,
 	}
 	e.Correct(data)
 }
@@ -712,15 +838,91 @@ func (e *ExpenseController) DebitCard() {
 // @router /export/unpaid [get]
 func (e *ExpenseController) ExportUnpaid() {
 	ids := e.GetString("ids")
+	var idList []string
 	if ids == "" {
-		e.ErrorOK("need expense ids")
+		var idList []string
+		if ids == "" {
+			userType, _ := e.GetInt("userType", 0)
+			name := e.GetString("name")
+			myReq, _ := e.GetBool("myreq", false)
+			myTodo, _ := e.GetBool("mytodo", false)
+			status := e.GetString("status")
+			userEmail := e.GetString("userEmail")
+			searchID := e.GetString("searchid")
+			applicationDateBegin := e.GetString("application_date_begin")
+			applicationDateEnd := e.GetString("application_date_end")
+
+			employee := new(oa.Employee)
+			services.Slave().Where("email = ?", userEmail).First(employee)
+			log.GLogger.Info("employee: %+v", employee)
+
+			expenses := make([]*oa.Expense, 0)
+			query := services.Slave().Debug().Model(oa.Expense{}).Preload("ExpenseDetails")
+			if searchID != "" {
+				query = query.Where("id like ?", fmt.Sprintf("%%%s%%", searchID))
+			}
+			if name != "" {
+				query = query.Where("e_name like ?", "%"+name+"%")
+			}
+			if status != "" {
+				query = query.Where("status = ?", status)
+			}
+			if applicationDateBegin != "" && applicationDateEnd != "" {
+				query = query.Where("application_date > ?", applicationDateBegin).Where("application_date <= ?", applicationDateEnd)
+			}
+
+			if myReq {
+				query = query.Where("emp_id = ?", employee.ID)
+			}
+
+			eIDs := make([]int, 0)
+
+			if myTodo {
+				userID, _ := e.GetInt("userID", 0)
+				log.GLogger.Info("userID：%d", userID)
+				ids := make([]oa.EntityID, 0)
+				var s []string
+				if e.GetString("todostatus") != "" {
+					if userType == models.UserFinance {
+						s = oa.TodoStatusFinanceMap[e.GetString("todostatus")]
+					} else {
+						s = oa.TodoStatusLeaderMap[e.GetString("todostatus")]
+					}
+				}
+
+				if len(s) == 0 {
+					services.Slave().Debug().Raw("select w.entity_id from workflows w,workflow_nodes wn where w.id = "+
+						"wn.workflow_id and w.workflow_definition_id = ? and operator_id = ? and wn.status <> ?"+
+						" and wn.node_seq != 1 order by w.entity_id desc", services.GetFlowDefID(services.Expense), userID, models.FlowNA).Scan(&ids)
+					// services.Slave().Debug().Raw("select w.entity_id from workflows w,workflow_nodes wn where w.id = "+
+					// 	"wn.workflow_id and w.workflow_definition_id = ? and operator_id = ?"+
+					// 	" and wn.node_seq != 1 order by w.entity_id desc", services.GetFlowDefID(services.Expense), userID).Scan(&ids)
+				} else {
+					services.Slave().Debug().Raw("select w.entity_id from workflows w,workflow_nodes wn where w.id = "+
+						"wn.workflow_id and w.workflow_definition_id = ? and operator_id = ? and wn.status in (?)"+
+						" and wn.node_seq != 1 order by w.entity_id desc", services.GetFlowDefID(services.Expense), userID, s).Scan(&ids)
+				}
+
+				for _, eID := range ids {
+					eIDs = append(eIDs, eID.EntityID)
+				}
+				if len(eIDs) != 0 {
+					query = query.Where(eIDs)
+				}
+			}
+
+			query.Limit(-1).Offset(-1).Order("created_at desc").Find(&expenses)
+			for _, expense := range expenses {
+				idList = append(idList, strconv.Itoa(int(expense.ID)))
+			}
+		}
 	}
 	log.GLogger.Info("ids: %s", ids)
 
-	expenseIds := strings.Split(ids, ",")
+	idList = strings.Split(ids, ",")
 
 	var expenses []*oa.Expense
-	services.Slave().Where(expenseIds).Find(&expenses)
+	services.Slave().Where(idList).Find(&expenses)
 
 	log.GLogger.Info("expenses: %s", expenses)
 
@@ -817,7 +1019,6 @@ func (e *ExpenseController) ExportUnpaid() {
 	f.SaveAs("static/expense.xlsx")
 	e.Ctx.Output.Download("static/expense.xlsx", "expense.xlsx")
 	os.Remove("static/expense.xlsx")
-	//e.Correct("")
 }
 
 func (e *ExpenseController) GetDebitCard(employeeID int) forms.PaidCardInfo {
