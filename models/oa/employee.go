@@ -43,6 +43,7 @@ type Employee struct {
 	PlanDate         models.Time    `gorm:"type:datetime;comment:'计划入职日期'" json:"plan_date"`
 	EntryDate        models.Time    `gorm:"type:datetime;comment:'入职日期'" json:"entry_date"`
 	ResignationDate  models.Time    `gorm:"type:datetime;comment:'离职日期'" json:"resignation_date"`
+	ConfirmDate      models.Time    `gorm:"type:datetime;comment:'转正日期'" json:"confirm_date"`
 	Reason           string         `gorm:"not null;default:'';comment:'离职原因'" json:"reason"`
 	ReqUser          string         `gorm:"not null;default:'';comment:'离职申请人'" json:"req_user"`
 	EmployeeBasic    *EmployeeBasic `json:"employee_basic"`
