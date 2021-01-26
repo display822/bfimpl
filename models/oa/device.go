@@ -23,6 +23,11 @@ var DeviceCategoryMap = map[string]struct{}{
 	"Network": {},
 }
 
+var DeviceTodoStatusLeaderMap = map[string][]string{
+	"0": {models.FlowNA},                            // 待审核
+	"1": {models.FlowApproved, models.FlowRejected}, // 审核完成
+}
+
 // Device 设备表
 type Device struct {
 	gorm.Model

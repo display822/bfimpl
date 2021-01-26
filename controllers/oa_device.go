@@ -273,10 +273,9 @@ func (d *DeviceController) ListApply() {
 	myTodo, _ := d.GetBool("mytodo", false)
 	status := d.GetString("status")
 	userEmail := d.GetString("userEmail")
-	statusList := strings.Split(status, ",")
 	category := d.GetString("category")
 	search := d.GetString("search")
-	log.GLogger.Info("params", userEmail, userType, myReq, statusList, pageNum, pageSize)
+	log.GLogger.Info("params", userEmail, userType, myReq, status, pageNum, pageSize)
 
 	employee := new(oa.Employee)
 	services.Slave().Where("email = ?", userEmail).First(employee)
@@ -286,23 +285,12 @@ func (d *DeviceController) ListApply() {
 	query := services.Slave().Debug().Select("device_applies.*").
 		Joins("LEFT JOIN devices ON device_applies.device_id = devices.id and devices.deleted_at is NULL")
 
-	if len(statusList) != 0 {
-		for k, status := range statusList {
-			if status == "" {
-				continue
-			}
-			if k == 0 {
-				query = query.Where("status = ?", status)
-			} else {
-				query = query.Or("status = ?", status)
-			}
-		}
-	}
-
 	if category != "" {
 		query = query.Where("devices.device_category = ?", category)
 	}
-
+	if status != "" {
+		query = query.Where("devices.status = ?", status)
+	}
 	if search != "" {
 		query = query.Where("devices.device_category like ?", fmt.Sprintf("%%%s%%", search))
 		query = query.Or("devices.device_code like ?", fmt.Sprintf("%%%s%%", search))
@@ -327,21 +315,23 @@ func (d *DeviceController) ListApply() {
 		userID, _ := d.GetInt("userID", 0)
 		log.GLogger.Info("userID：%d", userID)
 		ids := make([]oa.EntityID, 0)
-		if len(statusList) == 0 {
+		var s []string
+		if d.GetString("todostatus") != "" {
+			s = oa.DeviceTodoStatusLeaderMap[d.GetString("todostatus")]
+		}
+		if len(s) == 0 {
 			services.Slave().Debug().Raw("select w.entity_id from workflows w,workflow_nodes wn where w.id = "+
 				"wn.workflow_id and w.workflow_definition_id = ? and operator_id = ? and wn.status <> ?"+
 				" and wn.node_seq != 1 order by w.entity_id desc", services.GetFlowDefID(services.Device), userID, models.FlowHide).Scan(&ids)
 		} else {
 			services.Slave().Debug().Raw("select w.entity_id from workflows w,workflow_nodes wn where w.id = "+
 				"wn.workflow_id and w.workflow_definition_id = ? and operator_id = ? and wn.status in (?)"+
-				" and wn.node_seq != 1 order by w.entity_id desc", services.GetFlowDefID(services.Device), userID, statusList).Scan(&ids)
+				" and wn.node_seq != 1 order by w.entity_id desc", services.GetFlowDefID(services.Device), userID, s).Scan(&ids)
 		}
 		for _, eID := range ids {
 			eIDs = append(eIDs, eID.EntityID)
 		}
-		// if len(eIDs) != 0 {
 		query = query.Where(eIDs)
-		// }
 		log.GLogger.Info("eid:%s", eIDs)
 	}
 	query.Limit(pageSize).Offset((pageNum - 1) * pageSize).Preload("Device").Order("device_applies.created_at desc").Find(&deviceApplys).Limit(-1).Offset(-1).Count(&resp.Total)

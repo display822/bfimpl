@@ -118,9 +118,7 @@ func (e *ExpenseController) List() {
 		for _, eID := range ids {
 			eIDs = append(eIDs, eID.EntityID)
 		}
-		if len(eIDs) != 0 {
-			query = query.Where(eIDs)
-		}
+		query = query.Where(eIDs)
 	}
 
 	query.Limit(pageSize).Offset((pageNum - 1) * pageSize).Order("created_at desc").Find(&expenses).Limit(-1).Offset(-1).Count(&resp.Total)
