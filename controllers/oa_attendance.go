@@ -274,7 +274,7 @@ func (a *AttendanceController) CreateAttendanceTmp() {
 	a.Correct(param)
 }
 
-// @Title 查询考勤临时数据天
+// @Title 查询考勤数据天
 // @Description 查询考勤
 // @Param	name	query	string	true	"姓名"
 // @Param	data	query	string	false	"时间"
@@ -291,15 +291,37 @@ func (a *AttendanceController) GetUserAttendanceTmpByDay() {
 		a.ErrorOK("need date")
 	}
 
-	tmpData := make([]*oa.AttendanceTmp, 0)
-	services.Slave().Model(oa.AttendanceTmp{}).Where("name = ? and attendance_date = ?",
-		name, date).Find(&tmpData)
-
-	result := &oa.UserAttendanceTmp{
-		Date: date,
-		Tmps: tmpData,
+	data := make([]*oa.Attendance, 0)
+	services.Slave().Model(oa.Attendance{}).Where("name = ? and attendance_date = ?",
+		name, date).Find(&data)
+	result := make([]*oa.UserAttendanceTmp, 0)
+	for _, at := range data {
+		tmpData := []*oa.AttendanceTmp{{
+			ID:             at.ID,
+			EmployeeID:     at.EmployeeID,
+			Dept:           at.Dept,
+			Name:           at.Name,
+			AttendanceDate: at.AttendanceDate,
+			CheckTime:      at.CheckIn,
+			Status:         at.InStatus,
+			Result:         at.InResult,
+			LeaveID:        at.LeaveID,
+		}, {
+			ID:             at.ID,
+			EmployeeID:     at.EmployeeID,
+			Dept:           at.Dept,
+			Name:           at.Name,
+			AttendanceDate: at.AttendanceDate,
+			CheckTime:      at.CheckOut,
+			Status:         at.OutStatus,
+			Result:         at.OutResult,
+			LeaveID:        at.LeaveID,
+		}}
+		result = append(result, &oa.UserAttendanceTmp{
+			Date: at.AttendanceDate.String(),
+			Tmps: tmpData,
+		})
 	}
-
 	a.Correct(result)
 }
 
