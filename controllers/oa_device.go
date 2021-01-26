@@ -128,11 +128,14 @@ func (d *DeviceController) List() {
 		Find(&list).Limit(-1).Offset(-1).Count(&resp.Total)
 
 	for _, item := range list {
+		if item.IsApply == 0 {
+			item.CanApply = false
+			break
+		}
 		if item.DeviceStatus != models.DeviceFree {
 			item.CanApply = false
 			break
 		}
-
 		for _, a := range item.DeviceApplys {
 			if a.Status != models.FlowReceived && a.Status != models.FlowRevoked {
 				item.CanApply = false
@@ -680,7 +683,6 @@ func (d *DeviceController) OutgoingDevice() {
 	deviceApply.OutgoingOperatorID = userID
 	deviceApply.OutgoingOperatorName = userName
 	deviceApply.OutgoingTime = models.Time(time.Now())
-	deviceApply.Status = models.FlowUnReceived
 	err = tx.Save(&deviceApply).Error
 	if err != nil {
 		log.GLogger.Error("get device err:%s", err.Error())
