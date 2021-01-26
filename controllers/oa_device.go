@@ -339,9 +339,9 @@ func (d *DeviceController) ListApply() {
 		for _, eID := range ids {
 			eIDs = append(eIDs, eID.EntityID)
 		}
-		if len(eIDs) != 0 {
-			query = query.Where(eIDs)
-		}
+		// if len(eIDs) != 0 {
+		query = query.Where(eIDs)
+		// }
 		log.GLogger.Info("eid:%s", eIDs)
 	}
 	query.Limit(pageSize).Offset((pageNum - 1) * pageSize).Preload("Device").Order("device_applies.created_at desc").Find(&deviceApplys).Limit(-1).Offset(-1).Count(&resp.Total)
