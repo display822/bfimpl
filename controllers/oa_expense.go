@@ -520,7 +520,13 @@ func (e *ExpenseController) PaidExpense() {
 	if param.Status == 0 {
 		status = models.FlowRejected
 		paymentDate = nil
-		go services.EmailExpenseRejectedDown(expense.Employee.Email, expense.Employee.Name, expense.ApplicationDate)
+		otp, _ := util.GenerateOTP(6)
+		expenseOtp := oa.ExpenseOtp{
+			Code:  otp,
+			EmpID: int(expense.Employee.ID),
+		}
+		services.Slave().Create(&expenseOtp)
+		go services.EmailExpenseRejectedDown(expense.Employee.Email, expense.Employee.Name, expense.ApplicationDate, otp)
 	} else {
 		status = models.FlowPaid
 		t := time.Now()

@@ -65,16 +65,18 @@ func EmailExpenseRejectedUp(mailTo string, name string, time time.Time, otp stri
 }
 
 // EmailExpenseRejectedDown 通过报销线下审批驳回通知
-func EmailExpenseRejectedDown(mailTo string, name string, time time.Time) {
+func EmailExpenseRejectedDown(mailTo string, name string, time time.Time, otp string) {
 	subject := "报销支付通知"
 	var body bytes.Buffer
 	t, _ := template.ParseFiles("static/mail/rejectedDown.html")
 	t.Execute(&body, struct {
 		Name string
 		Time string
+		OTP  string
 	}{
 		Name: name,
 		Time: time.Format("2006/01/02"),
+		OTP:  otp,
 	})
 	sendMail(mailTo, subject, body.String())
 }
