@@ -132,16 +132,14 @@ func (d *DeviceController) List() {
 		if item.IsApply == 1 {
 			item.CanApply = false
 		}
-		// if item.DeviceStatus != models.DeviceFree {
-		// 	item.CanApply = false
-		// 	break
-		// }
-		// for _, a := range item.DeviceApplys {
-		// 	if a.Status != models.FlowReceived && a.Status != models.FlowRevoked {
-		// 		item.CanApply = false
-		// 		break
-		// 	}
-		// }
+		if item.DeviceStatus != models.DeviceFree {
+			item.CanApply = false
+		}
+		for _, a := range item.DeviceApplys {
+			if a.Status != models.FlowReceived && a.Status != models.FlowRevoked {
+				item.CanApply = false
+			}
+		}
 		//
 		// var deviceApplys []*oa.DeviceApply
 		// for _, a := range item.DeviceApplys {
