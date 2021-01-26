@@ -291,36 +291,33 @@ func (a *AttendanceController) GetUserAttendanceTmpByDay() {
 		a.ErrorOK("need date")
 	}
 
-	data := make([]*oa.Attendance, 0)
+	var data oa.Attendance
 	services.Slave().Model(oa.Attendance{}).Where("name = ? and attendance_date = ?",
 		name, date).Find(&data)
-	result := make([]*oa.UserAttendanceTmp, 0)
-	for _, at := range data {
-		tmpData := []*oa.AttendanceTmp{{
-			ID:             at.ID,
-			EmployeeID:     at.EmployeeID,
-			Dept:           at.Dept,
-			Name:           at.Name,
-			AttendanceDate: at.AttendanceDate,
-			CheckTime:      at.CheckIn,
-			Status:         at.InStatus,
-			Result:         at.InResult,
-			LeaveID:        at.LeaveID,
-		}, {
-			ID:             at.ID,
-			EmployeeID:     at.EmployeeID,
-			Dept:           at.Dept,
-			Name:           at.Name,
-			AttendanceDate: at.AttendanceDate,
-			CheckTime:      at.CheckOut,
-			Status:         at.OutStatus,
-			Result:         at.OutResult,
-			LeaveID:        at.LeaveID,
-		}}
-		result = append(result, &oa.UserAttendanceTmp{
-			Date: at.AttendanceDate.String(),
-			Tmps: tmpData,
-		})
+	tmpData := []*oa.AttendanceTmp{{
+		ID:             data.ID,
+		EmployeeID:     data.EmployeeID,
+		Dept:           data.Dept,
+		Name:           data.Name,
+		AttendanceDate: data.AttendanceDate,
+		CheckTime:      data.CheckIn,
+		Status:         data.InStatus,
+		Result:         data.InResult,
+		LeaveID:        data.LeaveID,
+	}, {
+		ID:             data.ID,
+		EmployeeID:     data.EmployeeID,
+		Dept:           data.Dept,
+		Name:           data.Name,
+		AttendanceDate: data.AttendanceDate,
+		CheckTime:      data.CheckOut,
+		Status:         data.OutStatus,
+		Result:         data.OutResult,
+		LeaveID:        data.LeaveID,
+	}}
+	result := &oa.UserAttendanceTmp{
+		Date: date,
+		Tmps: tmpData,
 	}
 	a.Correct(result)
 }
