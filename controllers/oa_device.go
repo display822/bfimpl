@@ -128,6 +128,7 @@ func (d *DeviceController) List() {
 		Find(&list).Limit(-1).Offset(-1).Count(&resp.Total)
 
 	for _, item := range list {
+		item.CanApply = true
 		if item.IsApply == 0 {
 			item.CanApply = false
 			break
