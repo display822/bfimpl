@@ -84,6 +84,8 @@ type DeviceApply struct {
 	OutgoingOperatorName string      `gorm:"not null;comment:'出库操作人Name，关联EmployeeName'" json:"outgoing_operator_name"`
 	OutgoingTime         models.Time `gorm:"type:datetime;comment:'出库时间'" json:"outgoing_time"`
 	LeaderId             int         `gorm:"-" json:"leader_id"`
+	CanReceive           bool        `json:"can_receive"` // 是否能领用
+	CanRevoke            bool        `json:"can_revoke"`  // 是否能撤销
 }
 
 // DeviceApplyInfo 申请设备基本信息
