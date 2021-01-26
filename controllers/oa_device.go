@@ -129,7 +129,7 @@ func (d *DeviceController) List() {
 
 	for _, item := range list {
 		item.CanApply = true
-		if item.IsApply == 0 {
+		if item.IsApply == 1 {
 			item.CanApply = false
 			break
 		}
