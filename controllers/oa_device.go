@@ -129,10 +129,9 @@ func (d *DeviceController) List() {
 
 	for _, item := range list {
 		item.CanApply = true
-		// if item.IsApply == 1 {
-		// 	item.CanApply = false
-		// 	break
-		// }
+		if item.IsApply == 1 {
+			item.CanApply = false
+		}
 		// if item.DeviceStatus != models.DeviceFree {
 		// 	item.CanApply = false
 		// 	break
