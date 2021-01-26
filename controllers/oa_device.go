@@ -289,7 +289,7 @@ func (d *DeviceController) ListApply() {
 		query = query.Where("devices.device_category = ?", category)
 	}
 	if status != "" {
-		query = query.Where("devices.status = ?", status)
+		query = query.Where("device_applies.status = ?", status)
 	}
 	if search != "" {
 		query = query.Where("devices.device_category like ?", fmt.Sprintf("%%%s%%", search))
