@@ -24,7 +24,7 @@ var DeviceCategoryMap = map[string]struct{}{
 }
 
 var DeviceTodoStatusLeaderMap = map[string][]string{
-	"0": {models.FlowNA},                            // 待审核
+	"0": {models.FlowProcessing},                    // 待审核
 	"1": {models.FlowApproved, models.FlowRejected}, // 审核完成
 }
 
