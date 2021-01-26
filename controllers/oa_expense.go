@@ -433,7 +433,9 @@ func (e *ExpenseController) BatchPaidExpense() {
 
 		query.Limit(-1).Offset(-1).Order("created_at desc").Find(&expenses)
 		for _, expense := range expenses {
-			idList = append(idList, strconv.Itoa(int(expense.ID)))
+			if expense.Status == models.FlowUnpaid {
+				idList = append(idList, strconv.Itoa(int(expense.ID)))
+			}
 		}
 	} else {
 		idList = strings.Split(ids, ",")
@@ -912,7 +914,9 @@ func (e *ExpenseController) ExportUnpaid() {
 
 		query.Limit(-1).Offset(-1).Order("created_at desc").Find(&expenses)
 		for _, expense := range expenses {
-			idList = append(idList, strconv.Itoa(int(expense.ID)))
+			if expense.Status == models.FlowUnpaid {
+				idList = append(idList, strconv.Itoa(int(expense.ID)))
+			}
 		}
 	} else {
 		idList = strings.Split(ids, ",")
