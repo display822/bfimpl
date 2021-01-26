@@ -333,7 +333,7 @@ func (d *DeviceController) ListApply() {
 				" and wn.node_seq != 1 order by w.entity_id desc", services.GetFlowDefID(services.Device), userID, models.FlowHide).Scan(&ids)
 		} else {
 			services.Slave().Debug().Raw("select w.entity_id from workflows w,workflow_nodes wn where w.id = "+
-				"wn.workflow_id and w.workflow_definition_id = ? and operator_id = ? and wn.status = ?"+
+				"wn.workflow_id and w.workflow_definition_id = ? and operator_id = ? and wn.status in (?)"+
 				" and wn.node_seq != 1 order by w.entity_id desc", services.GetFlowDefID(services.Device), userID, statusList).Scan(&ids)
 		}
 		for _, eID := range ids {
