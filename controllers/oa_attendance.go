@@ -294,6 +294,9 @@ func (a *AttendanceController) GetUserAttendanceTmpByDay() {
 	var data oa.Attendance
 	services.Slave().Model(oa.Attendance{}).Where("name = ? and attendance_date = ?",
 		name, date).Find(&data)
+	if data.ID == 0 {
+		a.Correct(&oa.UserAttendanceTmp{})
+	}
 	tmpData := []*oa.AttendanceTmp{{
 		ID:             data.ID,
 		EmployeeID:     data.EmployeeID,
