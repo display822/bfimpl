@@ -30,11 +30,11 @@ func MailInit() {
 	dialer = gomail.NewDialer(mailHost, mailPort, mailUser, mailPass)
 }
 
-// EmailExpenseApproved 通过报销审批通过通知
-func EmailExpenseApproved(mailTo string, id uint, name string, time time.Time) {
+// EmailExpenseLeaderApproved 负责人报销审批通过通知
+func EmailExpenseLeaderApproved(mailTo string, id uint, name string, time time.Time) {
 	subject := "报销审核通知"
 	var body bytes.Buffer
-	t, _ := template.ParseFiles("static/mail/approved.html")
+	t, _ := template.ParseFiles("static/mail/leaderApproved.html")
 	t.Execute(&body, struct {
 		ID   uint
 		Name string
@@ -47,28 +47,43 @@ func EmailExpenseApproved(mailTo string, id uint, name string, time time.Time) {
 	sendMail(mailTo, subject, body.String())
 }
 
-// EmailExpenseRejectedUp 通过报销线上审批驳回通知
-func EmailExpenseRejectedUp(mailTo string, name string, time time.Time, otp string) {
+// EmailExpenseFinanceApproved 财务报销审批通过通知
+func EmailExpenseFinanceApproved(mailTo string, name string, time time.Time) {
 	subject := "报销审核通知"
 	var body bytes.Buffer
-	t, _ := template.ParseFiles("static/mail/rejectedUp.html")
+	t, _ := template.ParseFiles("static/mail/financeApproved.html")
 	t.Execute(&body, struct {
 		Name string
 		Time string
-		OTP  string
 	}{
 		Name: name,
 		Time: time.Format("2006/01/02"),
-		OTP:  otp,
 	})
 	sendMail(mailTo, subject, body.String())
 }
 
-// EmailExpenseRejectedDown 通过报销线下审批驳回通知
-func EmailExpenseRejectedDown(mailTo string, name string, time time.Time, otp string) {
+// EmailExpenseLeaderRejected 负责人报销审批驳回通知
+func EmailExpenseLeaderRejected(mailTo string, id uint, name string, time time.Time) {
+	subject := "报销审核通知"
+	var body bytes.Buffer
+	t, _ := template.ParseFiles("static/mail/leaderRejected.html")
+	t.Execute(&body, struct {
+		ID   uint
+		Name string
+		Time string
+	}{
+		ID:   id,
+		Name: name,
+		Time: time.Format("2006/01/02"),
+	})
+	sendMail(mailTo, subject, body.String())
+}
+
+// EmailExpenseFinanceRejected 财务报销审批驳回通知
+func EmailExpenseFinanceRejected(mailTo string, name string, time time.Time, otp string) {
 	subject := "报销支付通知"
 	var body bytes.Buffer
-	t, _ := template.ParseFiles("static/mail/rejectedDown.html")
+	t, _ := template.ParseFiles("static/mail/financeRejected.html")
 	t.Execute(&body, struct {
 		Name string
 		Time string

@@ -317,6 +317,9 @@ func (e *ExpenseController) ApprovalExpense() {
 				services.Slave().Model(oa.Expense{}).Where("id = ?", param.Id).Updates(map[string]interface{}{
 					"status": status,
 				})
+				if i == 1 {
+					go services.EmailExpenseLeaderRejected(expense.Employee.Email, expense.ID, expense.Employee.Name, expense.ApplicationDate)
+				}
 				if i == 2 {
 					otp, _ := util.GenerateOTP(6)
 					expenseOtp := oa.ExpenseOtp{
@@ -324,18 +327,19 @@ func (e *ExpenseController) ApprovalExpense() {
 						EmpID: int(expense.Employee.ID),
 					}
 					services.Slave().Create(&expenseOtp)
-					go services.EmailExpenseRejectedUp(expense.Employee.Email, expense.Employee.Name, expense.ApplicationDate, otp)
+					go services.EmailExpenseFinanceRejected(expense.Employee.Email, expense.Employee.Name, expense.ApplicationDate, otp)
 				}
 			} else {
 				var nextNodeStatus string
 				if i == 1 {
 					nextNodeStatus = models.FlowProcessing
+					go services.EmailExpenseLeaderApproved(expense.Employee.Email, expense.ID, expense.Employee.Name, expense.ApplicationDate)
 				} else if i == 2 {
 					services.Slave().Model(oa.Expense{}).Where("id = ?", param.Id).Updates(map[string]interface{}{
 						"status": models.FlowUnpaid,
 					})
 					nextNodeStatus = models.FlowUnpaid
-					go services.EmailExpenseApproved(expense.Employee.Email, expense.ID, expense.Employee.Name, expense.ApplicationDate)
+					go services.EmailExpenseFinanceApproved(expense.Employee.Email, expense.Employee.Name, expense.ApplicationDate)
 				}
 				workflow.Nodes[i+1].Status = nextNodeStatus
 			}
@@ -516,15 +520,15 @@ func (e *ExpenseController) PaidExpense() {
 	var paymentDate *time.Time
 	var status string
 	if param.Status == 0 {
-		status = models.FlowRejected
-		paymentDate = nil
-		otp, _ := util.GenerateOTP(6)
-		expenseOtp := oa.ExpenseOtp{
-			Code:  otp,
-			EmpID: int(expense.Employee.ID),
-		}
-		services.Slave().Create(&expenseOtp)
-		go services.EmailExpenseRejectedDown(expense.Employee.Email, expense.Employee.Name, expense.ApplicationDate, otp)
+		// status = models.FlowRejected
+		// paymentDate = nil
+		// otp, _ := util.GenerateOTP(6)
+		// expenseOtp := oa.ExpenseOtp{
+		// 	Code:  otp,
+		// 	EmpID: int(expense.Employee.ID),
+		// }
+		// services.Slave().Create(&expenseOtp)
+		// go services.EmailExpenseRejectedDown(expense.Employee.Email, expense.Employee.Name, expense.ApplicationDate, otp)
 	} else {
 		status = models.FlowPaid
 		t := time.Now()
@@ -606,7 +610,7 @@ func (e *ExpenseController) ParseDetailFile() {
 }
 
 func Read(f *excelize.File, validCode bool) ([]*oa.ExpenseDetail, error) {
-	rows, err := f.GetRows("Sheet1")
+	rows, err := f.GetRows("报销填写")
 	if err != nil {
 		return nil, err
 	}
@@ -635,6 +639,9 @@ func Read(f *excelize.File, validCode bool) ([]*oa.ExpenseDetail, error) {
 			colList[i] = colCell
 			fmt.Println(colList)
 		}
+		// if colList[0] == "" && colList[1] == "" && colList[2] == "" && colList[3] == "" && colList[4] == "" && colList[5] == "" {
+		// 	continue
+		// }
 
 		// 校验费用发生日期
 		var ocurredDate models.Date
