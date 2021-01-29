@@ -96,6 +96,7 @@ func (d *DeviceController) Create() {
 func (d *DeviceController) List() {
 	pageSize, _ := d.GetInt("pagesize", 10)
 	pageNum, _ := d.GetInt("pagenum", 1)
+	userID, _ := d.GetInt("userID")
 	deviceCategory := d.GetString("device_category")
 	deviceStatus := d.GetString("device_status")
 	keyword := d.GetString("keyword")
@@ -136,11 +137,15 @@ func (d *DeviceController) List() {
 			item.CanApply = false
 		}
 		for _, a := range item.DeviceApplys {
-			if a.Status != models.FlowReceived && a.Status != models.FlowRevoked {
+			// if a.Status != models.FlowReceived && a.Status != models.FlowRevoked {
+			// 	item.CanApply = false
+			// }
+			if a.EmpID == userID {
 				item.CanApply = false
+				break
 			}
 		}
-		//
+
 		// var deviceApplys []*oa.DeviceApply
 		// for _, a := range item.DeviceApplys {
 		// 	if a.Status == models.FlowApproved || a.Status == models.FlowNA {
@@ -222,6 +227,50 @@ func (d *DeviceController) GetProjects() {
 	//获取emp_info
 	employee := new(oa.Employee)
 	services.Slave().Preload("Department").Preload("Department.Leader").Take(employee, "email = ?", uEmail)
+	if employee.ID == 0 {
+		d.ErrorOK("未找到员工信息")
+	}
+
+	if employee.Department.ID == 0 {
+		d.Correct(projects)
+	}
+	//查询部门下项目list
+
+	query := services.Slave().Model(oa.EngagementCode{}).Preload("Owner").Where("department_id = ?", employee.Department.ID)
+	if desc != "" {
+		query = query.Where("engagement_code_desc like ?", "%"+desc+"%")
+	}
+	query.Find(&projects)
+
+	fmt.Println("employee.Department.Leader", employee.Department.Leader)
+	for i := 0; i < len(projects); i++ {
+		if projects[i].CodeOwnerID == int(employee.ID) {
+			projects[i].Owner = employee.Department.Leader
+			projects[i].CodeOwnerID = int(employee.Department.Leader.ID)
+			if employee.Department.Leader.ID == employee.ID {
+				user := new(models.User)
+				services.Slave().Take(user, "id = ?", 2) // 马俊杰
+				projects[i].Owner = user
+				projects[i].CodeOwnerID = 2 // 马俊杰
+			}
+		}
+	}
+
+	d.Correct(projects)
+}
+
+// @Title 领用设备项目
+// @Description 领用设备项目
+// @Success 200 {string} "success"
+// @Failure 500 server err
+// @router /distribution/projects [get]
+func (d *DeviceController) GetDistributionProjects() {
+	desc := d.GetString("desc")
+	uid := d.GetString("user_id")
+	projects := make([]*oa.EngagementCode, 0)
+	//获取emp_info
+	employee := new(oa.Employee)
+	services.Slave().Preload("Department").Preload("Department.Leader").Take(employee, "id = ?", uid)
 	if employee.ID == 0 {
 		d.ErrorOK("未找到员工信息")
 	}
@@ -532,6 +581,75 @@ func (d *DeviceController) ReceiveDevice() {
 		OperatorCategory:      models.DeviceOutgoing,
 		OperatorID:            device.DeviceApply.OutgoingOperatorID,
 		OperatorName:          device.DeviceApply.OutgoingOperatorName,
+		Comment:               "",
+	}
+	err = tx.Create(&deviceRequisition).Error
+	if err != nil {
+		log.GLogger.Error("create deviceRequisition err:%s", err.Error())
+		tx.Rollback()
+		d.ErrorOK(MsgServerErr)
+	}
+
+	tx.Commit()
+	d.Correct("")
+}
+
+// @Title 设备归还
+// @Description 设备归还
+// @Success 200 {string} "success"
+// @Failure 500 server err
+// @router /:id/return [put]
+func (d *DeviceController) ReturnDevice() {
+	userID, _ := d.GetInt("userID")
+	userName := d.GetString("userName")
+	userType, _ := d.GetInt("userType")
+	status := d.GetString("status")
+
+	id, _ := d.GetInt(":id")
+	if userType != models.UserIT && userType != models.UserFront && userType != models.UserFinance {
+		d.ErrorOK("没有权限")
+	}
+	tx := services.Slave().Begin()
+	var device oa.Device
+	err := tx.Where("id = ?", id).Preload("DeviceApply").Find(&device).Error
+	if err != nil {
+		log.GLogger.Error("get device err:%s", err.Error())
+		tx.Rollback()
+		d.ErrorOK(MsgServerErr)
+	}
+	log.GLogger.Info("device", device)
+
+	if device.DeviceStatus != models.DevicePossessed {
+		d.ErrorOK("设备状态错误")
+	}
+
+	var s string
+	if status == "0" {
+		s = models.DeviceFree
+	} else if status == "1" {
+		s = models.DeviceFixing
+	} else if status == "2" {
+		s = models.DeviceScrap
+	}
+	device.DeviceStatus = s
+	device.DeviceApplyID = 0
+	device.DeviceApply.Status = models.DeviceReturn
+
+	err = tx.Save(&device).Error
+	if err != nil {
+		log.GLogger.Error("save device err:%s", err.Error())
+		tx.Rollback()
+		d.ErrorOK(MsgServerErr)
+	}
+
+	// 添加记录
+	deviceRequisition := oa.DeviceRequisition{
+		DeviceID:              id,
+		AssociateEmployeeID:   device.DeviceApply.EmpID,
+		AssociateEmployeeName: device.DeviceApply.EName,
+		OperatorCategory:      models.DeviceReturn,
+		OperatorID:            userID,
+		OperatorName:          userName,
 		Comment:               "",
 	}
 	err = tx.Create(&deviceRequisition).Error
