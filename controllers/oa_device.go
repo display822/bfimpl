@@ -387,7 +387,7 @@ func (d *DeviceController) ListApply() {
 	query.Limit(pageSize).Offset((pageNum - 1) * pageSize).Preload("Device").Order("device_applies.created_at desc").Find(&deviceApplys).Limit(-1).Offset(-1).Count(&resp.Total)
 
 	for _, deviceApply := range deviceApplys {
-		if deviceApply.Status == models.FlowApproved && deviceApply.Device.DeviceApplyID == int(deviceApply.ID) {
+		if (deviceApply.Status == models.FlowApproved && deviceApply.Device.DeviceApplyID == int(deviceApply.ID)) || deviceApply.Status == models.FlowDistributed {
 			deviceApply.CanReceive = true
 		}
 
