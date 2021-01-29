@@ -572,7 +572,7 @@ func (d *DeviceController) ReceiveDevice() {
 	}
 
 	if device.DeviceApply.Status == models.FlowReceived {
-		d.ErrorOK("已领用")
+		d.ErrorOK("设备已占用")
 	}
 
 	device.DeviceStatus = models.DevicePossessed
