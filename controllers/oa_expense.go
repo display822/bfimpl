@@ -944,6 +944,7 @@ func (e *ExpenseController) ExportUnpaid() {
 	f.NewSheet("上海游因")
 	f.NewSheet("宁波比孚")
 	f.NewSheet("上海品埃")
+	f.NewSheet("报销明细")
 	f.DeleteSheet("Sheet1")
 
 	// 设置单元格宽度
@@ -976,6 +977,10 @@ func (e *ExpenseController) ExportUnpaid() {
 	f.SetColWidth("上海品埃", "R", "R", 27)
 	f.SetColWidth("上海品埃", "S", "S", 10)
 
+	f.SetColWidth("报销明细", "B", "B", 15)
+	f.SetColWidth("报销明细", "C", "C", 15)
+	f.SetColWidth("报销明细", "E", "E", 15)
+
 	_ = f.SetSheetRow("上海游因", "A1", &[]interface{}{"收款帐号", "收款户名", "金额", "开户行", "开户地"})
 	_ = f.SetSheetRow("宁波比孚", "A1", &[]interface{}{"币种", "日期", "明细标志", "顺序号", "付款账号开户行",
 		"付款账号/卡号", "付款账号名称/卡名称", "收款账号开户行", "收款账号省份", "收款账号地市", "收款账号地区码", "收款账号",
@@ -983,6 +988,7 @@ func (e *ExpenseController) ExportUnpaid() {
 	_ = f.SetSheetRow("上海品埃", "A1", &[]interface{}{"币种", "日期", "明细标志", "顺序号", "付款账号开户行",
 		"付款账号/卡号", "付款账号名称/卡名称", "收款账号开户行", "收款账号省份", "收款账号地市", "收款账号地区码", "收款账号",
 		"收款账号名称", "金额", "汇款用途", "备注信息", "汇款方式", "收款账户短信通知手机号码", "自定义序号"})
+	_ = f.SetSheetRow("报销明细", "A1", &[]interface{}{"人员", "费用发生日期", "费用科目", "报销金额", "提交日期"})
 	num1 := 2
 	num2 := 2
 	num3 := 2
@@ -1027,6 +1033,28 @@ func (e *ExpenseController) ExportUnpaid() {
 			})
 			num3++
 		}
+	}
+
+	// 报销明细
+	num4 := 2
+	var es []*oa.Expense
+	services.Slave().Where("status = ?", models.FlowUnpaid).Preload("ExpenseDetails").
+		Preload("ExpenseDetails.ExpenseAccount").Find(&es)
+	t := time.Now()
+	first := util.GetFirstDateOfMonth(t)
+	last := util.GetLastDateOfMonth(t)
+	for _, expense := range es {
+		for _, detail := range expense.ExpenseDetails {
+			if time.Time(detail.OcurredDate).After(first) && time.Time(detail.OcurredDate).Before(last) {
+				_ = f.SetSheetRow("报销明细", "A"+strconv.Itoa(num4), &[]interface{}{
+					expense.EName /*人员*/, detail.OcurredDate, /*费用发生日期*/
+					detail.ExpenseAccount.ExpenseAccountName,                             /*费用科目*/
+					detail.ExpenseAmount /*报销金额*/, detail.CreatedAt.Format("2006-01-02"), /*提交日期*/
+				})
+				num4++
+			}
+		}
+
 	}
 	f.SetActiveSheet(0)
 	f.SaveAs("static/expense.xlsx")
