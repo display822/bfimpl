@@ -209,7 +209,11 @@ func (e *EngagementController) Create() {
 	log.GLogger.Info("len(eng)", len(eng))
 	if len(eng) > 0 {
 		log.GLogger.Info("Exist")
-		err = services.Slave().Delete(&eng).Error
+		ids := make([]int, 0)
+		for _, v := range eng {
+			ids = append(ids, int(v.ID))
+		}
+		err = services.Slave().Unscoped().Debug().Delete(&oa.Engagement{}, "id in (?)", ids).Error
 		if err != nil {
 			e.ErrorOK(MsgServerErr)
 		}

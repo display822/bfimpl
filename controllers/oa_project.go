@@ -100,13 +100,17 @@ func (p *ProjectController) Create() {
 		item.PeriodTime = periodTime
 	}
 
-	var pd []*oa.ProjectDelivery
+	var pd []oa.ProjectDelivery
 	log.GLogger.Info("periodTime", periodTime)
 	err = services.Slave().Where("period_time = ?", periodTime).Find(&pd).Error
 	log.GLogger.Info("len(pd)", len(pd))
 	if len(pd) > 0 {
 		log.GLogger.Info("Exist")
-		err = services.Slave().Delete(&pd).Error
+		ids := make([]int, 0)
+		for _, v := range pd {
+			ids = append(ids, int(v.ID))
+		}
+		err = services.Slave().Unscoped().Debug().Delete(&oa.ProjectDelivery{}, "id in (?)", ids).Error
 		if err != nil {
 			p.ErrorOK(MsgServerErr)
 		}
