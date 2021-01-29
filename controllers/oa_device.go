@@ -386,6 +386,15 @@ func (d *DeviceController) ListApply() {
 	}
 	query.Limit(pageSize).Offset((pageNum - 1) * pageSize).Preload("Device").Order("device_applies.created_at desc").Find(&deviceApplys).Limit(-1).Offset(-1).Count(&resp.Total)
 
+	for _, deviceApply := range deviceApplys {
+		if deviceApply.Device.DeviceApplyID == int(deviceApply.ID) {
+			deviceApply.CanReceive = true
+		}
+
+		if deviceApply.Status == models.FlowNA || deviceApply.Status == models.FlowApproved {
+			deviceApply.CanRevoke = true
+		}
+	}
 	resp.List = deviceApplys
 	d.Correct(resp)
 }
