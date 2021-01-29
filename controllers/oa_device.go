@@ -571,8 +571,8 @@ func (d *DeviceController) ReceiveDevice() {
 		d.ErrorOK("没有领用权限")
 	}
 
-	if device.DeviceApply.Status == models.FlowReceived {
-		d.ErrorOK("设备已占用")
+	if device.DeviceStatus != models.DeviceFree {
+		d.ErrorOK("设备异常")
 	}
 
 	device.DeviceStatus = models.DevicePossessed
