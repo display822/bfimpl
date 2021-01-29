@@ -339,7 +339,11 @@ func (d *DeviceController) ListApply() {
 		query = query.Where("devices.device_category = ?", category)
 	}
 	if status != "" {
-		query = query.Where("device_applies.status = ?", status)
+		if status == models.FlowApproved {
+			query = query.Where("device_applies.status in (?)", []string{status, models.FlowDistributed})
+		} else {
+			query = query.Where("device_applies.status = ?", status)
+		}
 	}
 	if search != "" {
 		query = query.Where("devices.device_category like ?", fmt.Sprintf("%%%s%%", search))
