@@ -36,7 +36,7 @@ func (d *DeviceController) Create() {
 	// 验证员工身份 (7，8，9)
 	userType, _ := d.GetInt("userType")
 	if userType != models.UserIT && userType != models.UserFront && userType != models.UserFinance {
-		d.ErrorOK("没有权限")
+		d.ErrorOK("没有操作权限")
 	}
 	userID, _ := d.GetInt("userID")
 	userName := d.GetString("userName")
@@ -183,7 +183,7 @@ func (d *DeviceController) Get() {
 func (d *DeviceController) Put() {
 	userType, _ := d.GetInt("userType")
 	if userType != models.UserIT && userType != models.UserFront && userType != models.UserFinance {
-		d.ErrorOK("没有权限")
+		d.ErrorOK("没有操作权限")
 	}
 
 	param := new(oa.Device)
@@ -457,11 +457,11 @@ func (d *DeviceController) RevokeDevice() {
 	log.GLogger.Info("deviceApply:%+v", deviceApply)
 
 	if deviceApply.EmpID != userID {
-		d.ErrorOK("没有权限")
+		d.ErrorOK("没有操作权限")
 	}
 
 	if deviceApply.Status != models.FlowNA && deviceApply.Status != models.FlowApproved {
-		d.ErrorOK("不可撤销")
+		d.ErrorOK("当前状态不可撤销")
 	}
 
 	//oID 查询 workflow
@@ -567,12 +567,13 @@ func (d *DeviceController) ReceiveDevice() {
 		d.ErrorOK(MsgServerErr)
 	}
 	log.GLogger.Info("device", device)
+	log.GLogger.Info("DeviceApply", device.DeviceApply)
 	if device.DeviceApply.EmpID != userID {
 		d.ErrorOK("没有领用权限")
 	}
 
 	if device.DeviceStatus != models.DeviceFree {
-		d.ErrorOK("设备异常")
+		d.ErrorOK("设备状态错误")
 	}
 
 	device.DeviceStatus = models.DevicePossessed
@@ -585,6 +586,7 @@ func (d *DeviceController) ReceiveDevice() {
 		tx.Rollback()
 		d.ErrorOK(MsgServerErr)
 	}
+	log.GLogger.Info("DeviceApply", device.DeviceApply)
 
 	// 添加记录
 	deviceRequisition := oa.DeviceRequisition{
@@ -704,7 +706,7 @@ func (d *DeviceController) DistributionDevice() {
 		d.ErrorOK("need project")
 	}
 	if userType != models.UserIT && userType != models.UserFront && userType != models.UserFinance {
-		d.ErrorOK("没有权限")
+		d.ErrorOK("没有操作权限")
 	}
 	tx := services.Slave().Begin()
 
@@ -767,7 +769,7 @@ func (d *DeviceController) OutgoingDevice() {
 	userName := d.GetString("userName")
 	userType, _ := d.GetInt("userType")
 	if userType != models.UserIT && userType != models.UserFront && userType != models.UserFinance {
-		d.ErrorOK("没有权限")
+		d.ErrorOK("没有操作权限")
 	}
 	id, _ := d.GetInt(":id")
 	deviceApplyID, _ := d.GetInt("device_apply_id")

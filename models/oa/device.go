@@ -59,7 +59,7 @@ type Device struct {
 	WarrantyPeriod     int                  `gorm:"not null;comment:'保修期限'" json:"warranty_period"`
 	Site               string               `gorm:"size:100;not null;comment:'位置'" json:"site"`
 	DeviceApplyID      int                  `gorm:"size:50;comment:'申请单id'" json:"device_apply_id"`
-	DeviceApply        *DeviceApply         `json:"device_apply"`
+	DeviceApply        *DeviceApply         `gorm:"ForeignKey:DeviceApplyID" json:"device_apply"`
 	IsApply            int                  `gorm:"size:10;not null;comment:'是否可申领'" json:"is_apply"`
 	DeviceRequisitions []*DeviceRequisition `json:"device_requisitions"`
 	DeviceApplys       []*DeviceApply       `json:"device_applys"`
