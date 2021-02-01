@@ -1040,7 +1040,7 @@ func (e *ExpenseController) ExportUnpaid() {
 	var es []*oa.Expense
 	services.Slave().Where("status = ?", models.FlowUnpaid).Preload("ExpenseDetails").
 		Preload("ExpenseDetails.ExpenseAccount").Find(&es)
-	t := time.Now()
+	t := time.Now().AddDate(0, -1, 0)
 	first := util.GetFirstDateOfMonth(t)
 	last := util.GetLastDateOfMonth(t)
 	for _, expense := range es {
