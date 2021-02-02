@@ -650,7 +650,8 @@ func Read(f *excelize.File, validCode bool) ([]*oa.ExpenseDetail, error) {
 			errorArray = append(errorArray, fmt.Sprintf("第%d行费用发生日期未填写", x))
 		} else {
 			log.GLogger.Info("time: %s", colList[0])
-			t, err := time.Parse(models.DateFormat, colList[0])
+			t, err := util.ExcelDateToDate(colList[0])
+			// t, err := time.Parse(models.DateFormat, colList[0])
 			if err != nil {
 				errorArray = append(errorArray, fmt.Sprintf("第%d行费用发生日期格式不正确", x))
 				continue

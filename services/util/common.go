@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -61,4 +62,19 @@ func GetLastDateOfMonth(d time.Time) time.Time {
 // 获取某一天的0点时间
 func GetZeroTime(d time.Time) time.Time {
 	return time.Date(d.Year(), d.Month(), d.Day(), 0, 0, 0, 0, d.Location())
+}
+
+// note: this is off by two days on the real epoch (1/1/1900) because
+// - the days are 1 indexed so 1/1/1900 is 1 not 0
+// - Excel pretends that Feb 29, 1900 existed even though it did not
+// The following function will fail for dates before March 1st 1900
+// Before that date the Julian calendar was used so a conversion would be necessary
+var excelEpoch = time.Date(1899, time.December, 30, 0, 0, 0, 0, time.UTC)
+
+func ExcelDateToDate(excelDate string) (time.Time, error) {
+	var days, err = strconv.Atoi(excelDate)
+	if err != nil {
+		return excelEpoch, err
+	}
+	return excelEpoch.Add(time.Second * time.Duration(days*86400)), nil
 }
