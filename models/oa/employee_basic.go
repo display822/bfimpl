@@ -32,6 +32,7 @@ type EmployeeBasic struct {
 	Major                   string      `gorm:"size:20;not null;comment:'专业'" json:"major"`
 	GraduationSchool        string      `gorm:"size:100;not null;comment:'毕业院校'" json:"graduation_school"`
 	HujiType                string      `gorm:"size:50;not null;comment:'户籍性质'" json:"huji_type"`
+	Huji                    string      `gorm:"size:100;not null;comment:'户籍'" json:"huji"`
 	DegreeCertificationCopy string      `gorm:"comment:'毕业证书复印'" json:"degree_certification_copy"`
 	DegreeVerification      string      `gorm:"size:20;not null;comment:'学历验证(未验证,已验证,无法验证)'" json:"degree_verification"`
 	ENSkill                 string      `gorm:"size:20;comment:'英语技能'" json:"en_skill"`
