@@ -10,6 +10,8 @@ import (
 	"bfimpl/models/oa"
 	"bfimpl/services"
 	"bfimpl/services/log"
+
+	"github.com/jinzhu/gorm"
 )
 
 type DepartmentController struct {
@@ -59,5 +61,12 @@ func (d *DepartmentController) GetServiceLine() {
 	departmentId, _ := d.GetInt(":id", 0)
 	s := make([]*oa.ServiceLine, 0)
 	services.Slave().Model(oa.ServiceLine{}).Where("department_id = ?", departmentId).Find(&s)
+	if len(s) == 0 {
+		s = append(s, &oa.ServiceLine{
+			Model:        gorm.Model{ID: 0},
+			DepartmentID: departmentId,
+			ServiceName:  "无",
+		})
+	}
 	d.Correct(s)
 }
