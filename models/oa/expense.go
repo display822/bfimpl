@@ -25,7 +25,7 @@ var ExpenseAccountMap = map[string]string{
 }
 
 var ExpenseAccountValidMap = map[string][]int{
-	"餐补费":     {3, 4, 5},
+	"餐补费":     {},
 	"交通费(市内)": {3, 4},
 	"团队激励":    {3, 4, 5},
 	"活动费":     {3, 4},
