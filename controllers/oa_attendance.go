@@ -703,7 +703,14 @@ func (a *AttendanceController) ExportData() {
 	for _, overtime := range overtimes {
 		i, ok := userIndex[overtime.EName]
 		if ok {
-			data[i].Overtime += overtime.RealDuration
+			//增加加班类型判断
+			if overtime.Type == "workday" {
+				data[i].WorkDay += overtime.RealDuration
+			} else if overtime.Type == "weekend" {
+				data[i].Weekend += overtime.RealDuration
+			} else {
+				data[i].Holiday += overtime.RealDuration
+			}
 		}
 	}
 	for _, leave := range leaves {
@@ -729,11 +736,11 @@ func (a *AttendanceController) ExportData() {
 	//生成excel
 	f := excelize.NewFile()
 	_ = f.SetSheetRow("Sheet1", "A1", &[]interface{}{"部门", "姓名", "上班总工时", "总调休时长", "工作日加班时长",
-		"弹性", "事假", "年假", "病假", "迟到", "早退", "旷工", "忘记打卡"})
+		"周末加班时长", "节假日加班时长", "弹性", "事假", "年假", "病假", "迟到", "早退", "旷工", "忘记打卡"})
 	num := 2
 	for _, at := range data {
 		_ = f.SetSheetRow("Sheet1", "A"+strconv.Itoa(num), &[]interface{}{at.Dept, at.Name, at.Total, at.Leave,
-			at.Overtime, at.Shift, at.Affair, at.Annual, at.Sick, at.Late, at.Early, at.None, at.Forget})
+			at.WorkDay, at.Weekend, at.Holiday, at.Shift, at.Affair, at.Annual, at.Sick, at.Late, at.Early, at.None, at.Forget})
 		num++
 	}
 	fileName := year + "-" + month + ".xlsx"

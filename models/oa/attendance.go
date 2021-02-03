@@ -122,17 +122,19 @@ type UserAttendance struct {
 
 //请假数据统计
 type AttendanceExcel struct {
-	Dept     string
-	Name     string
-	Total    int
-	Leave    float32
-	Annual   float32
-	Sick     float32
-	Late     int
-	Early    int
-	Overtime float32
-	Shift    float32
-	Affair   float32
-	None     int
-	Forget   int
+	Dept    string
+	Name    string
+	Total   int
+	Leave   float32
+	Annual  float32
+	Sick    float32
+	Late    int
+	Early   int
+	WorkDay float32
+	Weekend float32
+	Holiday float32
+	Shift   float32
+	Affair  float32
+	None    int
+	Forget  int
 }
