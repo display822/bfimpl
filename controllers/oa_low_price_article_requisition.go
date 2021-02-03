@@ -61,16 +61,27 @@ func (l *LowPriceArticleRequisitionController) List() {
 func (l *LowPriceArticleRequisitionController) Outgoing() {
 	uID, _ := l.GetInt("userID", 0)
 	uName := l.GetString("userName")
+	userType, _ := l.GetInt("userType")
 	lpar := new(oa.LowPriceArticleRequisition)
 	err := json.Unmarshal(l.Ctx.Input.RequestBody, lpar)
 	if err != nil {
 		log.GLogger.Error("parse low_price_article_requisition err:%s", err.Error())
 		l.ErrorOK(MsgInvalidParam)
 	}
+	if userType != models.UserIT && userType != models.UserFront && userType != models.UserFinance {
+		l.ErrorOK("没有操作权限")
+	}
 	if lpar.Quantity <= 0 {
 		l.ErrorOK("数量需要大于0")
 	}
 	tx := services.Slave().Begin()
+
+	employee := new(oa.Employee)
+	services.Slave().Take(employee, "name = ?", lpar.AssociateEmployeeName)
+	if employee.ID == 0 {
+		l.ErrorOK("未找到领用人")
+	}
+	lpar.AssociateEmployeeID = int(employee.ID)
 
 	var lowPriceArticle oa.LowPriceArticle
 	err = tx.Model(&oa.LowPriceArticle{}).Where("id = ?", lpar.LowPriceArticleID).Find(&lowPriceArticle).Error
@@ -121,6 +132,7 @@ func (l *LowPriceArticleRequisitionController) Outgoing() {
 // @router /:id/return [post]
 func (l *LowPriceArticleRequisitionController) Return() {
 	uID, _ := l.GetInt("userID", 0)
+	userType, _ := l.GetInt("userType")
 	uName := l.GetString("userName")
 	id := l.GetString(":id")
 	if id == "" {
@@ -129,6 +141,9 @@ func (l *LowPriceArticleRequisitionController) Return() {
 	status := l.GetString("status")
 	if status == "" {
 		l.ErrorOK("need status")
+	}
+	if userType != models.UserIT && userType != models.UserFront && userType != models.UserFinance {
+		l.ErrorOK("没有操作权限")
 	}
 	tx := services.Slave().Begin()
 	var lpar oa.LowPriceArticleRequisition
@@ -234,10 +249,15 @@ func (l *LowPriceArticleRequisitionController) Return() {
 func (l *LowPriceArticleRequisitionController) BatchReturn() {
 	uID, _ := l.GetInt("userID", 0)
 	uName := l.GetString("userName")
+	userType, _ := l.GetInt("userType")
+
 	ids := l.GetString("ids")
 	idList := strings.Split(ids, ",")
 	log.GLogger.Info("uID :%d", uID)
 	log.GLogger.Info("idList :%s", idList)
+	if userType != models.UserIT && userType != models.UserFront && userType != models.UserFinance {
+		l.ErrorOK("没有操作权限")
+	}
 	tx := services.Slave().Begin()
 	var lpars []*oa.LowPriceArticleRequisition
 	var lpa oa.LowPriceArticle
@@ -315,6 +335,7 @@ func (l *LowPriceArticleRequisitionController) Scrap() {
 	// 添加一条归还记录
 	uID, _ := l.GetInt("userID", 0)
 	uName := l.GetString("userName")
+
 	lpar := new(oa.LowPriceArticleRequisition)
 	err := json.Unmarshal(l.Ctx.Input.RequestBody, lpar)
 	if err != nil {

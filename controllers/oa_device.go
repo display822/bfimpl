@@ -111,9 +111,7 @@ func (d *DeviceController) List() {
 	}
 	if keyword != "" {
 		k := fmt.Sprintf("%%%s%%", keyword)
-		db = db.Where("device_name like ?", k)
-		db = db.Or("device_num like ?", k)
-		// 更多模糊查询...
+		db = db.Where("concat(device_name, device_code,device_model) like ?", k)
 	}
 	var resp struct {
 		Total int          `json:"total"`
@@ -135,6 +133,9 @@ func (d *DeviceController) List() {
 		}
 		if item.DeviceStatus != models.DeviceFree {
 			item.CanApply = false
+		}
+		if item.DeviceApply != nil && item.DeviceApply.EmpID == userID {
+
 		}
 		for _, a := range item.DeviceApplys {
 			// if a.Status != models.FlowReceived && a.Status != models.FlowRevoked {
@@ -693,9 +694,7 @@ func (d *DeviceController) DistributionDevice() {
 	employeeName := d.GetString("employee_name")
 	engagementCode := d.GetString("engagement_code")
 	project := d.GetString("project")
-	if employeeID <= 0 {
-		d.ErrorOK("need employee_id")
-	}
+
 	if employeeName == "" {
 		d.ErrorOK("need employee_name")
 	}
@@ -708,7 +707,14 @@ func (d *DeviceController) DistributionDevice() {
 	if userType != models.UserIT && userType != models.UserFront && userType != models.UserFinance {
 		d.ErrorOK("没有操作权限")
 	}
+
 	tx := services.Slave().Begin()
+	employee := new(oa.Employee)
+	services.Slave().Take(employee, "name = ?", employeeName)
+	if employee.ID == 0 {
+		d.ErrorOK("未找到领用人")
+	}
+	employeeID = int(employee.ID)
 
 	var device oa.Device
 	err := tx.Where("id = ?", id).Find(&device).Error
