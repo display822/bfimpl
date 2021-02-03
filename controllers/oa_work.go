@@ -176,7 +176,7 @@ func (w *WorkController) OvertimeList() {
 	status := w.GetString("status")
 	myreq, _ := w.GetBool("myreq", false)
 	mytodo, _ := w.GetBool("mytodo", false)
-
+	startdate := w.GetString("startdate")
 	userType, _ := w.GetInt("userType", 0)
 	userEmail := w.GetString("userEmail")
 	overtimes := make([]*oa.Overtime, 0)
@@ -186,6 +186,9 @@ func (w *WorkController) OvertimeList() {
 	}
 	if workType != "" {
 		query = query.Where("type = ?", workType)
+	}
+	if startdate != "" {
+		query = query.Where("start_date >= ?", startdate)
 	}
 	employee := new(oa.Employee)
 	services.Slave().Where("email = ?", userEmail).First(employee)
@@ -230,6 +233,10 @@ func (w *WorkController) OvertimeList() {
 		if workType != "" {
 			rsql += " and o.type = ?"
 			p = append(p, workType)
+		}
+		if startdate != "" {
+			rsql += " and o.overtime_date >= ?"
+			p = append(p, startdate)
 		}
 		rsql += " order by o.created_at desc"
 		services.Slave().Raw(rsql, p...).Scan(&ids)
@@ -522,6 +529,7 @@ func (w *WorkController) LeaveList() {
 	name := w.GetString("name")
 	workType := w.GetString("type")
 	status := w.GetString("status")
+	startdate := w.GetString("startdate")
 	myreq, _ := w.GetBool("myreq", false)
 	mytodo, _ := w.GetBool("mytodo", false)
 
@@ -535,7 +543,9 @@ func (w *WorkController) LeaveList() {
 	if workType != "" {
 		query = query.Where("type = ?", workType)
 	}
-
+	if startdate != "" {
+		query = query.Where("start_date >= ?", startdate)
+	}
 	employee := new(oa.Employee)
 	services.Slave().Where("email = ?", userEmail).First(employee)
 	if userType != models.UserHR && userType != models.UserLeader {
@@ -579,6 +589,10 @@ func (w *WorkController) LeaveList() {
 		if workType != "" {
 			rsql += " and l.type = ?"
 			p = append(p, workType)
+		}
+		if startdate != "" {
+			rsql += " and l.start_date >= ?"
+			p = append(p, startdate)
 		}
 		rsql += " order by l.created_at desc"
 		services.Slave().Raw(rsql, p...).Scan(&ids)
