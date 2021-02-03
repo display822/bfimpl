@@ -102,7 +102,7 @@ func GeneraSheBao() {
 	_ = f.SetCellStr("Sheet1", "A"+strconv.Itoa(row), "在职")
 	row++
 	_ = f.SetSheetRow("Sheet1", "A"+strconv.Itoa(row), &[]interface{}{"主体", "员工姓名", "状态", "入职日期",
-		"离职日期", "身份证号", "户籍性质", "公积金号"})
+		"离职日期", "身份证号", "户籍性质", "公积金号", "联系方式"})
 	row++
 	//查询在职员工
 	existEmp := make([]*oa.Employee, 0)
@@ -153,7 +153,7 @@ func GeneraSheBao() {
 			contractMain = m.ContractMain
 		}
 		_ = f.SetSheetRow("Sheet1", "A"+strconv.Itoa(row), &[]interface{}{contractMain, emp.Name, models.EmpStatus[emp.Status],
-			emp.EntryDate, "-", emp.IDCard, huji, fund})
+			emp.EntryDate, "-", emp.IDCard, huji, fund, emp.Mobile})
 		row++
 	}
 	//新入职信息=============================
@@ -169,7 +169,7 @@ func GeneraSheBao() {
 			contractMain = m.ContractMain
 		}
 		_ = f.SetSheetRow("Sheet1", "A"+strconv.Itoa(row), &[]interface{}{contractMain, emp.Name, models.EmpStatus[emp.Status],
-			emp.EntryDate, "-", emp.IDCard, huji, fund})
+			emp.EntryDate, "-", emp.IDCard, huji, fund, emp.Mobile})
 		row++
 	}
 	_ = f.SetCellStr("Sheet1", "A"+strconv.Itoa(row), "已离职")
@@ -196,7 +196,7 @@ func GeneraSheBao() {
 			contractMain = m.ContractMain
 		}
 		_ = f.SetSheetRow("Sheet1", "A"+strconv.Itoa(row), &[]interface{}{contractMain, emp.Name, models.EmpStatus[emp.Status],
-			emp.EntryDate, emp.ResignationDate, emp.IDCard, huji, fund})
+			emp.EntryDate, emp.ResignationDate, emp.IDCard, huji, fund, emp.Mobile})
 		row++
 	}
 	saveFile := new(oa.SocialSecurity)
