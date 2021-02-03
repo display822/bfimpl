@@ -806,14 +806,18 @@ func (w *WorkController) ValidLeave() {
 // @Failure 500 server err
 // @router /remain/holiday [get]
 func (w *WorkController) RemainHoliday() {
-	uEmail := w.GetString("userEmail")
-	//获取emp_info
-	employee := new(oa.Employee)
-	services.Slave().Take(employee, "email = ?", uEmail)
-	if employee.ID == 0 {
-		w.ErrorOK("未找到员工信息")
+	empID, _ := w.GetInt("id", -1)
+	if empID == -1 {
+		uEmail := w.GetString("userEmail")
+		//获取emp_info
+		employee := new(oa.Employee)
+		services.Slave().Take(employee, "email = ?", uEmail)
+		if employee.ID == 0 {
+			w.ErrorOK("未找到员工信息")
+		}
+		empID = int(employee.ID)
 	}
-	w.Correct(getRemain(int(employee.ID)))
+	w.Correct(getRemain(empID))
 }
 
 func getRemain(empID int) oa.LeaveRemain {
