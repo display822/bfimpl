@@ -683,17 +683,21 @@ func (a *AttendanceController) ExportData() {
 			}
 			data = append(data, tmp)
 		}
+		if at.InResult == "迟到" {
+			data[i].Late++
+		}
+		if at.OutResult == "早退" {
+			data[i].Early++
+		}
+		if at.OutResult == "旷工" {
+			data[i].None++
+		}
+		if at.OutResult == "忘记打卡" {
+			data[i].Forget++
+		}
 		//今天工时
 		if !strings.Contains(at.CheckIn.String(), "0001-01-01") && !strings.Contains(at.CheckOut.String(), "0001-01-01") {
 			data[i].Total += at.CheckOut.SubToHour(at.CheckIn)
-			if at.InResult == "迟到" {
-				data[i].Late++
-			}
-			if at.OutResult == "早退" {
-				data[i].Early++
-			}
-		} else {
-			data[i].Forget += 1
 		}
 	}
 	for _, overtime := range overtimes {
