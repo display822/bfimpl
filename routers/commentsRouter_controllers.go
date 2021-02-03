@@ -667,6 +667,15 @@ func init() {
 
 	beego.GlobalControllerRouter["bfimpl/controllers:WorkController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:WorkController"],
 		beego.ControllerComments{
+			Method:           "DeleteOvertime",
+			Router:           `/overtime/:id`,
+			AllowHTTPMethods: []string{"delete"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:WorkController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:WorkController"],
+		beego.ControllerComments{
 			Method:           "ValidOvertime",
 			Router:           `/overtime/:id/check`,
 			AllowHTTPMethods: []string{"put"},
@@ -715,6 +724,15 @@ func init() {
 			Method:           "ApprovalLeave",
 			Router:           `/leave`,
 			AllowHTTPMethods: []string{"put"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:WorkController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:WorkController"],
+		beego.ControllerComments{
+			Method:           "DeleteLeave",
+			Router:           `/leave/:id`,
+			AllowHTTPMethods: []string{"delete"},
 			MethodParams:     param.Make(),
 			Filters:          nil,
 			Params:           nil})

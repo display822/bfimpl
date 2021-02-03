@@ -327,6 +327,47 @@ func (w *WorkController) ApprovalOvertime() {
 	w.Correct("")
 }
 
+// @Title 取消申请加班
+// @Description 审批申请加班
+// @Param	id	path	int	true	"加班id"
+// @Success 200 {string} "success"
+// @Failure 500 server err
+// @router /overtime/:id [delete]
+func (w *WorkController) DeleteOvertime() {
+	id, _ := w.GetInt(":id", -1)
+	//oID 查询 workflow
+	workflow := new(oa.Workflow)
+	services.Slave().Model(oa.Workflow{}).Where("workflow_definition_id = ? and entity_id = ?",
+		services.GetFlowDefID(services.Overtime), id).Preload("Nodes").Preload("Elements").First(workflow)
+	if workflow.Status != models.FlowProcessing {
+		w.ErrorOK("流程已结束")
+	}
+	tx := services.Slave().Begin()
+	for _, node := range workflow.Nodes {
+		err := tx.Delete(node).Error
+		if err != nil {
+			tx.Rollback()
+			w.ErrorOK(MsgServerErr)
+		}
+	}
+	err := tx.Delete(workflow).Error
+	if err != nil {
+		tx.Rollback()
+		w.ErrorOK(MsgServerErr)
+	}
+	err = tx.Delete(oa.Overtime{}, "id = ?", id).Error
+	if err != nil {
+		tx.Rollback()
+		w.ErrorOK(MsgServerErr)
+	}
+	err = tx.Commit().Error
+	if err != nil {
+		tx.Rollback()
+		w.ErrorOK(MsgServerErr)
+	}
+	w.Correct("")
+}
+
 // @Title 审批申请加班
 // @Description 审批申请加班
 // @Param	id	path	int	true	"加班id"
@@ -681,6 +722,47 @@ func (w *WorkController) ApprovalLeave() {
 	}
 	if !isCheck {
 		w.ErrorOK("您不是当前审批人")
+	}
+	w.Correct("")
+}
+
+// @Title 取消申请请假
+// @Description 取消申请请假
+// @Param	id	path	int	true	"请假id"
+// @Success 200 {string} "success"
+// @Failure 500 server err
+// @router /leave/:id [delete]
+func (w *WorkController) DeleteLeave() {
+	id, _ := w.GetInt(":id", -1)
+	//oID 查询 workflow
+	workflow := new(oa.Workflow)
+	services.Slave().Model(oa.Workflow{}).Where("workflow_definition_id = ? and entity_id = ?",
+		services.GetFlowDefID(services.Leave), id).Preload("Nodes").Preload("Elements").First(workflow)
+	if workflow.Status != models.FlowProcessing {
+		w.ErrorOK("流程已结束")
+	}
+	tx := services.Slave().Begin()
+	for _, node := range workflow.Nodes {
+		err := tx.Delete(node).Error
+		if err != nil {
+			tx.Rollback()
+			w.ErrorOK(MsgServerErr)
+		}
+	}
+	err := tx.Delete(workflow).Error
+	if err != nil {
+		tx.Rollback()
+		w.ErrorOK(MsgServerErr)
+	}
+	err = tx.Delete(oa.Leave{}, "id = ?", id).Error
+	if err != nil {
+		tx.Rollback()
+		w.ErrorOK(MsgServerErr)
+	}
+	err = tx.Commit().Error
+	if err != nil {
+		tx.Rollback()
+		w.ErrorOK(MsgServerErr)
 	}
 	w.Correct("")
 }
