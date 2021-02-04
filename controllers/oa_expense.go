@@ -317,17 +317,25 @@ func (e *ExpenseController) ApprovalExpense() {
 				services.Slave().Model(oa.Expense{}).Where("id = ?", param.Id).Updates(map[string]interface{}{
 					"status": status,
 				})
-				if i == 1 {
-					go services.EmailExpenseLeaderRejected(expense.Employee.Email, expense.ID, expense.Employee.Name, expense.ApplicationDate)
+
+				// 生成验证码
+				otp, _ := util.GenerateOTP(6)
+				expenseOtp := oa.ExpenseOtp{
+					Code:  otp,
+					EmpID: int(expense.Employee.ID),
 				}
-				if i == 2 {
-					otp, _ := util.GenerateOTP(6)
-					expenseOtp := oa.ExpenseOtp{
-						Code:  otp,
-						EmpID: int(expense.Employee.ID),
+
+				if i == 1 { // 负责人
+					if time.Now().Day() > 10 || param.Comment == "十号后" { // 十号后
+						services.Slave().Create(&expenseOtp)
+						go services.EmailExpenseLeaderRejectedTenAfter(expense.Employee.Email, expense.ID, expense.Employee.Name, expense.ApplicationDate, otp, param.Comment)
+					} else { // 十号前
+						go services.EmailExpenseLeaderRejectedTenBefor(expense.Employee.Email, expense.ID, expense.Employee.Name, expense.ApplicationDate, param.Comment)
 					}
+				}
+				if i == 2 { // 财务
 					services.Slave().Create(&expenseOtp)
-					go services.EmailExpenseFinanceRejected(expense.Employee.Email, expense.Employee.Name, expense.ApplicationDate, otp)
+					go services.EmailExpenseFinanceRejected(expense.Employee.Email, expense.Employee.Name, expense.ApplicationDate, otp, param.Comment)
 				}
 			} else {
 				var nextNodeStatus string

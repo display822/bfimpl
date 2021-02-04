@@ -62,36 +62,61 @@ func EmailExpenseFinanceApproved(mailTo string, name string, time time.Time) {
 	sendMail(mailTo, subject, body.String())
 }
 
-// EmailExpenseLeaderRejected 负责人报销审批驳回通知
-func EmailExpenseLeaderRejected(mailTo string, id uint, name string, time time.Time) {
+// EmailExpenseLeaderRejectedTenBefor 负责人报销审批驳回十号前通知
+func EmailExpenseLeaderRejectedTenBefor(mailTo string, id uint, name string, time time.Time, comment string) {
 	subject := "报销审核通知"
 	var body bytes.Buffer
-	t, _ := template.ParseFiles("static/mail/leaderRejected.html")
+	t, _ := template.ParseFiles("static/mail/leaderRejectedTenBefor.html")
 	t.Execute(&body, struct {
-		ID   uint
-		Name string
-		Time string
+		ID      uint
+		Name    string
+		Time    string
+		Comment string
 	}{
-		ID:   id,
-		Name: name,
-		Time: time.Format("2006/01/02"),
+		ID:      id,
+		Name:    name,
+		Time:    time.Format("2006/01/02"),
+		Comment: comment,
+	})
+	sendMail(mailTo, subject, body.String())
+}
+
+// EmailExpenseLeaderRejectedTenAfter 负责人报销审批驳回十号后通知
+func EmailExpenseLeaderRejectedTenAfter(mailTo string, id uint, name string, time time.Time, otp string, comment string) {
+	subject := "报销审核通知"
+	var body bytes.Buffer
+	t, _ := template.ParseFiles("static/mail/leaderRejectedTenAfter.html")
+	t.Execute(&body, struct {
+		ID      uint
+		Name    string
+		Time    string
+		OTP     string
+		Comment string
+	}{
+		ID:      id,
+		Name:    name,
+		Time:    time.Format("2006/01/02"),
+		OTP:     otp,
+		Comment: comment,
 	})
 	sendMail(mailTo, subject, body.String())
 }
 
 // EmailExpenseFinanceRejected 财务报销审批驳回通知
-func EmailExpenseFinanceRejected(mailTo string, name string, time time.Time, otp string) {
+func EmailExpenseFinanceRejected(mailTo string, name string, time time.Time, otp string, comment string) {
 	subject := "报销支付通知"
 	var body bytes.Buffer
 	t, _ := template.ParseFiles("static/mail/financeRejected.html")
 	t.Execute(&body, struct {
-		Name string
-		Time string
-		OTP  string
+		Name    string
+		Time    string
+		OTP     string
+		Comment string
 	}{
-		Name: name,
-		Time: time.Format("2006/01/02"),
-		OTP:  otp,
+		Name:    name,
+		Time:    time.Format("2006/01/02"),
+		OTP:     otp,
+		Comment: comment,
 	})
 	sendMail(mailTo, subject, body.String())
 }
