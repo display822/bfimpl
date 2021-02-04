@@ -689,10 +689,10 @@ func (a *AttendanceController) ExportData() {
 		if at.OutResult == "早退" {
 			data[i].Early++
 		}
-		if at.OutResult == "旷工" {
+		if at.InResult == "旷工" || at.OutResult == "旷工" {
 			data[i].None++
 		}
-		if at.OutResult == "忘记打卡" {
+		if at.InResult == "忘记打卡" || at.OutResult == "忘记打卡" {
 			data[i].Forget++
 		}
 		//今天工时
