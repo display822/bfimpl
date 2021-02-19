@@ -27,6 +27,7 @@ type LowPriceArticle struct {
 	Site                        string                        `gorm:"size:100;not null;comment:'位置'" json:"site"`
 	PurchasePrice               float64                       `gorm:"type:decimal(10,2);not null;comment:'购买价格'" json:"purchase_price"`
 	IngoingOperatorID           int                           `gorm:"size:10;not null;comment:'入库人id'" json:"ingoing_operator_id"`
+	IngoingOperatorName         string                        `gorm:"not null;comment:'入库人Name'" json:"ingoing_operator_name"`
 	IngoingTime                 models.Time                   `gorm:"type:datetime;not null;comment:'入库时间'" json:"ingoing_time"`
 	TotalQuantity               int                           `gorm:"not null;comment:'物品数量'" json:"total_quantity"`
 	OutgoingQuantity            int                           `gorm:"not null;comment:'物品借出数量'" json:"outgoing_quantity"`

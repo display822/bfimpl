@@ -44,6 +44,7 @@ func (l *LowPriceArticleController) Create() {
 	}
 	log.GLogger.Info("param :%+v", param)
 	param.IngoingOperatorID = userID
+	param.IngoingOperatorName = userName
 	param.IngoingTime = models.Time(time.Now())
 
 	_, ok := oa.LowPriceArticleMap[param.LowPriceArticleCategory]
