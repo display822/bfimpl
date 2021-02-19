@@ -306,7 +306,7 @@ func (l *LowPriceArticleRequisitionController) BatchReturn() {
 	}
 
 	// 批量更新为已归还
-	err = tx.Model(&oa.LowPriceArticleRequisition{}).Where("id in (?)", ids).Update("is_return", 1).Error
+	err = tx.Model(&oa.LowPriceArticleRequisition{}).Where("id in (?)", idList).Update("is_return", 1).Error
 	if err != nil {
 		log.GLogger.Error("update is_return err:%s", err.Error())
 		tx.Rollback()
