@@ -37,7 +37,7 @@ type EmployeeBasic struct {
 	DegreeVerification      string      `gorm:"size:20;not null;comment:'学历验证(未验证,已验证,无法验证)'" json:"degree_verification"`
 	ENSkill                 string      `gorm:"size:20;comment:'英语技能'" json:"en_skill"`
 	OtherLanguageSkill      string      `gorm:"size:100;comment:'其他语言'" json:"other_language_skill"`
-	Birthday                models.Time `gorm:"type:datetime;comment:'生日'" json:"birthday"`
+	Birthday                models.Date `gorm:"type:datetime;comment:'生日'" json:"birthday"`
 	Birthplace              string      `gorm:"size:30;not null;comment:'籍贯'" json:"birthplace"`
 	InhabitedCity           string      `gorm:"size:30;not null;comment:'居住城市'" json:"inhabited_city"`
 	InhabitedDistrict       string      `gorm:"size:30;not null;comment:'区'" json:"inhabited_district"`
