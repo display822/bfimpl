@@ -233,7 +233,7 @@ func (e *EmployeeController) CommitWorkflowNode() {
 	workflow.Elements[2].Value = flowInfo.DeviceReq
 	switch userType {
 	case models.UserHR:
-		e.ErrorOK("工作流不在当前节点")
+		fallthrough
 	case models.UserLeader:
 		if workflow.Nodes[1].Status != models.FlowProcessing {
 			e.ErrorOK("工作流不在当前节点")
