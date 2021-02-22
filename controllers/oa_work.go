@@ -839,19 +839,28 @@ func getRemain(empID int) oa.LeaveRemain {
 	return remain
 }
 
+var months = []int{31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}
+
 //每月28号增加年假
 func AddAnnual() {
 	emps := make([]*oa.Employee, 0)
 	services.Slave().Model(oa.Employee{}).Where("status = 2").Find(&emps)
+	m := int(time.Now().Month()) - 1
 	for _, emp := range emps {
-		annual := float32(emp.Annual) / 12
-		if annual > 0 {
-			balance := oa.LeaveBalance{
-				EmpID:  int(emp.ID),
-				Type:   oa.Annual,
-				Amount: annual,
+		//取合同里的年假字段
+		contracts := make([]*oa.EmployeeContract, 0)
+		services.Slave().Table("employee_contracts").Select("contract_type,contract_party,contract_main,contract_start_date,max(contract_end_date) as contract_end_date,status, employee_id").
+			Where("employee_id = ?", emp.ID).Group("employee_id").Scan(&contracts)
+		if len(contracts) > 0 {
+			annual := float32(contracts[0].AnnualLeave*months[m]) / 365
+			if annual > 0 {
+				balance := oa.LeaveBalance{
+					EmpID:  int(emp.ID),
+					Type:   oa.Annual,
+					Amount: annual,
+				}
+				services.Slave().Create(&balance)
 			}
-			services.Slave().Create(&balance)
 		}
 	}
 }
