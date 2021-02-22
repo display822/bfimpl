@@ -89,6 +89,7 @@ type AttendanceSimple struct {
 	AttendanceDate models.Date
 	CheckIn        models.Time
 	CheckOut       models.Time
+	EmployeeID     int
 	InStatus       string
 	OutStatus      string
 	InResult       string
@@ -99,13 +100,13 @@ type AttendanceSimple struct {
 }
 
 func (v AttendanceSimple) String(now string) string {
-	return fmt.Sprintf("('%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s',%f,%f)", now, v.Dept, v.Name,
+	return fmt.Sprintf("('%s','%d','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s',%f,%f)", now, v.EmployeeID, v.Dept, v.Name,
 		v.AttendanceDate.String(), v.CheckIn.String(), v.CheckOut.String(), v.InStatus, v.OutStatus,
 		v.InResult, v.OutResult, v.LeaveId, v.Overtime, v.Shift)
 }
 
 func (v AttendanceTmp) String(now string) string {
-	return fmt.Sprintf("('%s','%s','%s','%s','%s','%s','%s')", now, v.Dept, v.Name, v.AttendanceDate.String(),
+	return fmt.Sprintf("('%s','%d','%s','%s','%s','%s','%s','%s')", now, v.EmployeeID, v.Dept, v.Name, v.AttendanceDate.String(),
 		v.CheckTime.String(), v.Status, v.Result)
 }
 

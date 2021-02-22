@@ -55,6 +55,7 @@ func (a *AttendanceController) UpdateAttendance() {
 	}
 	attendance.CreatedAt = tmp.CreatedAt
 	attendance.UpdatedAt = tmp.UpdatedAt
+	attendance.EmployeeID = tmp.EmployeeID
 	services.Slave().Save(attendance)
 	a.Correct("")
 }
@@ -134,13 +135,20 @@ func (a *AttendanceController) UploadAttendanceTmp() {
 		}
 	}
 	//拼接sql
-	sql := "insert into attendance_tmp(created_at,dept,name,attendance_date,check_time,status,result) values"
+	sql := "insert into attendance_tmp(created_at,employee_id,dept,name,attendance_date,check_time,status,result) values"
 	realData := make([]string, 0)
 	now := time.Now().Format(models.TimeFormat)
 	for _, u := range users {
+		//关联emp_id
+		emp := new(oa.Employee)
+		services.Slave().Model(oa.Employee{}).Where("name = ?", u).First(emp)
+		if emp.ID == 0 {
+			continue
+		}
 		var dept string
 		for _, v := range userDatas[u] {
 			dept = v.Dept
+			v.EmployeeID = int(emp.ID)
 			realData = append(realData, v.String(now))
 		}
 		for _, holiday := range holidays {
@@ -149,6 +157,7 @@ func (a *AttendanceController) UploadAttendanceTmp() {
 				tmpWork := oa.AttendanceTmp{
 					Dept:           dept,
 					Name:           u,
+					EmployeeID:     int(emp.ID),
 					AttendanceDate: holiday.PublicHolidayDate,
 					CheckTime:      models.Time(holiday.PublicHolidayDate),
 					Status:         Exception,
@@ -253,6 +262,7 @@ func (a *AttendanceController) UpdateAttendanceTmp() {
 		a.ErrorOK(MsgServerErr)
 	}
 	param.CreatedAt = tmp.CreatedAt
+	param.EmployeeID = tmp.EmployeeID
 	services.Slave().Save(param)
 	a.Correct(param)
 }
@@ -483,6 +493,7 @@ func (a *AttendanceController) ConfirmUserAttendance() {
 			//新增一条今天的记录,该行数据为签入
 			attendance := &oa.AttendanceSimple{
 				Dept:           row.Dept,
+				EmployeeID:     row.EmployeeID,
 				Name:           row.Name,
 				AttendanceDate: date,
 				CheckIn:        row.CheckTime,
@@ -526,7 +537,7 @@ func (a *AttendanceController) ConfirmUserAttendance() {
 		a.ErrorOK("未找到考勤数据")
 	}
 	//拼接sql
-	sql := "insert into attendances(created_at,dept,name,attendance_date,check_in,check_out,in_status,out_status," +
+	sql := "insert into attendances(created_at,employee_id,dept,name,attendance_date,check_in,check_out,in_status,out_status," +
 		"in_result,out_result,leave_id,overtime,shift) values"
 	realData := make([]string, 0)
 	now := time.Now().Format(models.TimeFormat)
