@@ -46,6 +46,11 @@ func (w *WorkController) ReqOvertime() {
 		log.GLogger.Error("parse overtime info err:%s", err.Error())
 		w.ErrorOK(MsgInvalidParam)
 	}
+	holiday := new(oa.PublicHoliday)
+	services.Slave().Where("overtime_date = ?", param.OvertimeDate.String()).First(holiday)
+	if holiday.HolidayType != "" {
+		param.Type = holiday.HolidayType
+	}
 	param.EmpID = int(employee.ID)
 	param.EName = employee.Name
 	param.ReqTime = models.Time(time.Now())
