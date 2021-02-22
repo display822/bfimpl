@@ -25,15 +25,15 @@ func main() {
 
 	c := cron.New()
 	//额度过期 每天两点
-	_, err := c.AddFunc("0 2 * * *", func() {
-		controllers.AmountDelayOut()
-	})
-	if err != nil {
-		logs.Error("start delay amount:%s", err.Error())
-		return
-	}
+	//_, err := c.AddFunc("0 2 * * *", func() {
+	//	controllers.AmountDelayOut()
+	//})
+	//if err != nil {
+	//	logs.Error("start delay amount:%s", err.Error())
+	//	return
+	//}
 	//社保信息 每月16号两点
-	_, err = c.AddFunc("0 2 16 * *", func() {
+	_, err := c.AddFunc("0 2 16 * *", func() {
 		controllers.GeneraSheBao()
 	})
 	if err != nil {
