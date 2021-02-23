@@ -267,11 +267,11 @@ func (d *DeviceController) GetProjects() {
 // @router /distribution/projects [get]
 func (d *DeviceController) GetDistributionProjects() {
 	desc := d.GetString("desc")
-	uid := d.GetString("user_id")
+	uName := d.GetString("user_name")
 	projects := make([]*oa.EngagementCode, 0)
 	//获取emp_info
 	employee := new(oa.Employee)
-	services.Slave().Preload("Department").Preload("Department.Leader").Take(employee, "id = ?", uid)
+	services.Slave().Preload("Department").Preload("Department.Leader").Take(employee, "name = ?", uName)
 	if employee.ID == 0 {
 		d.ErrorOK("未找到员工信息")
 	}
