@@ -648,10 +648,16 @@ func (d *DeviceController) ReturnDevice() {
 		s = models.DeviceScrap
 	}
 	device.DeviceStatus = s
-	device.DeviceApplyID = 0
 	device.DeviceApply.Status = models.DeviceReturn
-
+	log.GLogger.Info("device after", device)
 	err = tx.Save(&device).Error
+	if err != nil {
+		log.GLogger.Error("save device err:%s", err.Error())
+		tx.Rollback()
+		d.ErrorOK(MsgServerErr)
+	}
+
+	err = tx.Model(&device).Debug().Select("device_apply_id").Updates(map[string]interface{}{"device_apply_id": 0}).Error
 	if err != nil {
 		log.GLogger.Error("save device err:%s", err.Error())
 		tx.Rollback()
