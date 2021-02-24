@@ -396,7 +396,7 @@ func (d *DeviceController) ListApply() {
 			deviceApply.CanReceive = true
 		}
 
-		if deviceApply.Status == models.FlowNA || deviceApply.Status == models.FlowApproved {
+		if deviceApply.Status == models.FlowNA || (deviceApply.Status == models.FlowApproved && deviceApply.Device.DeviceApplyID != int(deviceApply.ID)) {
 			deviceApply.CanRevoke = true
 		}
 	}
