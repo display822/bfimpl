@@ -232,11 +232,37 @@ func (e *EngagementController) Valid() {
 		}
 	}
 	var errorArray []string
+	var phs []oa.PublicHoliday
+	services.Slave().Where("public_holiday_date >= ?", beginTime).
+		Where("public_holiday_date <= ?", endTime).
+		Find(&phs)
+	log.GLogger.Info("phs", phs)
+	publicHolidayMap := make(map[string]string, len(phs))
+	for _, ph := range phs {
+		publicHolidayMap[ph.PublicHolidayDate.String()] = ph.HolidayType
+	}
 	for _, e := range m {
 		// 校验时间
-		if e.EngagementHour < 8 {
-			for _, c := range e.EngagementCodes {
-				errorArray = append(errorArray, fmt.Sprintf("%s部门 %s员工 %s时长数据有误", c, e.EmployeeName, e.EngagementDate.Format("2006-01-02")))
+		// 判断是否放假
+		ph, ok := publicHolidayMap[beginTime]
+		if ok {
+			if ph == "holiday" { // 放假 不判断
+
+			} else if ph == "workday" { // 补假 判断
+				if e.EngagementHour < 8 {
+					for _, c := range e.EngagementCodes {
+						errorArray = append(errorArray, fmt.Sprintf("%s部门 %s员工 %s 时长数据有误", c, e.EmployeeName, e.EngagementDate.Format("2006/01/02")))
+					}
+				}
+			}
+		} else {
+			e.EngagementDate.IsZero()
+			if e.EngagementDate.Weekday() != time.Saturday && e.EngagementDate.Weekday() != time.Sunday {
+				if e.EngagementHour < 8 {
+					for _, c := range e.EngagementCodes {
+						errorArray = append(errorArray, fmt.Sprintf("%s部门 %s员工 %s时长数据有误", c, e.EmployeeName, e.EngagementDate.Format("2006/01/02")))
+					}
+				}
 			}
 		}
 	}
