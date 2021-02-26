@@ -32,4 +32,5 @@ type ContractSimple struct {
 	EmployeeID    int         `json:"employee_id"`
 	ContractMain  string      `json:"contract_main"`
 	ContractParty string      `json:"contract_party"`
+	ContractType  string      `json:"contract_type"`
 }

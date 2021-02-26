@@ -608,7 +608,7 @@ func (e *EmployeeController) MoreContract() {
 		Total int                  `json:"total"`
 		List  []*oa.ContractSimple `json:"list"`
 	}
-	services.Slave().Table("employee_contracts").Select("contract_party,max(contract_end_date) as enddate, employee_id").
+	services.Slave().Table("employee_contracts").Select("contract_type,contract_party,max(contract_end_date) as enddate, employee_id").
 		Group("employee_id").Having("enddate < ?", deadLine.Format(models.DateFormat)).Count(&resp.Total).
 		Limit(pageSize).Offset((pageNum - 1) * pageSize).Scan(&resp.List)
 	e.Correct(resp)

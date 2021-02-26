@@ -131,11 +131,14 @@ func GeneraSheBao() {
 	//在职信息=============================
 	//查询合同
 	existMain := make([]*oa.ContractSimple, 0)
-	services.Slave().Table("employee_contracts").Select("contract_main,max(contract_end_date) as enddate, employee_id").
+	services.Slave().Table("employee_contracts").Select("contract_type,contract_main,max(contract_end_date) as enddate, employee_id").
 		Where("employee_id in (?)", existIds).Group("employee_id").Scan(&existMain)
 	empContract := make(map[int]*oa.ContractSimple)
 	for i := range existMain {
 		// eid -> 合同
+		if existMain[i].ContractType == "劳务合同" {
+			continue
+		}
 		empContract[existMain[i].EmployeeID] = existMain[i]
 	}
 	userIn := make(map[int]*oa.Employee)
@@ -151,6 +154,8 @@ func GeneraSheBao() {
 		}
 		if m, ok := empContract[int(emp.ID)]; ok {
 			contractMain = m.ContractMain
+		} else {
+			continue
 		}
 		_ = f.SetSheetRow("Sheet1", "A"+strconv.Itoa(row), &[]interface{}{contractMain, emp.Name, models.EmpStatus[emp.Status],
 			emp.EntryDate, "-", emp.IDCard, huji, fund, emp.Mobile})
@@ -179,11 +184,14 @@ func GeneraSheBao() {
 	leaveEmp := make([]*oa.Employee, 0)
 	services.Slave().Where(userOutIds).Preload("EmployeeBasic").Find(&leaveEmp)
 	leaveMain := make([]*oa.ContractSimple, 0)
-	services.Slave().Table("employee_contracts").Select("contract_main,max(contract_end_date) as enddate, employee_id").
+	services.Slave().Table("employee_contracts").Select("contract_type,contract_main,max(contract_end_date) as enddate, employee_id").
 		Where("employee_id in (?)", userOutIds).Group("employee_id").Scan(&leaveMain)
 	leaveContract := make(map[int]*oa.ContractSimple)
 	for i := range leaveMain {
 		// eid -> 合同
+		if leaveMain[i].ContractType == "劳务合同" {
+			continue
+		}
 		leaveContract[leaveMain[i].EmployeeID] = leaveMain[i]
 	}
 	for _, emp := range leaveEmp {
@@ -194,6 +202,8 @@ func GeneraSheBao() {
 		}
 		if m, ok := leaveContract[int(emp.ID)]; ok {
 			contractMain = m.ContractMain
+		} else {
+			continue
 		}
 		_ = f.SetSheetRow("Sheet1", "A"+strconv.Itoa(row), &[]interface{}{contractMain, emp.Name, models.EmpStatus[emp.Status],
 			emp.EntryDate, emp.ResignationDate, emp.IDCard, huji, fund, emp.Mobile})
