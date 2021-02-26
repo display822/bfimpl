@@ -98,12 +98,25 @@ func GeneraSheBao() {
 	start := fmt.Sprintf("%d-%02d-16", pre.Year(), pre.Month())
 	//生成excel
 	f := excelize.NewFile()
-	row := 1
-	_ = f.SetCellStr("Sheet1", "A"+strconv.Itoa(row), "在职")
-	row++
-	_ = f.SetSheetRow("Sheet1", "A"+strconv.Itoa(row), &[]interface{}{"主体", "员工姓名", "状态", "入职日期",
-		"离职日期", "身份证号", "户籍性质", "公积金号", "联系方式"})
-	row++
+	f.NewSheet("宁波比孚")
+	f.NewSheet("上海游因")
+	f.NewSheet("上海品埃")
+	f.DeleteSheet("Sheet1")
+	rowNinbo := 1
+	rowUin := 1
+	rowPinai := 1
+	_ = f.SetCellStr("宁波比孚", "A"+strconv.Itoa(rowNinbo), "在职")
+	_ = f.SetCellStr("上海游因", "A"+strconv.Itoa(rowUin), "在职")
+	_ = f.SetCellStr("上海品埃", "A"+strconv.Itoa(rowPinai), "在职")
+	rowNinbo++
+	rowUin++
+	rowPinai++
+	_ = f.SetSheetRow("宁波比孚", "A"+strconv.Itoa(rowNinbo), &[]interface{}{"主体", "员工姓名", "状态", "入职日期", "离职日期", "身份证号", "户籍性质", "公积金号", "联系方式"})
+	_ = f.SetSheetRow("上海游因", "A"+strconv.Itoa(rowUin), &[]interface{}{"主体", "员工姓名", "状态", "入职日期", "离职日期", "身份证号", "户籍性质", "公积金号", "联系方式"})
+	_ = f.SetSheetRow("上海品埃", "A"+strconv.Itoa(rowPinai), &[]interface{}{"主体", "员工姓名", "状态", "入职日期", "离职日期", "身份证号", "户籍性质", "公积金号", "联系方式"})
+	rowNinbo++
+	rowUin++
+	rowPinai++
 	//查询在职员工
 	existEmp := make([]*oa.Employee, 0)
 	services.Slave().Where("status = 2 and entry_date <= ?", end).Preload("EmployeeBasic").Find(&existEmp)
@@ -157,13 +170,27 @@ func GeneraSheBao() {
 		} else {
 			continue
 		}
-		_ = f.SetSheetRow("Sheet1", "A"+strconv.Itoa(row), &[]interface{}{contractMain, emp.Name, models.EmpStatus[emp.Status],
-			emp.EntryDate, "-", emp.IDCard, huji, fund, emp.Mobile})
-		row++
+		if contractMain == "宁波比孚" {
+			_ = f.SetSheetRow(contractMain, "A"+strconv.Itoa(rowNinbo), &[]interface{}{contractMain, emp.Name, models.EmpStatus[emp.Status],
+				emp.EntryDate, "-", emp.IDCard, huji, fund, emp.Mobile})
+			rowNinbo++
+		} else if contractMain == "上海游因" {
+			_ = f.SetSheetRow(contractMain, "A"+strconv.Itoa(rowUin), &[]interface{}{contractMain, emp.Name, models.EmpStatus[emp.Status],
+				emp.EntryDate, "-", emp.IDCard, huji, fund, emp.Mobile})
+			rowUin++
+		} else if contractMain == "上海品埃" {
+			_ = f.SetSheetRow(contractMain, "A"+strconv.Itoa(rowPinai), &[]interface{}{contractMain, emp.Name, models.EmpStatus[emp.Status],
+				emp.EntryDate, "-", emp.IDCard, huji, fund, emp.Mobile})
+			rowPinai++
+		}
 	}
 	//新入职信息=============================
-	_ = f.SetCellStr("Sheet1", "A"+strconv.Itoa(row), "新入职")
-	row++
+	_ = f.SetCellStr("宁波比孚", "A"+strconv.Itoa(rowNinbo), "新入职")
+	_ = f.SetCellStr("上海游因", "A"+strconv.Itoa(rowUin), "新入职")
+	_ = f.SetCellStr("上海品埃", "A"+strconv.Itoa(rowPinai), "新入职")
+	rowNinbo++
+	rowUin++
+	rowPinai++
 	for _, emp := range userIn {
 		var contractMain, huji, fund string
 		if emp.EmployeeBasic != nil {
@@ -172,13 +199,29 @@ func GeneraSheBao() {
 		}
 		if m, ok := empContract[int(emp.ID)]; ok {
 			contractMain = m.ContractMain
+		} else {
+			continue
 		}
-		_ = f.SetSheetRow("Sheet1", "A"+strconv.Itoa(row), &[]interface{}{contractMain, emp.Name, models.EmpStatus[emp.Status],
-			emp.EntryDate, "-", emp.IDCard, huji, fund, emp.Mobile})
-		row++
+		if contractMain == "宁波比孚" {
+			_ = f.SetSheetRow(contractMain, "A"+strconv.Itoa(rowNinbo), &[]interface{}{contractMain, emp.Name, models.EmpStatus[emp.Status],
+				emp.EntryDate, "-", emp.IDCard, huji, fund, emp.Mobile})
+			rowNinbo++
+		} else if contractMain == "上海游因" {
+			_ = f.SetSheetRow(contractMain, "A"+strconv.Itoa(rowUin), &[]interface{}{contractMain, emp.Name, models.EmpStatus[emp.Status],
+				emp.EntryDate, "-", emp.IDCard, huji, fund, emp.Mobile})
+			rowUin++
+		} else if contractMain == "上海品埃" {
+			_ = f.SetSheetRow(contractMain, "A"+strconv.Itoa(rowPinai), &[]interface{}{contractMain, emp.Name, models.EmpStatus[emp.Status],
+				emp.EntryDate, "-", emp.IDCard, huji, fund, emp.Mobile})
+			rowPinai++
+		}
 	}
-	_ = f.SetCellStr("Sheet1", "A"+strconv.Itoa(row), "已离职")
-	row++
+	_ = f.SetCellStr("宁波比孚", "A"+strconv.Itoa(rowNinbo), "已离职")
+	_ = f.SetCellStr("上海游因", "A"+strconv.Itoa(rowUin), "已离职")
+	_ = f.SetCellStr("上海品埃", "A"+strconv.Itoa(rowPinai), "已离职")
+	rowNinbo++
+	rowUin++
+	rowPinai++
 	//离职信息=============================
 	//离职员工
 	leaveEmp := make([]*oa.Employee, 0)
@@ -205,9 +248,19 @@ func GeneraSheBao() {
 		} else {
 			continue
 		}
-		_ = f.SetSheetRow("Sheet1", "A"+strconv.Itoa(row), &[]interface{}{contractMain, emp.Name, models.EmpStatus[emp.Status],
-			emp.EntryDate, emp.ResignationDate, emp.IDCard, huji, fund, emp.Mobile})
-		row++
+		if contractMain == "宁波比孚" {
+			_ = f.SetSheetRow(contractMain, "A"+strconv.Itoa(rowNinbo), &[]interface{}{contractMain, emp.Name, models.EmpStatus[emp.Status],
+				emp.EntryDate, "-", emp.IDCard, huji, fund, emp.Mobile})
+			rowNinbo++
+		} else if contractMain == "上海游因" {
+			_ = f.SetSheetRow(contractMain, "A"+strconv.Itoa(rowUin), &[]interface{}{contractMain, emp.Name, models.EmpStatus[emp.Status],
+				emp.EntryDate, "-", emp.IDCard, huji, fund, emp.Mobile})
+			rowUin++
+		} else if contractMain == "上海品埃" {
+			_ = f.SetSheetRow(contractMain, "A"+strconv.Itoa(rowPinai), &[]interface{}{contractMain, emp.Name, models.EmpStatus[emp.Status],
+				emp.EntryDate, "-", emp.IDCard, huji, fund, emp.Mobile})
+			rowPinai++
+		}
 	}
 	saveFile := new(oa.SocialSecurity)
 	fileName := fmt.Sprintf("%s至%s信息表.xlsx", start, end)
