@@ -209,7 +209,7 @@ func (e *ExpenseController) ReqExpense() {
 
 	tx := services.Slave().Begin()
 	// 创建报销
-	err = tx.Omit("ExpenseDetails.ExpenseAccount").Create(param).Error
+	err = tx.Create(param).Error
 	if err != nil {
 		log.GLogger.Error("create req expense err:%s", err.Error())
 		tx.Rollback()
@@ -691,7 +691,6 @@ func Read(f *excelize.File, validCode bool) ([]*oa.ExpenseDetail, error) {
 			code, ok := oa.ExpenseAccountMap[colList[1]]
 			if ok {
 				expenseAccountCode = code
-				expenseAccount.Code = code
 				expenseAccount.ExpenseAccountName = colList[1]
 			} else {
 				errorArray = append(errorArray, fmt.Sprintf("第%d行费用科目不正确", x))
