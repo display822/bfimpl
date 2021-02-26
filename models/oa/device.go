@@ -64,6 +64,7 @@ type Device struct {
 	DeviceRequisitions []*DeviceRequisition `json:"device_requisitions"`
 	DeviceApplys       []*DeviceApply       `json:"device_applys"`
 	CanApply           bool                 `gorm:"-" json:"can_apply"`
+	Depreciate         float64              `gorm:"-" json:"depreciate"`
 }
 
 // DeviceApply 设备申请表
@@ -76,6 +77,7 @@ type DeviceApply struct {
 	Employee             *Employee   `gorm:"ForeignKey:EmpID" json:"employee"`
 	EName                string      `gorm:"size:30;comment:'员工姓名'" json:"e_name"`
 	Status               string      `gorm:"size:20;comment:'申请状态'" json:"status"`
+	Type                 int         `gorm:"size:10;default:0;comment:'类型(0: 自申请，1: 管理员分配)'" json:"type"`
 	Project              string      `gorm:"size:64;comment:'项目'" json:"project"`
 	ApplicationDate      time.Time   `gorm:"type:datetime;comment:'申请日期'" json:"application_date"`
 	ReceiveDate          time.Time   `gorm:"type:datetime;comment:'领用日期'" json:"receive_date"`

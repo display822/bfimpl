@@ -749,6 +749,7 @@ func (d *DeviceController) DistributionDevice() {
 		OutgoingOperatorID:   userID,
 		OutgoingOperatorName: userName,
 		OutgoingTime:         models.Time(time.Now()),
+		Type:                 1,
 	}
 
 	err = tx.Create(&deviceApply).Error
