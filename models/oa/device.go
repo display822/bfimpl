@@ -8,6 +8,9 @@ package oa
 
 import (
 	"bfimpl/models"
+	"bfimpl/services/log"
+	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -95,4 +98,38 @@ type DeviceApplyInfo struct {
 	Employee       *Employee `json:"employee"`
 	Device         *Device   `json:"device"`
 	CollectDevices string    `json:"collect_devices"`
+}
+
+// SetDepreciate 设置折旧信息
+func (d *Device) SetDepreciate() {
+	t := time.Time(d.IngoingTime)
+	ingoingTime := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
+	log.GLogger.Info("ingoingTime: %s", ingoingTime)
+
+	ingoingTimeAfter1Month := ingoingTime.AddDate(0, 1, 0)
+	ingoingTimeAfter35Month := ingoingTime.AddDate(0, 35, 0)
+	ingoingTimeAfter36Month := ingoingTime.AddDate(0, 36, 0)
+	log.GLogger.Info("ingoingTimeAfter1Month: %s", ingoingTimeAfter1Month)
+	log.GLogger.Info("ingoingTimeAfter35Month: %s", ingoingTimeAfter35Month)
+	log.GLogger.Info("ingoingTimeAfter36Month: %s", ingoingTimeAfter36Month)
+
+	nowTime := time.Now()
+	log.GLogger.Info("nowTime: %s", nowTime)
+
+	if nowTime.After(ingoingTime) && nowTime.Before(ingoingTimeAfter1Month) { // 第1个月
+		d.Depreciate = 0
+	} else if nowTime.After(ingoingTimeAfter36Month) { // 第36个月之后
+		d.Depreciate = 0
+	} else if nowTime.After(ingoingTimeAfter1Month) && nowTime.Before(ingoingTimeAfter36Month) { // 第2-36个月
+		// 计算每个月的折旧
+		depreciate := d.PurchasePrice / 36
+		log.GLogger.Info("depreciate: %s", depreciate)
+		monthDepreciate, _ := strconv.ParseFloat(fmt.Sprintf("%.2f", depreciate), 64)
+		if nowTime.After(ingoingTimeAfter35Month) {
+			log.GLogger.Info("nowTime After ingoingTimeAfter35Month")
+			d.Depreciate = d.PurchasePrice - monthDepreciate*35 // 第36个月
+		} else {
+			d.Depreciate = depreciate
+		}
+	}
 }

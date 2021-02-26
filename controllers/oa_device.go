@@ -404,8 +404,8 @@ func (d *DeviceController) ListApply() {
 	d.Correct(resp)
 }
 
-// @Title 申请设备列表
-// @Description 申请设备列表
+// @Title 申请设备详情
+// @Description 申请设备详情
 // @Success 200 {object} oa.DeviceApply
 // @Failure 500 server internal err
 // @router /apply/:id [get]
@@ -422,6 +422,7 @@ func (d *DeviceController) GetApply() {
 	if len(workflow.Nodes) != 2 {
 		d.ErrorOK("工作流配置错误")
 	}
+	deviceApply.Device.SetDepreciate() // 设置折旧信息
 	var resp struct {
 		Info     *oa.DeviceApply `json:"info"`
 		WorkFlow *oa.Workflow    `json:"work_flow"`
