@@ -119,6 +119,7 @@ func (e *EngagementController) List() {
 
 	ecs := strings.Split(engagementCodes, ",")
 	fmt.Println(ecs)
+	EmployeeNumMap := make(map[string]struct{})
 	var ers forms.EngagementResult
 	for _, ec := range ecs {
 		var ee forms.E
@@ -139,6 +140,7 @@ func (e *EngagementController) List() {
 
 		m := make(map[string]map[string]int)
 		for _, item := range es {
+			EmployeeNumMap[item.EmployeeName] = struct{}{}
 			_, ok := m[item.EngagementCode+"-"+item.EmployeeName]
 			if !ok {
 				mmm := make(map[string]int)
@@ -165,9 +167,10 @@ func (e *EngagementController) List() {
 
 		ers.CostSummary += ee.CostSummary
 		ers.HourSummary += ee.HourSummary
-		ers.EmployeeNums += ee.EmployeeNums
+		// ers.EmployeeNums += ee.EmployeeNums
 		ers.List = append(ers.List, ee)
 	}
+	ers.EmployeeNums = len(EmployeeNumMap)
 
 	e.Correct(ers)
 }
