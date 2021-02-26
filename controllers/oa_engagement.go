@@ -189,13 +189,62 @@ func (e *EngagementController) Valid() {
 		e.ErrorOK("need end_time")
 	}
 	var es []oa.Engagement
-	services.Slave().Debug().Where("engagement_date >= ?", beginTime).Where("engagement_date <=?", endTime).
+	services.Slave().Debug().Where("engagement_date >= ?", beginTime).
+		Where("engagement_date <=?", endTime).Preload("Engagement").
 		Find(&es)
-	fmt.Println(es)
+	if len(es) == 0 {
+		e.Correct("无数据")
+	}
+	var ecs []oa.EngagementCode
+	services.Slave().Debug().
+		Find(&ecs)
 
+	ecMap := make(map[string]string)
+	for _, ec := range ecs {
+		ecMap[ec.EngagementCode] = ec.EngagementCodeDesc
+	}
+	type EmployeeSet struct {
+		EmployeeName    string
+		EngagementDate  time.Time
+		EngagementHour  int
+		EngagementCodes []string
+	}
 	// 去重
-	// m := make(map[string][]oa.Engagement)
-	e.Correct("xxx部门xxx员工时长错误-xxx部门xxx员工时长错误")
+	m := make(map[string]EmployeeSet)
+	for _, item := range es {
+		v, ok := m[item.EngagementDate.Format("2006/01/02")+"-"+item.EmployeeName]
+		if !ok {
+			m[item.EngagementDate.Format("2006/01/02")+"-"+item.EmployeeName] = EmployeeSet{
+				EmployeeName:    item.EmployeeName,
+				EngagementDate:  item.EngagementDate,
+				EngagementCodes: []string{ecMap[item.EngagementCode]},
+				EngagementHour:  item.EngagementHour,
+			}
+		} else {
+			v.EngagementHour += item.EngagementHour
+			codesList := append(v.EngagementCodes, ecMap[item.EngagementCode])
+			m[item.EngagementDate.Format("2006/01/02")+"-"+item.EmployeeName] = EmployeeSet{
+				EmployeeName:    v.EmployeeName,
+				EngagementDate:  v.EngagementDate,
+				EngagementCodes: codesList,
+				EngagementHour:  v.EngagementHour,
+			}
+		}
+	}
+	var errorArray []string
+	for _, e := range m {
+		// 校验时间
+		if e.EngagementHour < 8 {
+			for _, c := range e.EngagementCodes {
+				errorArray = append(errorArray, fmt.Sprintf("%s部门 %s员工 %s时长数据有误", c, e.EmployeeName, e.EngagementDate.Format("2006-01-02")))
+			}
+		}
+	}
+	if len(errorArray) > 0 {
+		e.Correct(strings.Join(errorArray, "-"))
+	}
+
+	e.Correct("ok")
 }
 
 // @Title 创建人员管理
