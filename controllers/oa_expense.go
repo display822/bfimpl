@@ -203,14 +203,13 @@ func (e *ExpenseController) ReqExpense() {
 			e.ErrorOK("expense_amount error")
 		}
 		expenseSummary += item.ExpenseAmount
-		item.ExpenseAccount = nil
 	}
 	param.ExpenseSummary = expenseSummary
 	log.GLogger.Info("expenseSummary: %v", expenseSummary)
 
 	tx := services.Slave().Begin()
 	// 创建报销
-	err = tx.Create(param).Error
+	err = tx.Omit("ExpenseDetails.ExpenseAccount").Create(param).Error
 	if err != nil {
 		log.GLogger.Error("create req expense err:%s", err.Error())
 		tx.Rollback()
