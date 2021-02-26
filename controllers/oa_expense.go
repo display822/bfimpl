@@ -203,6 +203,7 @@ func (e *ExpenseController) ReqExpense() {
 			e.ErrorOK("expense_amount error")
 		}
 		expenseSummary += item.ExpenseAmount
+		item.ExpenseAccount = nil
 	}
 	param.ExpenseSummary = expenseSummary
 	log.GLogger.Info("expenseSummary: %v", expenseSummary)
