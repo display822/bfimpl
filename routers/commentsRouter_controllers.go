@@ -1063,6 +1063,15 @@ func init() {
 
 	beego.GlobalControllerRouter["bfimpl/controllers:EngagementController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:EngagementController"],
 		beego.ControllerComments{
+			Method:           "Valid",
+			Router:           `/valid`,
+			AllowHTTPMethods: []string{"post"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:EngagementController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:EngagementController"],
+		beego.ControllerComments{
 			Method:           "List",
 			Router:           `/`,
 			AllowHTTPMethods: []string{"get"},
