@@ -260,7 +260,7 @@ func (e *EngagementController) Valid() {
 			if e.EngagementDate.Weekday() != time.Saturday && e.EngagementDate.Weekday() != time.Sunday {
 				if e.EngagementHour < 8 {
 					for _, c := range e.EngagementCodes {
-						errorArray = append(errorArray, fmt.Sprintf("%s部门 %s员工 %s时长数据有误", c, e.EmployeeName, e.EngagementDate.Format("2006/01/02")))
+						errorArray = append(errorArray, fmt.Sprintf("%s部门 %s员工 %s 时长数据有误", c, e.EmployeeName, e.EngagementDate.Format("2006/01/02")))
 					}
 				}
 			}
