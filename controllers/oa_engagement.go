@@ -145,7 +145,7 @@ func (e *EngagementController) List() {
 				mmm[item.EngagementDate.Format("2006/01/02")] = item.EngagementHour
 				m[item.EngagementCode+"-"+item.EmployeeName] = mmm
 			} else {
-				m[item.EngagementCode+"-"+item.EmployeeName][item.EngagementDate.Format("2006/01/02")] = item.EngagementHour
+				m[item.EngagementCode+"-"+item.EmployeeName][item.EngagementDate.Format("2006/01/02")] += item.EngagementHour
 			}
 		}
 
@@ -188,7 +188,13 @@ func (e *EngagementController) Valid() {
 	if endTime == "" {
 		e.ErrorOK("need end_time")
 	}
+	var es []oa.Engagement
+	services.Slave().Debug().Where("engagement_date >= ?", beginTime).Where("engagement_date <=?", endTime).
+		Find(&es)
+	fmt.Println(es)
 
+	// 去重
+	// m := make(map[string][]oa.Engagement)
 	e.Correct("xxx部门xxx员工时长错误-xxx部门xxx员工时长错误")
 }
 
