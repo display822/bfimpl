@@ -172,6 +172,26 @@ func (e *EngagementController) List() {
 	e.Correct(ers)
 }
 
+// @Title 时长校验
+// @Description 时长校验
+// @Param	begin_time query string	false	"开始时间"
+// @Param	end_time query string	false	"结束时间"
+// @Success 200 {string} ""
+// @Failure 500 server internal err
+// @router /valid [post]
+func (e *EngagementController) Valid() {
+	beginTime := e.GetString("begin_time")
+	if beginTime == "" {
+		e.ErrorOK("need begin_time")
+	}
+	endTime := e.GetString("end_time")
+	if endTime == "" {
+		e.ErrorOK("need end_time")
+	}
+
+	e.Correct("xxx部门xxx员工时长错误-xxx部门xxx员工时长错误")
+}
+
 // @Title 创建人员管理
 // @Description 创建人员管理
 // @Param  file form-data binary true "文件"
@@ -342,15 +362,15 @@ func EngagementDetailFile(f *excelize.File, departmentID int) ([]*oa.Engagement,
 	log.GLogger.Info("workTimeIndex", workTimeIndex)
 	log.GLogger.Info("startTime", workStartTime)
 	log.GLogger.Info("endTime", workTimeIndex)
-	var phs []oa.PublicHoliday
-	services.Slave().Where("public_holiday_date >= ?", workStartTime).
-		Where("public_holiday_date <= ?", workTimeIndex).
-		Find(&phs)
-	log.GLogger.Info("phs", phs)
-	publicHolidayMap := make(map[string]string, len(phs))
-	for _, ph := range phs {
-		publicHolidayMap[ph.PublicHolidayDate.String()] = ph.HolidayType
-	}
+	// var phs []oa.PublicHoliday
+	// services.Slave().Where("public_holiday_date >= ?", workStartTime).
+	// 	Where("public_holiday_date <= ?", workTimeIndex).
+	// 	Find(&phs)
+	// log.GLogger.Info("phs", phs)
+	// publicHolidayMap := make(map[string]string, len(phs))
+	// for _, ph := range phs {
+	// 	publicHolidayMap[ph.PublicHolidayDate.String()] = ph.HolidayType
+	// }
 
 	var res []*oa.Engagement
 	var errorArray []string
@@ -396,27 +416,27 @@ func EngagementDetailFile(f *excelize.File, departmentID int) ([]*oa.Engagement,
 
 			y := k + 3
 			colInt, err := strconv.Atoi(col)
-			if err != nil {
+			if err != nil || colInt < 0 {
 				errorArray = append(errorArray, fmt.Sprintf("第%d行%d列工时错误", x, y))
 			}
 
-			// 判断是否放假
-			ph, ok := publicHolidayMap[workTime.Format("2006-01-02")]
-			if ok {
-				if ph == "holiday" { // 放假 不判断
-
-				} else if ph == "workday" { //补假 判断
-					if colInt < 8 {
-						errorArray = append(errorArray, fmt.Sprintf("第%d行第%d列工时小于8小时", x, y))
-					}
-				}
-			} else {
-				if k != 5 && k != 6 { // 周末不判断
-					if colInt < 8 {
-						errorArray = append(errorArray, fmt.Sprintf("第%d行第%d列工时小于8小时", x, y))
-					}
-				}
-			}
+			// // 判断是否放假
+			// ph, ok := publicHolidayMap[workTime.Format("2006-01-02")]
+			// if ok {
+			// 	if ph == "holiday" { // 放假 不判断
+			//
+			// 	} else if ph == "workday" { //补假 判断
+			// 		if colInt < 8 {
+			// 			errorArray = append(errorArray, fmt.Sprintf("第%d行第%d列工时小于8小时", x, y))
+			// 		}
+			// 	}
+			// } else {
+			// 	if k != 5 && k != 6 { // 周末不判断
+			// 		if colInt < 8 {
+			// 			errorArray = append(errorArray, fmt.Sprintf("第%d行第%d列工时小于8小时", x, y))
+			// 		}
+			// 	}
+			// }
 
 			engagementCost := float64(((engagementCode.OCRate * employee.Level.OCRate) + (engagementCode.CCRate * employee.Level.CCRate)) * float32(colInt))
 			em := &oa.Engagement{
