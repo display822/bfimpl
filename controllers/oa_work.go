@@ -13,6 +13,7 @@ import (
 	"bfimpl/services"
 	"bfimpl/services/log"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -273,16 +274,24 @@ func (w *WorkController) ApprovalOvertime() {
 		log.GLogger.Error("parse overtime err:%s", err.Error())
 		w.ErrorOK(MsgInvalidParam)
 	}
+	userID, _ := w.GetInt("userID", 0)
+	err = checkOvertime(userID, param)
+	if err != nil {
+		w.ErrorOK(err.Error())
+	}
+	w.Correct("")
+}
+
+func checkOvertime(userID int, param *forms.ReqApprovalOvertime) error {
 	//oID 查询 workflow
 	workflow := new(oa.Workflow)
 	services.Slave().Model(oa.Workflow{}).Where("workflow_definition_id = ? and entity_id = ?",
 		services.GetFlowDefID(services.Overtime), param.Id).Preload("Nodes").Preload("Nodes.User").
 		Preload("Elements").First(workflow)
 	if workflow.Nodes == nil {
-		w.ErrorOK("工作流配置错误")
+		return errors.New("工作流配置错误")
 	}
 	isCheck := false
-	userID, _ := w.GetInt("userID", 0)
 	// 负责人，hr审批
 	num := len(workflow.Nodes)
 	for i, node := range workflow.Nodes {
@@ -334,9 +343,9 @@ func (w *WorkController) ApprovalOvertime() {
 		}
 	}
 	if !isCheck {
-		w.ErrorOK("您不是当前审批人")
+		return errors.New("您不是当前审批人")
 	}
-	w.Correct("")
+	return nil
 }
 
 // @Title 取消申请加班
@@ -395,6 +404,17 @@ func (w *WorkController) ValidOvertime() {
 	}).Error
 	if err != nil {
 		w.ErrorOK(MsgServerErr)
+	}
+	//修改加班流程结束
+	userID, _ := w.GetInt("userID", 0)
+	param := forms.ReqApprovalOvertime{
+		Id:      oID,
+		Status:  1,
+		Comment: "",
+	}
+	err = checkOvertime(userID, &param)
+	if err != nil {
+		w.ErrorOK(err.Error())
 	}
 	w.Correct("")
 }
@@ -666,6 +686,15 @@ func (w *WorkController) ApprovalLeave() {
 		log.GLogger.Error("parse overtime err:%s", err.Error())
 		w.ErrorOK(MsgInvalidParam)
 	}
+	userID, _ := w.GetInt("userID", 0)
+	err = checkLeave(userID, param)
+	if err != nil {
+		w.ErrorOK(err.Error())
+	}
+	w.Correct("")
+}
+
+func checkLeave(userID int, param *forms.ReqApprovalOvertime) error {
 	//oID 查询 workflow
 	workflow := new(oa.Workflow)
 	services.Slave().Model(oa.Workflow{}).Where("workflow_definition_id = ? and entity_id = ?",
@@ -673,7 +702,6 @@ func (w *WorkController) ApprovalLeave() {
 		Preload("Elements").First(workflow)
 
 	isCheck := false
-	userID, _ := w.GetInt("userID", 0)
 	// 负责人，hr审批
 	num := len(workflow.Nodes)
 	for i, node := range workflow.Nodes {
@@ -723,12 +751,12 @@ func (w *WorkController) ApprovalLeave() {
 						log.GLogger.Info("%f", balance.Amount)
 						if leave.Type == "Shift" {
 							if remain.Weekend < -balance.Amount {
-								w.ErrorOK("剩余调休不足")
+								return errors.New("剩余调休不足")
 							}
 						}
 						if leave.Type == "Annual" {
 							if remain.Annual < -balance.Amount {
-								w.ErrorOK("剩余年假不足")
+								return errors.New("剩余年假不足")
 							}
 							balance.Type = oa.AnnualLeave
 						}
@@ -740,9 +768,9 @@ func (w *WorkController) ApprovalLeave() {
 		}
 	}
 	if !isCheck {
-		w.ErrorOK("您不是当前审批人")
+		return errors.New("您不是当前审批人")
 	}
-	w.Correct("")
+	return nil
 }
 
 // @Title 取消申请请假
@@ -801,6 +829,17 @@ func (w *WorkController) ValidLeave() {
 	}).Error
 	if err != nil {
 		w.ErrorOK(MsgServerErr)
+	}
+	//结束请假流程
+	userID, _ := w.GetInt("userID", 0)
+	param := forms.ReqApprovalOvertime{
+		Id:      lID,
+		Status:  1,
+		Comment: "",
+	}
+	err = checkLeave(userID, &param)
+	if err != nil {
+		w.ErrorOK(err.Error())
 	}
 	w.Correct("")
 }
