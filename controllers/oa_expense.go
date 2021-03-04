@@ -691,6 +691,7 @@ func Read(f *excelize.File, validCode bool) ([]*oa.ExpenseDetail, error) {
 			code, ok := oa.ExpenseAccountMap[colList[1]]
 			if ok {
 				expenseAccountCode = code
+				expenseAccount.Code = code
 				expenseAccount.ExpenseAccountName = colList[1]
 			} else {
 				errorArray = append(errorArray, fmt.Sprintf("第%d行费用科目不正确", x))
