@@ -1366,4 +1366,22 @@ func init() {
 			MethodParams:     param.Make(),
 			Filters:          nil,
 			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:DeviceController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:DeviceController"],
+		beego.ControllerComments{
+			Method:           "LowPriceArticleImport",
+			Router:           `/lpa_import`,
+			AllowHTTPMethods: []string{"post"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
+	beego.GlobalControllerRouter["bfimpl/controllers:DeviceController"] = append(beego.GlobalControllerRouter["bfimpl/controllers:DeviceController"],
+		beego.ControllerComments{
+			Method:           "DeviceImport",
+			Router:           `/import`,
+			AllowHTTPMethods: []string{"post"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
 }

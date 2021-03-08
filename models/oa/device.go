@@ -17,13 +17,14 @@ import (
 )
 
 var DeviceCategoryMap = map[string]struct{}{
-	"PC":      {},
-	"Laptop":  {},
-	"iMac":    {},
-	"Mobile":  {},
-	"Pad":     {},
-	"Monitor": {},
-	"Network": {},
+	"PC":        {},
+	"Laptop":    {},
+	"iMac":      {},
+	"Mobile":    {},
+	"Pad":       {},
+	"Monitor":   {},
+	"Network":   {},
+	"Telephone": {},
 }
 
 var DeviceTodoStatusLeaderMap = map[string][]string{
@@ -61,6 +62,7 @@ type Device struct {
 	VAT                float64              `gorm:"type:decimal(10,2);not null;comment:'增值税金额'" json:"vat"`
 	WarrantyPeriod     int                  `gorm:"not null;comment:'保修期限'" json:"warranty_period"`
 	Site               string               `gorm:"size:100;not null;comment:'位置'" json:"site"`
+	Comment            string               `gorm:"size:1000;comment:'备注'" json:"comment"`
 	DeviceApplyID      int                  `gorm:"size:50;comment:'申请单id'" json:"device_apply_id"`
 	DeviceApply        *DeviceApply         `gorm:"ForeignKey:DeviceApplyID" json:"device_apply"`
 	IsApply            int                  `gorm:"size:10;not null;comment:'是否可申领'" json:"is_apply"`
@@ -126,6 +128,7 @@ func (d *Device) SetDepreciate() {
 		log.GLogger.Info("depreciate: %s", depreciate)
 		monthDepreciate, _ := strconv.ParseFloat(fmt.Sprintf("%.2f", depreciate), 64)
 		if nowTime.After(ingoingTimeAfter35Month) {
+			fmt.Println("nowTime After ingoingTimeAfter35Month")
 			log.GLogger.Info("nowTime After ingoingTimeAfter35Month")
 			d.Depreciate = d.PurchasePrice - monthDepreciate*35 // 第36个月
 		} else {

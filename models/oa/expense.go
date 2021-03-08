@@ -75,7 +75,7 @@ type ExpenseDetail struct {
 	ExpenseAccount     *ExpenseAccount `gorm:"foreignKey:ExpenseAccountCode;References:Code" json:"expense_account"`
 	OcurredDate        models.Date     `gorm:"type:date;comment:'发生日期'" json:"ocurred_date"`
 	ExpenseAmount      float64         `gorm:"type:decimal(10,2);comment:'费用金额'" json:"expense_amount"`
-	Remarks1           string          `gorm:"size:30;comment:'备注1'" json:"remarks1"`
+	Remarks1           string          `gorm:"size:100;comment:'备注1'" json:"remarks1"`
 	Remarks2           string          `gorm:"size:100;comment:'备注2'" json:"remarks2"`
 	Remarks3           string          `gorm:"size:100;comment:'备注3'" json:"remarks3"`
 }

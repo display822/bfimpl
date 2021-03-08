@@ -19,6 +19,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/360EntSecGroup-Skylar/excelize/v2"
 	"github.com/jinzhu/gorm"
 )
 
@@ -1009,4 +1010,301 @@ func (d *DeviceController) ListReturnByEmployee() {
 	sort.Sort(forms.ReturnByCreatedAt(returns))
 
 	d.Correct(returns)
+}
+func (d *DeviceController) DeviceImport() {
+	mf, _, err := d.GetFile("file")
+	if err != nil {
+		log.GLogger.Error("get file err: %s", err.Error())
+		d.Error(err.Error())
+		return
+	}
+	defer mf.Close()
+	f, err := excelize.OpenReader(mf)
+	if err != nil {
+		fmt.Println(err)
+		d.ErrorOK(err.Error())
+	}
+	tx := services.Slave().Begin()
+	rows, err := f.GetRows("Sheet1")
+	for i, r := range rows {
+		var row [29]string
+		for i, colCell := range r {
+			row[i] = colCell
+			fmt.Println(row)
+		}
+		if i == 0 {
+			fmt.Println(row)
+			continue
+		}
+		fmt.Println(row)
+		var deviceCategory string
+		// if row[1] == "台式电脑" {
+		// fmt.Println(row)
+		if row[1] == "台式电脑" {
+			deviceCategory = "PC"
+		} else if row[1] == "显示器" {
+			deviceCategory = "Monitor"
+		} else if row[1] == "笔记本" {
+			deviceCategory = "Laptop"
+		} else if row[1] == "手机" {
+			deviceCategory = "Mobile"
+		} else if row[1] == "网络设备" {
+			deviceCategory = "Network"
+		} else if row[1] == "电话机" {
+			deviceCategory = "Telephone"
+		}
+		if row[1] == "办公设备" {
+			continue
+		}
+		if deviceCategory == "" {
+			d.ErrorOK("need deviceCategory")
+			return
+		}
+		var deviceStatus string
+		if row[5] == "空闲中" {
+			deviceStatus = "Free"
+		} else if row[5] == "占用中" {
+			deviceStatus = "Possessed"
+		} else if row[5] == "维修中" {
+			deviceStatus = "Fixing"
+		}
+		fmt.Println(row[5])
+		if deviceStatus == "" {
+			d.ErrorOK("need deviceStatus")
+		}
+		var purchasePrice float64
+		if row[19] != "" {
+			float, err := strconv.ParseFloat(row[19], 64)
+			if err != nil {
+				fmt.Println(err)
+				d.ErrorOK("need purchasePrice")
+			}
+			purchasePrice = float
+		}
+
+		var purchaseDate models.Time
+		if row[20] != "" {
+			t, err := time.Parse("01-02-06", row[20])
+			if err != nil {
+				d.ErrorOK(err.Error())
+			}
+			purchaseDate = models.Time(t)
+		}
+		var isApply int
+		if row[23] == "是" {
+			isApply = 1
+		}
+		device := oa.Device{
+			DeviceCode:        row[0],
+			DeviceCategory:    deviceCategory,
+			Brand:             row[2],
+			DeviceName:        row[3],
+			DeviceModel:       row[4],
+			SharedDevice:      "",
+			IngoingOperatorID: 0,
+			IngoingTime:       models.Time(time.Now()),
+			DeviceStatus:      deviceStatus,
+			CPU:               row[6],
+			GPU:               row[7],
+			MEM:               row[8],
+			Volume:            row[9],
+			OS:                row[10],
+			Core:              row[11],
+			Version:           row[12],
+			ScreenSize:        row[13],
+			Resolution:        row[14],
+			AspectRatio:       row[15],
+			MACAddress1:       row[16],
+			MACAddress2:       row[17],
+			Retailer:          row[18],
+			PurchasePrice:     purchasePrice,
+			PurchaseDate:      purchaseDate,
+			VAT:               0,
+			WarrantyPeriod:    0,
+			Site:              row[22],
+			IsApply:           isApply,
+			Comment:           row[28],
+		}
+		fmt.Printf("device: %+v", device)
+
+		// 创建device_apply
+		err := tx.Create(&device).Error
+		if err != nil {
+			d.ErrorOK(err.Error())
+		}
+		// 创建活动记录
+		deviceRequisition := oa.DeviceRequisition{
+			DeviceID:         int(device.ID),
+			OperatorCategory: models.DeviceIngoing,
+			OperatorID:       0,
+			OperatorName:     "",
+		}
+		err = tx.Create(&deviceRequisition).Error
+		if err != nil {
+			log.GLogger.Error("create deviceRequisition err：%s", err.Error())
+			tx.Rollback()
+			d.ErrorOK(MsgServerErr)
+		}
+
+		if row[25] == "" {
+
+		} else {
+			applyEmployee := new(oa.Employee)
+			services.Slave().Take(applyEmployee, "name = ?", row[25])
+			if applyEmployee.ID == 0 {
+				fmt.Println(row[25])
+				// d.ErrorOK("applyEmployee")
+			}
+			deviceApply := oa.DeviceApply{
+				DeviceID:             int(device.ID),
+				EngagementCode:       row[26],
+				EmpID:                int(applyEmployee.ID),
+				EName:                row[25],
+				Status:               "Received",
+				Type:                 1,
+				Project:              "",
+				ApplicationDate:      time.Now(),
+				ReceiveDate:          time.Now(),
+				IsReturn:             0,
+				OutgoingOperatorID:   0,
+				OutgoingOperatorName: "",
+				OutgoingTime:         models.Time(time.Now()),
+			}
+			fmt.Println(deviceApply)
+			tx.Create(&deviceApply)
+			device.DeviceApplyID = int(deviceApply.ID)
+			tx.Save(&device)
+
+			//
+			deviceRequisition1 := oa.DeviceRequisition{
+				DeviceID:              int(device.ID),
+				AssociateEmployeeID:   int(applyEmployee.ID),
+				AssociateEmployeeName: row[25],
+				OperatorCategory:      models.DeviceOutgoing,
+				OperatorID:            0,
+				OperatorName:          "",
+				Comment:               "",
+			}
+			err = tx.Create(&deviceRequisition1).Error
+			if err != nil {
+				log.GLogger.Error("create deviceRequisition err:%s", err.Error())
+				tx.Rollback()
+				d.ErrorOK(MsgServerErr)
+			}
+		}
+
+	}
+	tx.Commit()
+
+}
+
+func (d *DeviceController) LowPriceArticleImport() {
+	mf, _, err := d.GetFile("file")
+	if err != nil {
+		log.GLogger.Error("get file err: %s", err.Error())
+		d.Error(err.Error())
+		return
+	}
+	defer mf.Close()
+	f, err := excelize.OpenReader(mf)
+	if err != nil {
+		fmt.Println(err)
+		d.ErrorOK(err.Error())
+	}
+	rows, err := f.GetRows("数据填写")
+	tx := services.Slave().Begin()
+	employee := new(oa.Employee)
+	var lpr oa.LowPriceArticle
+	var totalQuantity int
+	var lQuantity int
+	for i, r := range rows {
+		if i == 0 {
+			continue
+		}
+		fmt.Println(r)
+		if r[0] == "" && r[1] == "" {
+			if r[8] != "" {
+				fmt.Println(r[8])
+				outemployee := new(oa.Employee)
+				services.Slave().Take(outemployee, "name = ?", r[8])
+				lpar2 := oa.LowPriceArticleRequisition{
+					LowPriceArticleID:     int(lpr.ID),
+					OperatorID:            int(employee.ID),
+					OperatorName:          employee.Name,
+					AssociateEmployeeID:   int(outemployee.ID),
+					AssociateEmployeeName: r[8],
+					OperatorCategory:      "Outgoing",
+					Quantity:              totalQuantity,
+				}
+				tx.Create(&lpar2)
+			}
+			// time.Sleep(1 * time.Second)
+			continue
+		}
+
+		services.Slave().Take(employee, "name = ?", r[11])
+		outemployee := new(oa.Employee)
+		services.Slave().Take(outemployee, "name = ?", r[8])
+		if r[8] != "" && outemployee.ID == 0 {
+			tx.Rollback()
+			d.ErrorOK(MsgServerErr)
+		}
+		purchasePrice, _ := strconv.ParseFloat(r[3], 64)
+		var needReturn int
+		if r[10] == "是" {
+			needReturn = 1
+		}
+		totalQuantity, _ := strconv.Atoi(r[6])
+		outgoingQuantity, _ := strconv.Atoi(r[7])
+		lQuantity, _ = strconv.Atoi(r[9])
+		lpr = oa.LowPriceArticle{
+			LowPriceArticleCategory: r[0],
+			LowPriceArticleName:     r[1],
+			Brand:                   r[2],
+			Retailer:                r[4],
+			Site:                    r[5],
+			PurchasePrice:           purchasePrice,
+			IngoingOperatorID:       int(employee.ID),
+			IngoingOperatorName:     r[11],
+			IngoingTime:             models.Time(time.Now()),
+			TotalQuantity:           totalQuantity,
+			OutgoingQuantity:        outgoingQuantity,
+			ScrapQuantity:           0,
+			NeedReturn:              needReturn,
+		}
+		fmt.Printf("%+v\n", lpr)
+		tx.Create(&lpr)
+		// time.Sleep(1 * time.Second)
+
+		// 添加入库记录
+		lpar := oa.LowPriceArticleRequisition{
+			LowPriceArticleID:     int(lpr.ID),
+			OperatorID:            int(employee.ID),
+			OperatorName:          employee.Name,
+			AssociateEmployeeID:   0,
+			AssociateEmployeeName: "",
+			OperatorCategory:      "Ingoing",
+			Quantity:              totalQuantity,
+		}
+		tx.Create(&lpar)
+		// time.Sleep(1 * time.Second)
+		// 添加领用记录
+		if r[8] != "" {
+			lpar2 := oa.LowPriceArticleRequisition{
+				LowPriceArticleID:     int(lpr.ID),
+				OperatorID:            int(employee.ID),
+				OperatorName:          employee.Name,
+				AssociateEmployeeID:   int(outemployee.ID),
+				AssociateEmployeeName: r[8],
+				OperatorCategory:      "Outgoing",
+				Quantity:              lQuantity,
+			}
+			tx.Create(&lpar2)
+		}
+
+	}
+	// fmt.Println(rows)
+	tx.Commit()
+
+	d.Correct("deviceApplys")
 }
