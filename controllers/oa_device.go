@@ -112,7 +112,7 @@ func (d *DeviceController) List() {
 	}
 	if keyword != "" {
 		k := fmt.Sprintf("%%%s%%", keyword)
-		db = db.Where("concat(device_name, device_code,device_model) like ?", k)
+		db = db.Where("concat(device_name, device_code,device_model,cpu,gpu,mem,volume,os,core,version,screen_size,resolution,aspect_ratio) like ?", k)
 	}
 	var resp struct {
 		Total int          `json:"total"`
