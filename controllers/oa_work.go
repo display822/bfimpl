@@ -893,7 +893,7 @@ func AddAnnual() {
 	for _, emp := range emps {
 		//取合同里的年假字段
 		contracts := make([]*oa.EmployeeContract, 0)
-		services.Slave().Table("employee_contracts").Select("contract_type,contract_party,contract_main,contract_start_date,max(contract_end_date) as contract_end_date,status, employee_id").
+		services.Slave().Table("employee_contracts").Select("annual_leave,contract_type,contract_party,contract_main,contract_start_date,max(contract_end_date) as contract_end_date,status, employee_id").
 			Where("status = ? and employee_id = ?", "已签", emp.ID).Group("employee_id").Scan(&contracts)
 		if len(contracts) > 0 {
 			annual := float32(contracts[0].AnnualLeave*months[m]) / 365
