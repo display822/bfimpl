@@ -12,6 +12,7 @@ import (
 	"bfimpl/services"
 	"bfimpl/services/log"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -103,8 +104,10 @@ func (l *LowPriceArticleController) List() {
 		db = db.Where("low_price_article_category = ?", category)
 	}
 	if keyword != "" {
-
+		k := fmt.Sprintf("%%%s%%", keyword)
+		db = db.Where("concat(low_price_article_name, brand,retailer,site) like ?", k)
 	}
+
 	var lpa []*oa.LowPriceArticle
 	db.Limit(pageSize).Offset((pageNum - 1) * pageSize).Order("created_at desc").Find(&lpa).Limit(-1).Offset(-1).Count(&resp.Total)
 	resp.List = lpa

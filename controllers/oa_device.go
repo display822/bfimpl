@@ -112,7 +112,7 @@ func (d *DeviceController) List() {
 	}
 	if keyword != "" {
 		k := fmt.Sprintf("%%%s%%", keyword)
-		db = db.Where("concat(device_name, device_code,device_model,cpu,gpu,mem,volume,os,core,version,screen_size,resolution,aspect_ratio) like ?", k)
+		db = db.Where("concat(device_name, device_code,device_model,cpu,gpu,mem,volume,os,core,version,screen_size,resolution,aspect_ratio,mac_address_1,mac_address_2) like ?", k)
 	}
 	var resp struct {
 		Total int          `json:"total"`
@@ -1091,7 +1091,7 @@ func (d *DeviceController) DeviceImport() {
 			purchaseDate = models.Time(t)
 		}
 		var isApply int
-		if row[23] == "是" {
+		if row[23] == "否" {
 			isApply = 1
 		}
 		device := oa.Device{
