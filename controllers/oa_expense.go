@@ -1049,12 +1049,16 @@ func (e *ExpenseController) ExportUnpaid() {
 	var es []*oa.Expense
 	services.Slave().Where("status = ?", models.FlowUnpaid).Preload("ExpenseDetails").
 		Preload("ExpenseDetails.ExpenseAccount").Find(&es)
+	log.GLogger.Info("es", es)
 	t := time.Now().AddDate(0, -1, 0)
 	first := util.GetFirstDateOfMonth(t)
 	last := util.GetLastDateOfMonth(t)
 	for _, expense := range es {
 		for _, detail := range expense.ExpenseDetails {
-			if time.Time(detail.OcurredDate).After(first) && time.Time(detail.OcurredDate).Before(last) {
+			if (time.Time(detail.OcurredDate).After(first) || time.Time(detail.OcurredDate).After(first)) && (time.Time(detail.OcurredDate).Before(last) || time.Time(detail.OcurredDate).Equal(last)) {
+				log.GLogger.Info("expense.id", expense.ID)
+				log.GLogger.Info("expense.ExpenseAccountCode", detail.ExpenseAccountCode)
+
 				_ = f.SetSheetRow("报销明细", "A"+strconv.Itoa(num4), &[]interface{}{
 					expense.EName /*人员*/, detail.OcurredDate, /*费用发生日期*/
 					detail.ExpenseAccount.ExpenseAccountName,                             /*费用科目*/
