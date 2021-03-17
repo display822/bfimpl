@@ -1055,7 +1055,7 @@ func (e *ExpenseController) ExportUnpaid() {
 	last := util.GetLastDateOfMonth(t)
 	for _, expense := range es {
 		for _, detail := range expense.ExpenseDetails {
-			if (time.Time(detail.OcurredDate).After(first) || time.Time(detail.OcurredDate).After(first)) && (time.Time(detail.OcurredDate).Before(last) || time.Time(detail.OcurredDate).Equal(last)) {
+			if (time.Time(detail.OcurredDate).After(first) || time.Time(detail.OcurredDate).Equal(first)) && (time.Time(detail.OcurredDate).Before(last) || time.Time(detail.OcurredDate).Equal(last)) {
 				log.GLogger.Info("expense.id", expense.ID)
 				log.GLogger.Info("expense.ExpenseAccountCode", detail.ExpenseAccountCode)
 
